@@ -1,7 +1,7 @@
 # Colored
 
 [![Build
-Status](https://travis-ci.org/mackwic/colored.svg?branch=master)](https://travis-ci.org/mackwic/colored)
+Status](https://travis-ci.org/mackwic/colored.svg?branch=master)](https://travis-ci.org/mackwic/colored) [![Crates.io](https://img.shields.io/crates/v/colored.svg?maxAge=2592000)](https://crates.io/crates/colored) [![Crates.io](https://img.shields.io/crates/l/colored.svg?maxAge=2592000)](https://github.com/mackwic/colored/blob/master/LICENSE)
 
 Coloring terminal so simple, you already know how to do it !
 
@@ -27,7 +27,7 @@ Add this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-colored = "1.2"
+colored = "1.3"
 ```
 
 and add this to your `lib.rs` or `main.rs`:
