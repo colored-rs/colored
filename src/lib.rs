@@ -1,8 +1,12 @@
-#![allow(unused_imports,dead_code)]
+#![allow(unused_imports,dead_code,unused_parens)]
 
 #[macro_use]
 extern crate lazy_static;
 
+#[cfg(test)]
+extern crate rspec;
+
+mod control;
 mod color;
 mod style;
 

@@ -83,7 +83,8 @@ For example, you can do this in your `Cargo.toml` to disable color in tests:
 
 ```toml
 [features]
-# this effectively enable the feature `no-color` of colored when testing
+# this effectively enable the feature `no-color` of colored when testing with
+# `cargo test --feature test`
 test = ["colored/no-color"]
 ```
 
