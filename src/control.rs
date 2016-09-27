@@ -32,14 +32,41 @@ impl Default for ShouldColorize {
 }
 
 impl ShouldColorize {
-    fn should_colorize(&self) -> bool {
 
-        match (self.stdout_is_a_tty, self.clicolor_force, self.clicolor) {
+    fn from_env() -> Self {
+        use std::io;
+
+        ShouldColorize {
+            clicolor: ShouldColorize::normalize_env(env::var("CLICOLOR")),
+            clicolor_force: ShouldColorize::normalize_env(env::var("CLICOLOR_FORCE")),
+            //stdout_is_a_tty: io::stdout()
+            .. ShouldColorize::default()
+        }
+    }
+
+    pub fn should_colorize(&self) -> bool {
+
+        if let Some(manual_override) = self.manual_override {
+            return manual_override;
+        }
+
+        if Some(true) == self.clicolor_force {
+            return true;
+        }
+
+        match (self.stdout_is_a_tty, self.clicolor) {
             (_    , Some(true),        _)           => true,
             (false, _,                 _)           => false,
             (_,     Some(force_value), _)           => force_value,
             (_,     _,                 Some(value)) => value,
             _                                       => true
+        }
+    }
+
+    fn normalize_env(env_res: Result<String, env::VarError>) -> Option<bool> {
+        match env_res {
+            Ok(string) => Some(string != "0"),
+            Err(_) => None
         }
     }
 }
@@ -48,14 +75,42 @@ impl ShouldColorize {
 mod specs {
     use super::*;
     use rspec::context::{rdescribe};
-
+    use std::env;
 
     #[test]
     fn clicolor_behavior() {
 
-        rdescribe("ShouldColorize::value", |ctx| {
+        rdescribe("ShouldColorize", |ctx| {
+
+            ctx.describe("::normalize_env", |ctx| {
+
+                ctx.it("should return None if error", || {
+                   assert_eq!(None, ShouldColorize::normalize_env(Err(env::VarError::NotPresent)));
+                   assert_eq!(None, ShouldColorize::normalize_env(Err(env::VarError::NotUnicode("".into()))))
+                });
+
+                ctx.it("should return Some(true) if != 0", || {
+                    Some(true) == ShouldColorize::normalize_env(Ok(String::from("1")))
+                });
+
+                ctx.it("should return Some(false) if == 0", || {
+                    Some(false) == ShouldColorize::normalize_env(Ok(String::from("0")))
+                });
+            });
+
+            ctx.describe("constructors", |ctx| {
+
+                ctx.it("should have a default constructor", || {
+                    ShouldColorize::default();
+                });
+
+                ctx.it("should have an environment constructor", || {
+                    ShouldColorize::from_env();
+                });
+            });
 
             ctx.describe("when only changing clicolors", |ctx| {
+
                 ctx.it("clicolor == false means no colors", || {
                     let colorize_control = ShouldColorize {
                         clicolor: Some(false),
@@ -100,7 +155,6 @@ mod specs {
                 });
             });
             
-
             ctx.describe("changing stdout_is_a_tty", |ctx| {
 
                 ctx.it("should not colorize when stdout_is_a_tty is false", || {
@@ -124,6 +178,33 @@ mod specs {
                     };
 
                     true == colorize_control.should_colorize()
+                })
+            });
+
+            ctx.describe("using a manual override", |ctx| {
+
+                ctx.it("shoud colorize if manual_override is true, but clicolor is false and clicolor_force also false", || {
+                    let colorize_control = ShouldColorize {
+                        clicolor: Some(false),
+                        clicolor_force: None,
+                        stdout_is_a_tty: false,
+                        manual_override: Some(true),
+                        .. ShouldColorize::default()
+                    };
+
+                    true == colorize_control.should_colorize()
+                });
+
+                ctx.it("should not colorize if manual_override is false, but clicolor is true or clicolor_force is true", || {
+                    let colorize_control = ShouldColorize {
+                        clicolor: Some(true),
+                        clicolor_force: Some(true),
+                        stdout_is_a_tty: true,
+                        manual_override: Some(false),
+                        .. ShouldColorize::default()
+                    };
+
+                    false == colorize_control.should_colorize()
                 })
             });
         });
