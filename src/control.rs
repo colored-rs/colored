@@ -50,16 +50,18 @@ impl ShouldColorize {
             return manual_override;
         }
 
-        if Some(true) == self.clicolor_force {
-            return true;
+        if let Some(forced_value) = self.clicolor_force {
+            return forced_value;
+        }
+
+        if self.stdout_is_a_tty == false {
+            return false;
         }
 
         match (self.stdout_is_a_tty, self.clicolor) {
-            (_    , Some(true),        _)           => true,
-            (false, _,                 _)           => false,
-            (_,     Some(force_value), _)           => force_value,
-            (_,     _,                 Some(value)) => value,
-            _                                       => true
+            (false, _)           => false,
+            (_,     Some(value)) => value,
+            _                    => true
         }
     }
 
@@ -74,13 +76,18 @@ impl ShouldColorize {
 #[cfg(test)]
 mod specs {
     use super::*;
-    use rspec::context::{rdescribe};
+    use rspec::context::*;
+    use rspec;
     use std::env;
 
     #[test]
     fn clicolor_behavior() {
 
-        rdescribe("ShouldColorize", |ctx| {
+        use std::io;
+
+        let stdout = &mut io::stdout();
+        let mut formatter = rspec::formatter::Simple::new(stdout);
+        let mut runner = describe("ShouldColorize", |ctx| {
 
             ctx.describe("::normalize_env", |ctx| {
 
@@ -208,6 +215,8 @@ mod specs {
                 })
             });
         });
+        runner.add_event_handler(&mut formatter);
+        runner.run().unwrap();
     }
 }
 
