@@ -95,8 +95,8 @@ mod compat_complex {
         let s = "test string";
         let ansi = Colour::Red.on(Colour::Black).bold().italic().paint(s);
         assert_eq!(
-            s.red().bold().italic().on_black().to_string(),
-            ansi.to_string()
+            ansi.to_string(),
+            s.red().bold().italic().on_black().to_string()
         );
     }
 
@@ -105,8 +105,8 @@ mod compat_complex {
         let s = "test string";
         let ansi = Colour::Green.on(Colour::Yellow).underline().paint(s);
         assert_eq!(
-            s.green().on_yellow().underline().to_string(),
-            ansi.to_string()
+            ansi.to_string(),
+            s.green().on_yellow().underline().to_string()
         );
     }
 }
