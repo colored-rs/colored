@@ -117,7 +117,7 @@ impl ColoredString {
         res
     }
 
-    fn escape_inner_reset_sequence(&self) -> String {
+    fn escape_inner_reset_sequences(&self) -> String {
 
         if !self.has_colors() || self.is_plain() {
             return self.input.clone();
@@ -130,16 +130,21 @@ impl ColoredString {
                                              .map(|(idx, _)| idx)
                                              .collect();
 
+        let mut idx_in_matches = 0;
         let mut input = self.input.clone();
         input.reserve(matches.len() * style.len());
 
-        for idx in matches {
-            let mut idx = idx + reset.len();
+        for offset in matches {
+            // shift the offset to the end of the reset sequence and take in account
+            // the number of matches we have escaped (which shift the index to insert)
+            let mut offset = offset + reset.len() + idx_in_matches * style.len();
 
             for cchar in style.chars() {
-                input.insert(idx, cchar);
-                idx += 1;
+                input.insert(offset, cchar);
+                offset += 1;
             }
+
+            idx_in_matches += 1;
         }
 
         input
@@ -315,7 +320,7 @@ impl fmt::Display for ColoredString {
         }
 
         // XXX: see tests. Useful when nesting colored strings
-        let escaped_input = self.escape_inner_reset_sequence();
+        let escaped_input = self.escape_inner_reset_sequences();
 
         try!(f.write_str(&self.compute_style()));
         try!(<String as fmt::Display>::fmt(&escaped_input, f));
@@ -428,7 +433,7 @@ mod tests {
         let style = ColoredString::default();
         let expected = String::new();
 
-        let output = style.escape_inner_reset_sequence();
+        let output = style.escape_inner_reset_sequences();
 
         assert_eq!(expected, output);
     }
@@ -438,7 +443,7 @@ mod tests {
         let style = ColoredString { input: String::from("hello world !"), .. ColoredString::default() };
 
         let expected = String::from("hello world !");
-        let output = style.escape_inner_reset_sequence();
+        let output = style.escape_inner_reset_sequences();
 
         assert_eq!(expected, output);
     }
@@ -448,11 +453,39 @@ mod tests {
         let input = format!("start {} end", String::from("hello world !").red());
         let style = input.blue();
 
-        let output = style.escape_inner_reset_sequence();
+        let output = style.escape_inner_reset_sequences();
         let blue = "\x1B[34m";
         let red = "\x1B[31m";
         let reset = "\x1B[0m";
         let expected = format!("start {}hello world !{}{} end", red, reset, blue);
+        assert_eq!(expected, output);
+    }
+
+    #[test]
+    fn escape_reset_sequence_spec_should_replace_multiple_inner_reset_sequences_with_current_style() {
+        let italic_str = String::from("yo").italic();
+        let input = format!("start 1:{} 2:{} 3:{} end", italic_str, italic_str, italic_str);
+        let style = input.blue();
+
+        let output = style.escape_inner_reset_sequences();
+        let blue = "\x1B[34m";
+        let italic = "\x1B[3m";
+        let reset = "\x1B[0m";
+        let expected = format!(
+            "start 1:{}yo{}{} 2:{}yo{}{} 3:{}yo{}{} end",
+            italic,
+            reset,
+            blue,
+            italic,
+            reset,
+            blue,
+            italic,
+            reset,
+            blue
+        );
+
+        println!("first: {}\nsecond: {}", expected, output);
+
         assert_eq!(expected, output);
     }
 }
