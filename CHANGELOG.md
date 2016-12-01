@@ -1,4 +1,16 @@
 
+# 1.3.2 (Nov 26, 2016)
+
+- FIX: usage of nested ColoredString again, no more style broken mid-line
+
+# 1.3.1 (Oct 14, 2016)
+
+- FIX: usage of ColoredString in a nested way broke the styling mid-line
+
+# 1.3.0 (Jul 31, 2016)
+
+- Provide various options for disabling the coloring in an API-compatible way
+
 # 1.2.0 (Mar 30, 2016)
 
 - Support the different formatting options, like padding and alignment

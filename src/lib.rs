@@ -85,6 +85,74 @@ impl ColoredString {
     fn has_colors(&self) -> bool {
         false
     }
+
+    fn compute_style(&self) -> String {
+
+        if !self.has_colors() || self.is_plain() {
+            return String::new();
+        }
+
+        let mut res = String::from("\x1B[");
+        let mut has_wrote = false;
+
+        if self.style != style::CLEAR {
+            res.push_str(&self.style.to_str());
+            has_wrote = true;
+        }
+
+        if let Some(ref bgcolor) = self.bgcolor {
+            if has_wrote {
+                res.push(';');
+            }
+
+            res.push_str(bgcolor.to_bg_str());
+            has_wrote = true;
+        }
+
+        if let Some(ref fgcolor) = self.fgcolor {
+            if has_wrote {
+                res.push(';');
+            }
+
+            res.push_str(fgcolor.to_fg_str());
+        }
+
+        res.push('m');
+        res
+    }
+
+    fn escape_inner_reset_sequences(&self) -> String {
+
+        if !self.has_colors() || self.is_plain() {
+            return self.input.clone();
+        }
+
+        // TODO: BoyScoutRule
+        let reset = "\x1B[0m";
+        let style = self.compute_style();
+        let matches : Vec<usize> = self.input.match_indices(reset)
+                                             .map(|(idx, _)| idx)
+                                             .collect();
+
+        let mut idx_in_matches = 0;
+        let mut input = self.input.clone();
+        input.reserve(matches.len() * style.len());
+
+        for offset in matches {
+            // shift the offset to the end of the reset sequence and take in account
+            // the number of matches we have escaped (which shift the index to insert)
+            let mut offset = offset + reset.len() + idx_in_matches * style.len();
+
+            for cchar in style.chars() {
+                input.insert(offset, cchar);
+                offset += 1;
+            }
+
+            idx_in_matches += 1;
+        }
+
+        input
+    }
 }
 
 impl Default for ColoredString {
@@ -255,31 +323,11 @@ impl fmt::Display for ColoredString {
             return (<String as fmt::Display>::fmt(&self.input, f));
         }
 
-        try!(f.write_str("\x1B["));
-        let mut has_wrote = false;
+        // XXX: see tests. Useful when nesting colored strings
+        let escaped_input = self.escape_inner_reset_sequences();
 
-        if self.style != style::CLEAR {
-            try!(f.write_str(&self.style.to_str()));
-            has_wrote = true;
-        }
-
-        if let Some(ref color) = self.bgcolor {
-            if has_wrote {
-                try!(f.write_str(";"))
-            }
-            try!(f.write_str(color.to_bg_str()));
-            has_wrote = true;
-        }
-
-        if let Some(ref color) = self.fgcolor {
-            if has_wrote {
-                try!(f.write_str(";"))
-            }
-            try!(f.write_str(color.to_fg_str()));
-        }
-
-        try!(f.write_str("m"));
-        try!(<String as fmt::Display>::fmt(&self.input, f));
+        try!(f.write_str(&self.compute_style()));
+        try!(<String as fmt::Display>::fmt(&escaped_input, f));
         try!(f.write_str("\x1B[0m"));
         Ok(())
     }
@@ -335,5 +383,113 @@ mod tests {
         println!("{}", toto.white().red().blue().green());
         // uncomment to see term output
         // assert!(false)
+    }
+
+    #[test]
+    fn compute_style_empty_string() {
+        assert_eq!("", "".clear().compute_style());
+    }
+
+    #[test]
+    fn compute_style_simple_fg_blue() {
+        let blue = "\x1B[34m";
+
+        assert_eq!(blue, "".blue().compute_style());
+    }
+
+    #[test]
+    fn compute_style_simple_bg_blue() {
+        let on_blue = "\x1B[44m";
+
+        assert_eq!(on_blue, "".on_blue().compute_style());
+    }
+
+    #[test]
+    fn compute_style_blue_on_blue() {
+        let blue_on_blue = "\x1B[44;34m";
+
+        assert_eq!(blue_on_blue, "".blue().on_blue().compute_style());
+    }
+
+    #[test]
+    fn compute_style_simple_bold() {
+        let bold = "\x1B[1m";
+
+        assert_eq!(bold, "".bold().compute_style());
+    }
+
+    #[test]
+    fn compute_style_blue_bold() {
+        let blue_bold = "\x1B[1;34m";
+
+        assert_eq!(blue_bold, "".blue().bold().compute_style());
+    }
+
+    #[test]
+    fn compute_style_blue_bold_on_blue() {
+        let blue_bold_on_blue = "\x1B[1;44;34m";
+
+        assert_eq!(blue_bold_on_blue, "".blue().bold().on_blue().compute_style());
+    }
+
+    #[test]
+    fn escape_reset_sequence_spec_should_do_nothing_on_empty_strings() {
+        let style = ColoredString::default();
+        let expected = String::new();
+
+        let output = style.escape_inner_reset_sequences();
+
+        assert_eq!(expected, output);
+    }
+
+    #[test]
+    fn escape_reset_sequence_spec_should_do_nothing_on_string_with_no_reset() {
+        let style = ColoredString { input: String::from("hello world !"), .. ColoredString::default() };
+
+        let expected = String::from("hello world !");
+        let output = style.escape_inner_reset_sequences();
+
+        assert_eq!(expected, output);
+    }
+
+    #[test]
+    fn escape_reset_sequence_spec_should_replace_inner_reset_sequence_with_current_style() {
+        let input = format!("start {} end", String::from("hello world !").red());
+        let style = input.blue();
+
+        let output = style.escape_inner_reset_sequences();
+        let blue = "\x1B[34m";
+        let red = "\x1B[31m";
+        let reset = "\x1B[0m";
+        let expected = format!("start {}hello world !{}{} end", red, reset, blue);
+        assert_eq!(expected, output);
+    }
+
+    #[test]
+    fn escape_reset_sequence_spec_should_replace_multiple_inner_reset_sequences_with_current_style() {
+        let italic_str = String::from("yo").italic();
+        let input = format!("start 1:{} 2:{} 3:{} end", italic_str, italic_str, italic_str);
+        let style = input.blue();
+
+        let output = style.escape_inner_reset_sequences();
+        let blue = "\x1B[34m";
+        let italic = "\x1B[3m";
+        let reset = "\x1B[0m";
+        let expected = format!(
+            "start 1:{}yo{}{} 2:{}yo{}{} 3:{}yo{}{} end",
+            italic,
+            reset,
+            blue,
+            italic,
+            reset,
+            blue,
+            italic,
+            reset,
+            blue
+        );
+
+        println!("first: {}\nsecond: {}", expected, output);
+
+        assert_eq!(expected, output);
     }
 }
