@@ -20,7 +20,7 @@ impl Default for ShouldColorize {
 
 impl ShouldColorize {
 
-    fn from_env() -> Self {
+    pub fn from_env() -> Self {
         use std::io;
 
         ShouldColorize {
@@ -45,6 +45,14 @@ impl ShouldColorize {
         }
 
         return true;
+    }
+
+    pub fn set_override(&mut self, override_colorize: bool) {
+        self.manual_override = Some(override_colorize);
+    }
+
+    pub fn unset_override(&mut self) {
+        self.manual_override = None;
     }
 
     fn normalize_env(env_res: Result<String, env::VarError>) -> Option<bool> {
@@ -167,6 +175,35 @@ mod specs {
 
                     false == colorize_control.should_colorize()
                 })
+            });
+
+            ctx.describe("::set_override", |ctx| {
+                ctx.it("should exists", || {
+                    let mut colorize_control = ShouldColorize::default();
+                    colorize_control.set_override(true);
+                });
+
+                ctx.it("set the manual_override property", || {
+                    let mut colorize_control = ShouldColorize::default();
+                    colorize_control.set_override(true);
+                    assert_eq!(Some(true), colorize_control.manual_override);
+                    colorize_control.set_override(false);
+                    assert_eq!(Some(false), colorize_control.manual_override);
+                });
+            });
+
+            ctx.describe("::unset_override", |ctx| {
+                ctx.it("should exists", || {
+                    let mut colorize_control = ShouldColorize::default();
+                    colorize_control.unset_override();
+                });
+
+                ctx.it("unset the manual_override property", || {
+                    let mut colorize_control = ShouldColorize::default();
+                    colorize_control.set_override(true);
+                    colorize_control.unset_override();
+                    assert_eq!(None, colorize_control.manual_override);
+                });
             });
         });
         runner.add_event_handler(&mut formatter);
