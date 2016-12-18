@@ -88,6 +88,8 @@ For example, you can do this in your `Cargo.toml` to disable color in tests:
 test = ["colored/no-color"]
 ```
 
+You can use have even finer control by using the `colored::control::should_colorize` methods.
+
 ## Todo
 
 - **Windows console support**: this works only with ansi term. I plan to support

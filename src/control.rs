@@ -8,6 +8,10 @@ pub struct ShouldColorize {
     manual_override: Option<bool>
 }
 
+lazy_static! {
+    pub static ref SHOULD_COLORIZE : ShouldColorize = ShouldColorize::from_env();
+}
+
 impl Default for ShouldColorize {
     fn default() -> ShouldColorize {
         ShouldColorize {
@@ -54,6 +58,8 @@ impl ShouldColorize {
     pub fn unset_override(&mut self) {
         self.manual_override = None;
     }
+
+    /* private */
 
     fn normalize_env(env_res: Result<String, env::VarError>) -> Option<bool> {
         match env_res {

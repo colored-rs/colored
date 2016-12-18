@@ -6,7 +6,7 @@ extern crate lazy_static;
 #[cfg(test)]
 extern crate rspec;
 
-mod control;
+pub mod control;
 mod color;
 mod style;
 
@@ -66,19 +66,9 @@ impl ColoredString {
 
     #[cfg(not(feature = "no-color"))]
     fn has_colors(&self) -> bool {
-        use std::env::var_os;
-        use std::ffi::OsString;
-        fn is_good(var: Option<OsString>) -> bool {
-            var.is_none() || var != Some("0".into())
-        }
-        lazy_static! {
-            static ref COLOR_STATE : bool = (
-                (var_os("CLICOLOR_FORCE").or(Some("0".into()))
-                 != Some("0".into()))
-                 || is_good(var_os("CLICOLOR"))
-            );
-        }
-        *COLOR_STATE
+        use control;
+
+        control::SHOULD_COLORIZE.should_colorize()
     }
 
     #[cfg(feature = "no-color")]
