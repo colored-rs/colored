@@ -1,12 +1,28 @@
 
 use std::env;
 use std::default::Default;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 pub struct ShouldColorize {
     clicolor: Option<bool>,
     clicolor_force: Option<bool>,
-    manual_override: Option<bool>
+    // XXX we can't use Option<Atomic> because we can't use &mut references to ShouldColorize
+    has_manual_override: AtomicBool,
+    manual_override: AtomicBool,
 }
+
+/// Use this to force colored to ignore the environment and always/never colorize
+/// See example/control.rs
+pub fn set_override(override_colorize: bool) {
+    SHOULD_COLORIZE.set_override(override_colorize)
+}
+
+/// Remove the manual override and let the environment decide if it's ok to colorize
+/// See example/control.rs
+pub fn unset_override() {
+    SHOULD_COLORIZE.unset_override()
+}
+
 
 lazy_static! {
     pub static ref SHOULD_COLORIZE : ShouldColorize = ShouldColorize::from_env();
@@ -17,7 +33,8 @@ impl Default for ShouldColorize {
         ShouldColorize {
             clicolor: None,
             clicolor_force: None,
-            manual_override: None
+            has_manual_override: AtomicBool::new(false),
+            manual_override:  AtomicBool::new(false),
         }
     }
 }
@@ -36,8 +53,8 @@ impl ShouldColorize {
 
     pub fn should_colorize(&self) -> bool {
 
-        if let Some(manual_override) = self.manual_override {
-            return manual_override;
+        if self.has_manual_override.load(Ordering::Relaxed) {
+            return self.manual_override.load(Ordering::Relaxed);
         }
 
         if let Some(forced_value) = self.clicolor_force {
@@ -51,12 +68,14 @@ impl ShouldColorize {
         return true;
     }
 
-    pub fn set_override(&mut self, override_colorize: bool) {
-        self.manual_override = Some(override_colorize);
+    pub fn set_override(&self, override_colorize: bool) {
+
+        self.has_manual_override.store(true, Ordering::Relaxed);
+        self.manual_override.store(override_colorize, Ordering::Relaxed);
     }
 
-    pub fn unset_override(&mut self) {
-        self.manual_override = None;
+    pub fn unset_override(&self) {
+        self.has_manual_override.store(false, Ordering::Relaxed);
     }
 
     /* private */
@@ -164,7 +183,8 @@ mod specs {
                     let colorize_control = ShouldColorize {
                         clicolor: Some(false),
                         clicolor_force: None,
-                        manual_override: Some(true),
+                        has_manual_override: AtomicBool::new(true),
+                        manual_override: AtomicBool::new(true),
                         .. ShouldColorize::default()
                     };
 
@@ -175,7 +195,8 @@ mod specs {
                     let colorize_control = ShouldColorize {
                         clicolor: Some(true),
                         clicolor_force: Some(true),
-                        manual_override: Some(false),
+                        has_manual_override: AtomicBool::new(true),
+                        manual_override: AtomicBool::new(false),
                         .. ShouldColorize::default()
                     };
 
@@ -185,30 +206,38 @@ mod specs {
 
             ctx.describe("::set_override", |ctx| {
                 ctx.it("should exists", || {
-                    let mut colorize_control = ShouldColorize::default();
+                    let colorize_control = ShouldColorize::default();
                     colorize_control.set_override(true);
                 });
 
                 ctx.it("set the manual_override property", || {
-                    let mut colorize_control = ShouldColorize::default();
+                    let colorize_control = ShouldColorize::default();
                     colorize_control.set_override(true);
-                    assert_eq!(Some(true), colorize_control.manual_override);
+                    {
+                        assert_eq!(true, colorize_control.has_manual_override.load(Ordering::Relaxed));
+                        let val = colorize_control.manual_override.load(Ordering::Relaxed);
+                        assert_eq!(true, val);
+                    }
                     colorize_control.set_override(false);
-                    assert_eq!(Some(false), colorize_control.manual_override);
+                    {
+                        assert_eq!(true, colorize_control.has_manual_override.load(Ordering::Relaxed));
+                        let val = colorize_control.manual_override.load(Ordering::Relaxed);
+                        assert_eq!(false, val);
+                    }
                 });
             });
 
             ctx.describe("::unset_override", |ctx| {
                 ctx.it("should exists", || {
-                    let mut colorize_control = ShouldColorize::default();
+                    let colorize_control = ShouldColorize::default();
                     colorize_control.unset_override();
                 });
 
                 ctx.it("unset the manual_override property", || {
-                    let mut colorize_control = ShouldColorize::default();
+                    let colorize_control = ShouldColorize::default();
                     colorize_control.set_override(true);
                     colorize_control.unset_override();
-                    assert_eq!(None, colorize_control.manual_override);
+                    assert_eq!(false, colorize_control.has_manual_override.load(Ordering::Relaxed));
                 });
             });
         });
