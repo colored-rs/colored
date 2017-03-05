@@ -17,5 +17,5 @@ no-color = []
 lazy_static = "0.1"
 
 [dev_dependencies]
-ansi_term = "0.7"
+ansi_term = "^0.9"
 rspec = "1.0.0-beta.3"
