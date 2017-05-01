@@ -76,6 +76,25 @@ You can clear color _and_ style anytime by using `normal()` or `clear()`
 
 #### Advanced Control:
 
+##### Dynamic color from str
+
+As `Color` implements `FromStr`, `From<&str>`, and `From<String>`, you can easily cast a string into a color like that:
+
+```rust
+// the easy way
+"blue string yo".color("blue");
+
+// this will default to white
+"white string".color("zorglub");
+
+// the safer way via a Result
+let color_res = "zorglub".parse(); // <- this returns a Result<Color, ()>
+"red string".color(color_res.unwrap_or(Color::Red));
+```
+
+
+##### Colorization control
+
 If you want to disable any coloring at compile time, you can simply with using
 the `no-color` feature.
 

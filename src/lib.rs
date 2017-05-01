@@ -1,4 +1,4 @@
-#![allow(unused_imports,dead_code,unused_parens)]
+#![allow(unused_imports, dead_code, unused_parens)]
 
 #[macro_use]
 extern crate lazy_static;
@@ -10,7 +10,7 @@ pub mod control;
 mod color;
 mod style;
 
-use color::*;
+pub use color::*;
 
 use std::convert::From;
 use std::ops::Deref;
@@ -18,7 +18,7 @@ use std::string::String;
 use std::fmt;
 
 /// Colored mean both color or styled
-#[derive(Debug,PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct ColoredString {
     input: String,
     fgcolor: Option<Color>,
@@ -37,6 +37,7 @@ pub trait Colorize {
     fn purple(self) -> ColoredString;
     fn cyan(self) -> ColoredString;
     fn white(self) -> ColoredString;
+    fn color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Background Colors
     fn on_black(self) -> ColoredString;
     fn on_red(self) -> ColoredString;
@@ -47,6 +48,7 @@ pub trait Colorize {
     fn on_purple(self) -> ColoredString;
     fn on_cyan(self) -> ColoredString;
     fn on_white(self) -> ColoredString;
+    fn on_color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Styles
     fn clear(self) -> ColoredString;
     fn normal(self) -> ColoredString;
@@ -77,7 +79,6 @@ impl ColoredString {
     }
 
     fn compute_style(&self) -> String {
-
         if !self.has_colors() || self.is_plain() {
             return String::new();
         }
@@ -112,7 +113,6 @@ impl ColoredString {
     }
 
     fn escape_inner_reset_sequences(&self) -> String {
-
         if !self.has_colors() || self.is_plain() {
             return self.input.clone();
         }
@@ -120,9 +120,9 @@ impl ColoredString {
         // TODO: BoyScoutRule
         let reset = "\x1B[0m";
         let style = self.compute_style();
-        let matches : Vec<usize> = self.input.match_indices(reset)
-                                             .map(|(idx, _)| idx)
-                                             .collect();
+        let matches: Vec<usize> = self.input.match_indices(reset)
+            .map(|(idx, _)| idx)
+            .collect();
 
         let mut idx_in_matches = 0;
         let mut input = self.input.clone();
@@ -193,7 +193,7 @@ macro_rules! def_style {
 impl Colorize for ColoredString {
     def_color!(fgcolor: black => Color::Black);
     fn red(self) -> ColoredString {
-        ColoredString { fgcolor: Some(Color::Red), ..self }
+        self.color(Color::Red)
     }
     def_color!(fgcolor: green => Color::Green);
     def_color!(fgcolor: yellow => Color::Yellow);
@@ -202,6 +202,10 @@ impl Colorize for ColoredString {
     def_color!(fgcolor: purple => Color::Magenta);
     def_color!(fgcolor: cyan => Color::Cyan);
     def_color!(fgcolor: white => Color::White);
+
+    fn color<S: Into<Color>>(self, color: S) -> ColoredString {
+        ColoredString { fgcolor: Some(color.into()), ..self }
+    }
 
     def_color!(bgcolor: on_black => Color::Black);
     fn on_red(self) -> ColoredString {
@@ -214,6 +218,10 @@ impl Colorize for ColoredString {
     def_color!(bgcolor: on_purple => Color::Magenta);
     def_color!(bgcolor: on_cyan => Color::Cyan);
     def_color!(bgcolor: on_white => Color::White);
+
+    fn on_color<S: Into<Color>>(self, color: S) -> ColoredString {
+        ColoredString { bgcolor: Some(color.into()), ..self }
+    }
 
     fn clear(self) -> ColoredString {
         ColoredString { input: self.input, ..ColoredString::default() }
@@ -271,6 +279,15 @@ impl<'a> Colorize for &'a str {
     def_str_color!(fgcolor: cyan => Color::Cyan);
     def_str_color!(fgcolor: white => Color::White);
 
+    fn color<S: Into<Color>>(self, color: S) -> ColoredString {
+        ColoredString {
+            fgcolor: Some(color.into()),
+            input: String::from(self),
+            ..ColoredString::default()
+        }
+    }
+
+
     def_str_color!(bgcolor: on_black => Color::Black);
     fn on_red(self) -> ColoredString {
         ColoredString {
@@ -286,6 +303,14 @@ impl<'a> Colorize for &'a str {
     def_str_color!(bgcolor: on_purple => Color::Magenta);
     def_str_color!(bgcolor: on_cyan => Color::Cyan);
     def_str_color!(bgcolor: on_white => Color::White);
+
+    fn on_color<S: Into<Color>>(self, color: S) -> ColoredString {
+        ColoredString {
+            bgcolor: Some(color.into()),
+            input: String::from(self),
+            ..ColoredString::default()
+        }
+    }
 
     fn clear(self) -> ColoredString {
         ColoredString {
@@ -308,7 +333,6 @@ impl<'a> Colorize for &'a str {
 
 impl fmt::Display for ColoredString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
         if !self.has_colors() || self.is_plain() {
             return (<String as fmt::Display>::fmt(&self.input, f));
         }
@@ -333,7 +357,7 @@ mod tests {
         assert!(format!("{:40}", "".blue()).len() >= 40);
         // both should be truncated to 1 char before coloring
         assert_eq!(format!("{:1.1}", "toto".blue()).len(),
-                   format!("{:1.1}", "1".blue()).len())
+        format!("{:1.1}", "1".blue()).len())
     }
 
     #[test]
@@ -434,7 +458,7 @@ mod tests {
 
     #[test]
     fn escape_reset_sequence_spec_should_do_nothing_on_string_with_no_reset() {
-        let style = ColoredString { input: String::from("hello world !"), .. ColoredString::default() };
+        let style = ColoredString { input: String::from("hello world !"), ..ColoredString::default() };
 
         let expected = String::from("hello world !");
         let output = style.escape_inner_reset_sequences();
@@ -482,4 +506,15 @@ mod tests {
 
         assert_eq!(expected, output);
     }
+
+    #[test]
+    fn color_fn() {
+        assert_eq!("blue".blue(), "blue".color("blue"))
+    }
+
+    #[test]
+    fn on_color_fn() {
+        assert_eq!("blue".on_blue(), "blue".on_color("blue"))
+    }
 }
+
