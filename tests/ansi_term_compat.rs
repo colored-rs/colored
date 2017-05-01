@@ -94,19 +94,15 @@ mod compat_complex {
     fn complex1() {
         let s = "test string";
         let ansi = Colour::Red.on(Colour::Black).bold().italic().paint(s);
-        assert_eq!(
-            ansi.to_string(),
-            s.red().bold().italic().on_black().to_string()
-        );
+        assert_eq!(ansi.to_string(),
+                   s.red().bold().italic().on_black().to_string());
     }
 
     #[test]
     fn complex2() {
         let s = "test string";
         let ansi = Colour::Green.on(Colour::Yellow).underline().paint(s);
-        assert_eq!(
-            ansi.to_string(),
-            s.green().on_yellow().underline().to_string()
-        );
+        assert_eq!(ansi.to_string(),
+                   s.green().on_yellow().underline().to_string());
     }
 }

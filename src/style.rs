@@ -66,15 +66,12 @@ impl Styles {
             return None;
         }
 
-        let res: Vec<Styles> = STYLES.into_iter()
+        let res: Vec<Styles> = STYLES
+            .into_iter()
             .filter(|&&(ref mask, _)| (0 != (u & mask)))
             .map(|&(_, value)| value)
             .collect();
-        if res.is_empty() {
-            None
-        } else {
-            Some(res)
-        }
+        if res.is_empty() { None } else { Some(res) }
     }
 }
 

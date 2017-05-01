@@ -4,7 +4,10 @@ use colored::*;
 
 fn main() {
     // TADAA !
-    println!("{} {} {}!", "it".green(), "works".blue().bold(), "great".bold().yellow());
+    println!("{} {} {}!",
+             "it".green(),
+             "works".blue().bold(),
+             "great".bold().yellow());
 
 
     println!("{}", String::from("this also works!").green().bold());

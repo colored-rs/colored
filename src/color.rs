@@ -149,13 +149,13 @@ mod tests {
 
         #[test]
         fn parse() {
-            let color : Result<Color,_> = "blue".parse();
+            let color: Result<Color, _> = "blue".parse();
             assert_eq!(Ok(Color::Blue), color)
         }
 
         #[test]
         fn error() {
-            let color : Result<Color,()> = "bloublou".parse();
+            let color: Result<Color, ()> = "bloublou".parse();
             assert_eq!(Err(()), color)
         }
 
