@@ -1,3 +1,6 @@
+# 1.5.1 (May 9, 2017)
+
+- Update lazy_static to 0.2.
 
 # 1.5.0 (May 1, 2017)
 
