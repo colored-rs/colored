@@ -2,6 +2,8 @@
 
 //!Coloring terminal so simple, you already know how to do it !
 //!
+//!    use colored::Colorize;
+//!
 //!    "this is blue".blue();
 //!    "this is red".red();
 //!    "this is red on blue".red().on_blue();
@@ -12,7 +14,7 @@
 //!    "or clear things up. This is default color and style".red().bold().clear();
 //!    "purple and magenta are the same".purple().magenta();
 //!    "and so are normal and clear".normal().clear();
-//!    String::new("this also works!").green().bold();
+//!    String::from("this also works!").green().bold();
 //!    format!("{:30}", "format works as expected. This will be padded".blue());
 //!    format!("{:.3}", "and this will be green but truncated to 3 chars".green());
 
