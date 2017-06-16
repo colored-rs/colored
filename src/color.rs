@@ -1,6 +1,7 @@
 use std::convert::From;
 use std::str::FromStr;
 
+/// The 8 standard colors.
 #[derive(Debug,PartialEq, Eq)]
 pub enum Color {
     Black,

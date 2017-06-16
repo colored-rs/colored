@@ -1,5 +1,21 @@
 #![allow(unused_imports, dead_code, unused_parens)]
 
+//!Coloring terminal so simple, you already know how to do it !
+//!
+//!    "this is blue".blue();
+//!    "this is red".red();
+//!    "this is red on blue".red().on_blue();
+//!    "this is also red on blue".on_blue().red();
+//!    "you can also make bold comments".bold();
+//!    println!("{} {} {}", "or use".cyan(), "any".italic().yellow(), "string type".cyan());
+//!    "or change advice. This is red".yellow().blue().red();
+//!    "or clear things up. This is default color and style".red().bold().clear();
+//!    "purple and magenta are the same".purple().magenta();
+//!    "and so are normal and clear".normal().clear();
+//!    String::new("this also works!").green().bold();
+//!    format!("{:30}", "format works as expected. This will be padded".blue());
+//!    format!("{:.3}", "and this will be green but truncated to 3 chars".green());
+
 #[macro_use]
 extern crate lazy_static;
 
@@ -17,7 +33,7 @@ use std::ops::Deref;
 use std::string::String;
 use std::fmt;
 
-/// Colored mean both color or styled
+/// A string that may have color and/or style applied to it.
 #[derive(Debug, PartialEq, Eq)]
 pub struct ColoredString {
     input: String,
@@ -26,6 +42,10 @@ pub struct ColoredString {
     style: style::Style,
 }
 
+/// The trait that enables something to be given color.
+///
+/// You can use `colored` effectively simply by importing this trait
+/// and then using its methods on `String` and `&str`.
 pub trait Colorize {
     // Font Colors
     fn black(self) -> ColoredString;

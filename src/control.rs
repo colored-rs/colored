@@ -1,3 +1,4 @@
+//! A couple of functions to enable and disable coloring.
 
 use std::env;
 use std::default::Default;
