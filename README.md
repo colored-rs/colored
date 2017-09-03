@@ -96,8 +96,8 @@ let color_res = "zorglub".parse(); // <- this returns a Result<Color, ()>
 
 ##### Colorization control
 
-If you want to disable any coloring at compile time, you can simply with using
-the `no-color` feature.
+If you want to disable any coloring at compile time, you can simply do so by
+using the `no-color` feature.
 
 For example, you can do this in your `Cargo.toml` to disable color in tests:
 
