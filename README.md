@@ -108,7 +108,8 @@ For example, you can do this in your `Cargo.toml` to disable color in tests:
 test = ["colored/no-color"]
 ```
 
-You can use have even finer control by using the `colored::control::should_colorize` methods.
+You can use have even finer control by using the
+`colored::control::set_override` method.
 
 ## Todo
 
