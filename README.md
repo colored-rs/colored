@@ -127,7 +127,8 @@ output correct strings.
 ## Licence
 
 [Mozilla Public Licence 2.0](https://www.mozilla.org/en-US/MPL/2.0/). See the
-LICENCE file at the root of the repository.
+[LICENCE](https://github.com/mackwic/colored/blob/master/LICENCE) file at the
+root of the repository.
 
 In non legal terms it means that:
 - if you fix a bug, you MUST give me the code of the fix (it's only fair)
