@@ -143,3 +143,4 @@ In non legal terms it means that:
 - Thomas Wickham: [@mackwic](https://github.com/mackwic)
 - Corey "See More" Richardson: [@cmr](https://github.com/cmr)
 - Iban Eguia: [@Razican](https://github.com/Razican)
+- Alexis "Horgix" Chotard: [@horgix](https://github.com/horgix)
