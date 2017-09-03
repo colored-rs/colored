@@ -3,7 +3,7 @@
 [![Build
 Status](https://travis-ci.org/mackwic/colored.svg?branch=master)](https://travis-ci.org/mackwic/colored) [![Crates.io](https://img.shields.io/crates/v/colored.svg?maxAge=2592000)](https://crates.io/crates/colored) [![Crates.io](https://img.shields.io/crates/l/colored.svg?maxAge=2592000)](https://github.com/mackwic/colored/blob/master/LICENSE)
 
-Coloring terminal so simple, you already know how to do it !
+Coloring terminal so simple, you already know how to do it!
 
 ```rust
     "this is blue".blue();
@@ -40,7 +40,7 @@ and add this to your `lib.rs` or `main.rs`:
 
     // test the example with `cargo run --example most_simple`
     fn main() {
-        // TADAA !
+        // TADAA!
         println!("{} {} !", "it".green(), "works".blue().bold());
     }
 ```
@@ -114,7 +114,7 @@ You can use have even finer control by using the `colored::control::should_color
 
 - **Windows console support**: this works only with ansi term. I plan to support
   the windows console also.
-- **More tests ?**: We always wecome more tests ! Please contribute !
+- **More tests ?**: We always wecome more tests! Please contribute!
 
 ## Credits
 
