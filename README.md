@@ -112,8 +112,8 @@ You can use have even finer control by using the `colored::control::should_color
 
 ## Todo
 
-- **Windows console support**: this works only with ansi term. I plan to support
-  the windows console also.
+- **Windows console support**: this works only with ANSI terminals. I plan to
+  support the windows console also.
 - **More tests ?**: We always wecome more tests! Please contribute!
 
 ## Credits
