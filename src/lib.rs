@@ -41,7 +41,7 @@ use std::string::String;
 use std::fmt;
 
 /// A string that may have color and/or style applied to it.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ColoredString {
     input: String,
     fgcolor: Option<Color>,
