@@ -15,8 +15,8 @@ Coloring terminal so simple, you already know how to do it!
     "or change advice. This is red".yellow().blue().red();
     "or clear things up. This is default color and style".red().bold().clear();
     "purple and magenta are the same".purple().magenta();
-    "you can specify color by string".color("blue").on_color("red");
     "and so are normal and clear".normal().clear();
+    "you can specify color by string".color("blue").on_color("red");
     String::from("this also works!").green().bold();
     format!("{:30}", "format works as expected. This will be padded".blue());
     format!("{:.3}", "and this will be green but truncated to 3 chars".green());
