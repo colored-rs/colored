@@ -10,6 +10,7 @@ Coloring terminal so simple, you already know how to do it!
     "this is red".red();
     "this is red on blue".red().on_blue();
     "this is also red on blue".on_blue().red();
+    "bright colors are welcome as well".on_bright_blue().bright_red();
     "you can also make bold comments".bold();
     println!("{} {} {}", "or use".cyan(), "any".italic().yellow(), "string type".cyan());
     "or change advice. This is red".yellow().blue().red();
@@ -61,7 +62,9 @@ and add this to your `lib.rs` or `main.rs`:
 - cyan
 - white
 
+Bright colors: prepend the color by `bright_`. So easy.
 Background colors: prepend the color by `on_`. Simple as that.
+Bright Background colors: prepend the color by `on_bright_`. Not hard at all.
 
 #### Styles:
 
