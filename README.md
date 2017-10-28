@@ -72,6 +72,7 @@ Background colors: prepend the color by `on_`. Simple as that.
 - reversed
 - blink
 - hidden
+- strikethrough
 
 You can clear color _and_ style anytime by using `normal()` or `clear()`
 

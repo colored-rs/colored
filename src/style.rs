@@ -7,14 +7,16 @@ const ITALIC: u8 = 0b0000_1000;
 const BLINK: u8 = 0b0001_0000;
 const HIDDEN: u8 = 0b0010_0000;
 const DIMMED: u8 = 0b0100_0000;
+const STRIKETHROUGH: u8 = 0b1000_0000;
 
-static STYLES: [(u8, Styles); 7] = [(BOLD, Styles::Bold),
+static STYLES: [(u8, Styles); 8] = [(BOLD, Styles::Bold),
                                     (DIMMED, Styles::Dimmed),
                                     (UNDERLINE, Styles::Underline),
                                     (REVERSED, Styles::Reversed),
                                     (ITALIC, Styles::Italic),
                                     (BLINK, Styles::Blink),
-                                    (HIDDEN, Styles::Hidden)];
+                                    (HIDDEN, Styles::Hidden),
+                                    (STRIKETHROUGH, Styles::Strikethrough)];
 
 pub static CLEAR: Style = Style(CLEARV);
 
@@ -32,6 +34,7 @@ pub enum Styles {
     Italic,
     Blink,
     Hidden,
+    Strikethrough,
 }
 
 impl Styles {
@@ -45,6 +48,7 @@ impl Styles {
             Styles::Blink => "5",
             Styles::Reversed => "7",
             Styles::Hidden => "8",
+            Styles::Strikethrough => "9",
         }
     }
 
@@ -58,6 +62,7 @@ impl Styles {
             Styles::Blink => BLINK,
             Styles::Reversed => REVERSED,
             Styles::Hidden => HIDDEN,
+            Styles::Strikethrough => STRIKETHROUGH,
         }
     }
 
@@ -119,15 +124,10 @@ mod tests {
             assert_eq!(None, Styles::from_u8(CLEARV))
         }
 
-        #[test]
-        fn invalid_is_none() {
-            assert_eq!(None, Styles::from_u8(0b1000_0000))
-        }
-
     }
 
     mod u8_to_styles_isomorphism {
-        use super::super::{BOLD, UNDERLINE, REVERSED, ITALIC, BLINK, HIDDEN, DIMMED};
+        use super::super::{BOLD, UNDERLINE, REVERSED, ITALIC, BLINK, HIDDEN, DIMMED, STRIKETHROUGH};
         use super::super::Styles;
 
         macro_rules! value_isomorph {
@@ -154,10 +154,11 @@ mod tests {
         value_isomorph!(blink, BLINK);
         value_isomorph!(hidden, HIDDEN);
         value_isomorph!(dimmed, DIMMED);
+        value_isomorph!(strikethrough, STRIKETHROUGH);
     }
 
     mod styles_combine_complex {
-        use super::super::{BOLD, UNDERLINE, REVERSED, ITALIC, BLINK, HIDDEN, DIMMED};
+        use super::super::{BOLD, UNDERLINE, REVERSED, ITALIC, BLINK, HIDDEN, DIMMED, STRIKETHROUGH};
         use super::super::{Styles, Style};
         use super::super::Styles::*;
 
@@ -253,7 +254,7 @@ mod tests {
 
         #[test]
         fn all() {
-            let s: &[Styles] = &[Bold, Dimmed, Underline, Reversed, Italic, Blink, Hidden];
+            let s: &[Styles] = &[Bold, Dimmed, Underline, Reversed, Italic, Blink, Hidden, Strikethrough];
             test_combine!(s)
         }
 
