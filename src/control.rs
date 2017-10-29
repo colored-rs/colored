@@ -65,7 +65,7 @@ impl ShouldColorize {
             return value;
         }
 
-        return true;
+        true
     }
 
     pub fn set_override(&self, override_colorize: bool) {

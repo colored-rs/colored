@@ -12,6 +12,14 @@ pub enum Color {
     Magenta,
     Cyan,
     White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
 }
 impl Color {
     pub fn to_fg_str(&self) -> &str {
@@ -24,6 +32,14 @@ impl Color {
             Color::Magenta => "35",
             Color::Cyan => "36",
             Color::White => "37",
+            Color::BrightBlack => "90",
+            Color::BrightRed => "91",
+            Color::BrightGreen => "92",
+            Color::BrightYellow => "93",
+            Color::BrightBlue => "94",
+            Color::BrightMagenta => "95",
+            Color::BrightCyan => "96",
+            Color::BrightWhite => "97",
         }
     }
 
@@ -37,20 +53,26 @@ impl Color {
             Color::Magenta => "45",
             Color::Cyan => "46",
             Color::White => "47",
+            Color::BrightBlack => "100",
+            Color::BrightRed => "101",
+            Color::BrightGreen => "102",
+            Color::BrightYellow => "103",
+            Color::BrightBlue => "104",
+            Color::BrightMagenta => "105",
+            Color::BrightCyan => "106",
+            Color::BrightWhite => "107",
         }
     }
 }
 
 impl<'a> From<&'a str> for Color {
     fn from(src: &str) -> Self {
-
         src.parse().unwrap_or(Color::White)
     }
 }
 
 impl From<String> for Color {
     fn from(src: String) -> Self {
-
         src.parse().unwrap_or(Color::White)
     }
 }
@@ -59,7 +81,6 @@ impl FromStr for Color {
     type Err = ();
 
     fn from_str(src: &str) -> Result<Self, Self::Err> {
-
         let src = src.to_lowercase();
 
         match src.as_ref() {
@@ -71,6 +92,14 @@ impl FromStr for Color {
             "magenta" => Ok(Color::Magenta),
             "cyan" => Ok(Color::Cyan),
             "white" => Ok(Color::White),
+            "bright black" => Ok(Color::BrightBlack),
+            "bright red" => Ok(Color::BrightRed),
+            "bright green" => Ok(Color::BrightGreen),
+            "bright yellow" => Ok(Color::BrightYellow),
+            "bright blue" => Ok(Color::BrightBlue),
+            "bright magenta" => Ok(Color::BrightMagenta),
+            "bright cyan" => Ok(Color::BrightCyan),
+            "bright white" => Ok(Color::BrightWhite),
             _ => Err(()),
         }
     }
@@ -105,6 +134,14 @@ mod tests {
             magenta: "magenta" => Color::Magenta,
             cyan: "cyan" => Color::Cyan,
             white: "white" => Color::White,
+            brightblack: "bright black" => Color::BrightBlack,
+            brightred: "bright red" => Color::BrightRed,
+            brightgreen: "bright green" => Color::BrightGreen,
+            brightyellow: "bright yellow" => Color::BrightYellow,
+            brightblue: "bright blue" => Color::BrightBlue,
+            brightmagenta: "bright magenta" => Color::BrightMagenta,
+            brightcyan: "bright cyan" => Color::BrightCyan,
+            brightwhite: "bright white" => Color::BrightWhite,
 
             invalid: "invalid" => Color::White,
             capitalized: "BLUE" => Color::Blue,
@@ -138,6 +175,14 @@ mod tests {
             magenta: "magenta" => Color::Magenta,
             cyan: "cyan" => Color::Cyan,
             white: "white" => Color::White,
+            brightblack: "bright black" => Color::BrightBlack,
+            brightred: "bright red" => Color::BrightRed,
+            brightgreen: "bright green" => Color::BrightGreen,
+            brightyellow: "bright yellow" => Color::BrightYellow,
+            brightblue: "bright blue" => Color::BrightBlue,
+            brightmagenta: "bright magenta" => Color::BrightMagenta,
+            brightcyan: "bright cyan" => Color::BrightCyan,
+            brightwhite: "bright white" => Color::BrightWhite,
 
             invalid: "invalid" => Color::White,
             capitalized: "BLUE" => Color::Blue,
