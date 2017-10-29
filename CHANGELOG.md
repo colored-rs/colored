@@ -1,3 +1,6 @@
+# 1.6.0
+- FEAT: introduced bright colors. `"hello".bright_blue().on_bright_red();`
+- FEAT: introduced strikethrough styling. `"hello".strikethrough();`
 
 # 1.5.3 (September 28, 2017)
 
