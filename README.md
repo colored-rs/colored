@@ -129,10 +129,10 @@ Thanks for the [ansi\_term crate](https://github.com/ogham/rust-ansi-term) for
 providing a reference implementation, which greatly helped making this crate
 output correct strings.
 
-## Licence
+## License
 
-[Mozilla Public Licence 2.0](https://www.mozilla.org/en-US/MPL/2.0/). See the
-[LICENCE](https://github.com/mackwic/colored/blob/master/LICENCE) file at the
+[Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/). See the
+[LICENSE](https://github.com/mackwic/colored/blob/master/LICENSE) file at the
 root of the repository.
 
 In non legal terms it means that:
@@ -140,7 +140,7 @@ In non legal terms it means that:
 - if you change/extend the API, you MUST give me the code you changed in the
   files under MPL2.
 - you CAN'T sue me for anything about this code
-- apart from that, you can do almost whatever you want. See the LICENCE file
+- apart from that, you can do almost whatever you want. See the LICENSE file
   for details.
 
 ## Contributors
