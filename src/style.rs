@@ -85,7 +85,7 @@ impl Styles {
 }
 
 impl Style {
-    pub fn to_str(&self) -> String {
+    pub fn to_str(self) -> String {
         let styles = match Styles::from_u8(self.0) {
             None => return String::new(),
             Some(s) => s,
