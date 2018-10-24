@@ -50,6 +50,7 @@ and add this to your `lib.rs` or `main.rs`:
 
 - Safe rust, easy to use, minimal dependencies, complete test suite
 - Respect the `CLICOLOR`/`CLICOLOR_FORCE` behavior (see [the specs](http://bixense.com/clicolors/))
+- Works on Linux, MacOS, and Windows (Powershell)
 
 #### Colors:
 
@@ -117,8 +118,6 @@ You can use have even finer control by using the
 
 ## Todo
 
-- **Windows console support**: this works only with ANSI terminals. I plan to
-  support the windows console also.
 - **More tests ?**: We always welcome more tests! Please contribute!
 
 ## Credits
