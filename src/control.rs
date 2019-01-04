@@ -7,7 +7,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 pub struct ShouldColorize {
     clicolor: Option<bool>,
     clicolor_force: Option<bool>,
-    nocolor: Option<bool>,
     // XXX we can't use Option<Atomic> because we can't use &mut references to ShouldColorize
     has_manual_override: AtomicBool,
     manual_override: AtomicBool,
@@ -34,7 +33,6 @@ impl Default for ShouldColorize {
         ShouldColorize {
             clicolor: None,
             clicolor_force: None,
-            nocolor: None,
             has_manual_override: AtomicBool::new(false),
             manual_override: AtomicBool::new(false),
         }
@@ -45,15 +43,45 @@ impl ShouldColorize {
     pub fn from_env() -> Self {
         use std::io;
 
+        // Treat NO_COLOR as an alias for CLICOLOR_FORCE == 0
+        let clicolor_force = match (
+            ShouldColorize::normalize_env(env::var("NO_COLOR")),
+            ShouldColorize::normalize_env(env::var("CLICOLOR_FORCE")),
+        ) {
+            // Give priority to an explicitly set CLICOLOR_FORCE.
+            (_, Some(b)) => Some(b),
+
+            // Otherwise, NO_COLOR being set should act as CLICOLOR_FORCE == 0
+            (Some(_), None) => Some(false),
+
+            (None, None) => None,
+        };
+
         ShouldColorize {
             clicolor: ShouldColorize::normalize_env(env::var("CLICOLOR")),
-            clicolor_force: ShouldColorize::normalize_env(env::var("CLICOLOR_FORCE")),
-            nocolor: ShouldColorize::normalize_env(env::var("NO_COLOR")),
+            clicolor_force: clicolor_force,
             ..ShouldColorize::default()
         }
     }
 
     pub fn should_colorize(&self) -> bool {
+        // Excluding the manual override, which takes priority over all
+        // other options, the output of this function based on the
+        // environment variables users have set is as follows.
+        //
+        // +-----------+-----------------+----------------+----------------+
+        // | NO_COLOR  |    CLICOLOR     | CLICOLOR_FORCE |   colorize?    |
+        // +-----------+-----------------+----------------+----------------+
+        // | unset     | unset           | unset          | true (default) |
+        // +-----------+-----------------+----------------+----------------+
+        // | unset     | != 0            | unset          | true           |
+        // | unset     | == 0            | unset          | false          |
+        // +-----------+-----------------+----------------+----------------+
+        // | set       | unset/== 0/!= 0 | unset          | false          |
+        // +-----------+-----------------+----------------+----------------+
+        // | set/unset | unset/== 0/!= 0 | == 0           | false          |
+        // | set/unset | unset/== 0/!= 0 | != 0           | true           |
+        // +-----------+-----------------+----------------+----------------+
         if self.has_manual_override.load(Ordering::Relaxed) {
             return self.manual_override.load(Ordering::Relaxed);
         }
@@ -64,12 +92,6 @@ impl ShouldColorize {
 
         if let Some(value) = self.clicolor {
             return value;
-        }
-
-        if let Some(_) = self.nocolor {
-            // If NO_COLOR is set, regardless of value, then color should not be
-            // output (https://no-color.org/).
-            return false;
         }
 
         true
@@ -101,82 +123,6 @@ mod specs {
     use rspec;
     use rspec::context::*;
     use std::env;
-
-    #[test]
-    fn nocolor_behavior() {
-        use std::io;
-
-        let stdout = &mut io::stdout();
-        let mut formatter = rspec::formatter::Simple::new(stdout);
-        let mut runner = describe("ShouldColorize", |ctx| {
-            ctx.describe("when only changing nocolor", |ctx| {
-                ctx.it("nocolor == true means no colors", || {
-                    let colorize_control = ShouldColorize {
-                        nocolor: Some(true),
-                        ..ShouldColorize::default()
-                    };
-                    false == colorize_control.should_colorize()
-                });
-
-                ctx.it("nocolor == false still means no colors", || {
-                    let colorize_control = ShouldColorize {
-                        nocolor: Some(false),
-                        ..ShouldColorize::default()
-                    };
-                    false == colorize_control.should_colorize()
-                });
-
-                ctx.it("unset nocolor implies true", || {
-                    true == ShouldColorize::default().should_colorize()
-                });
-            });
-
-            ctx.describe("when using clicolor_force", |ctx| {
-                ctx.it(
-                    "clicolor_force should force to true no matter nocolor",
-                    || {
-                        let colorize_control = ShouldColorize {
-                            nocolor: Some(true),
-                            clicolor_force: Some(true),
-                            ..ShouldColorize::default()
-                        };
-
-                        true == colorize_control.should_colorize()
-                    },
-                );
-            });
-
-            ctx.describe("using a manual override", |ctx| {
-                ctx.it("shoud colorize if manual_override is true, but nocolor is set, clicolor is false, and clicolor_force also false", || {
-                    let colorize_control = ShouldColorize {
-                        clicolor: Some(false),
-                        clicolor_force: None,
-                        nocolor: Some(true),
-                        has_manual_override: AtomicBool::new(true),
-                        manual_override: AtomicBool::new(true),
-                        .. ShouldColorize::default()
-                    };
-
-                    true == colorize_control.should_colorize()
-                });
-
-                ctx.it("should not colorize if manual_override is false, but nocolor is unset, clicolor is true, or clicolor_force is true", || {
-                    let colorize_control = ShouldColorize {
-                        clicolor: Some(true),
-                        clicolor_force: Some(true),
-                        nocolor: None,
-                        has_manual_override: AtomicBool::new(true),
-                        manual_override: AtomicBool::new(false),
-                        .. ShouldColorize::default()
-                    };
-
-                    false == colorize_control.should_colorize()
-                })
-            });
-        });
-        runner.add_event_handler(&mut formatter);
-        runner.run().unwrap();
-    }
 
     #[test]
     fn clicolor_behavior() {
