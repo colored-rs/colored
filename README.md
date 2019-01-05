@@ -151,3 +151,4 @@ In non legal terms it means that:
 - Alexis "Horgix" Chotard: [@horgix](https://github.com/horgix)
 - Keith Yeung: [@KiChjang](https://github.com/KiChjang)
 - Kyle Galloway: [@kylegalloway](https://github.com/kylegalloway)
+- Luke Hsiao: [@lukehsiao](https://github.com/lukehsiao)
