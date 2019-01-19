@@ -35,6 +35,8 @@ colored = "1.7"
 and add this to your `lib.rs` or `main.rs`:
 
 ```rust
+    extern crate colored; // not needed in Rust 2018
+    
     use colored::*;
 
     // test the example with `cargo run --example most_simple`
