@@ -15,6 +15,7 @@ no-color = []
 
 [dependencies]
 lazy_static = "1.2.0"
+winconsole = "0.10.0"
 
 [dev_dependencies]
 ansi_term = "^0.9"
