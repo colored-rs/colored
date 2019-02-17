@@ -3,20 +3,25 @@
 use std::default::Default;
 use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
+#[cfg(windows)]
 use winconsole::{console, errors::WinResult};
 
 /// Sets a flag to the console to use a virtual terminal environment.
 /// This is primarily used for Windows 10 environments which will not correctly colorize the outputs based on ansi escape codes.
 ///
+/// # Notes
+/// > Only available to `Windows` build targets.
+///
 /// # Example
 /// ```rust
 /// use colored::*;
 /// control::set_virtual_terminal(false);
-/// println!("{}", "bright cyan".bright_cyan());	// will print '[96mbright cyan[0m' on windows 10
+/// println!("{}", "bright cyan".bright_cyan());	// will print '[96mbright cyan[0m' on windows 10
 ///
 /// control::set_virtual_terminal(true);
 /// println!("{}", "bright cyan".bright_cyan());	// will print correctly
 /// ```
+#[cfg(windows)]
 pub fn set_virtual_terminal(use_virtual: bool) -> WinResult<()> {
 	let mut mode = console::get_output_mode()?;
 	mode.VirtualTerminalProcessing = use_virtual;
