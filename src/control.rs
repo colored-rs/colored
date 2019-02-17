@@ -12,10 +12,10 @@ use winconsole::{console, errors::WinResult};
 /// ```rust
 /// use colored::*;
 /// control::set_virtual_terminal(false);
-/// println!("{}", "bright green".bright_green());	// will print '[96mbright green[0m' on windows 10
+/// println!("{}", "bright cyan".bright_cyan());	// will print '[96mbright cyan[0m' on windows 10
 ///
 /// control::set_virtual_terminal(true);
-/// println!("{}", "bright green".bright_green());	// will print correctly
+/// println!("{}", "bright cyan".bright_cyan());	// will print correctly
 /// ```
 pub fn set_virtual_terminal(use_virtual: bool) -> WinResult<()> {
 	let mut mode = console::get_output_mode()?;
