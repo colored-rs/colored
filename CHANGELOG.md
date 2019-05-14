@@ -1,4 +1,9 @@
 
+# 1.8.1 (May 14, 2019)
+
+- FIX: make `wincosole` windows only dependency
+- REFACTOR: improve `Styles::to_str()` code readability
+
 # 1.8.0 (April 30, 2019)
 
 - FEAT: support Windows 10 colors
