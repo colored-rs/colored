@@ -42,6 +42,7 @@ use std::convert::From;
 use std::fmt;
 use std::ops::Deref;
 use std::string::String;
+use std::fmt::Write;
 
 /// A string that may have color and/or style applied to it.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -470,9 +471,18 @@ impl fmt::Display for ColoredString {
         // XXX: see tests. Useful when nesting colored strings
         let escaped_input = self.escape_inner_reset_sequences();
 
+        // markers so GNU readline knows not to count formatting characters
+        // https://stackoverflow.com/a/34252007
+        // TODO apply this fix to `escape_inner_reset_sequences` as well
+        try!(f.write_char(1 as char));
         try!(f.write_str(&self.compute_style()));
+        try!(f.write_char(2 as char));
+
         try!(<String as fmt::Display>::fmt(&escaped_input, f));
+        
+        try!(f.write_char(1 as char));
         try!(f.write_str("\x1B[0m"));
+        try!(f.write_char(2 as char));
         Ok(())
     }
 }
@@ -634,10 +644,12 @@ mod tests {
         let style = input.blue();
 
         let output = style.escape_inner_reset_sequences();
+        let start = 1 as char;
+        let end = 2 as char;
         let blue = "\x1B[34m";
         let red = "\x1B[31m";
         let reset = "\x1B[0m";
-        let expected = format!("start {}hello world !{}{} end", red, reset, blue);
+        let expected = format!("start {}{}{}hello world !{}{}{}{} end", start, red, end, start, reset, blue, end);
         assert_eq!(expected, output);
     }
 
@@ -652,12 +664,19 @@ mod tests {
         let style = input.blue();
 
         let output = style.escape_inner_reset_sequences();
+        let start = 1 as char;
+        let end = 2 as char;
         let blue = "\x1B[34m";
         let italic = "\x1B[3m";
         let reset = "\x1B[0m";
         let expected = format!(
-            "start 1:{}yo{}{} 2:{}yo{}{} 3:{}yo{}{} end",
-            italic, reset, blue, italic, reset, blue, italic, reset, blue
+            "start 1:{}{}{}yo{}{}{}{} 2:{}{}{}yo{}{}{}{} 3:{}{}{}yo{}{}{}{} end",
+            start, italic, end, 
+            start, reset, blue, end,
+            start, italic, end, 
+            start, reset, blue, end,
+            start, italic, end, 
+            start, reset, blue, end
         );
 
         println!("first: {}\nsecond: {}", expected, output);
