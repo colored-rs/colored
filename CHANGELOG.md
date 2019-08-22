@@ -1,3 +1,6 @@
+# Unreleased
+
+- TECH: update winconsole to 0.11.0
 
 # 1.8.0 (April 30, 2019)
 
