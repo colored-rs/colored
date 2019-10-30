@@ -119,3 +119,30 @@ mod compat_complex {
         );
     }
 }
+
+mod compat_overrides {
+    use super::ansi_term;
+    use super::ansi_term::*;
+    use super::colored;
+    use super::colored::*;
+
+    #[test]
+    fn overrides1() {
+        let s = "test string";
+        let ansi = Colour::Red.on(Colour::Black).on(Colour::Blue).paint(s);
+        assert_eq!(
+            ansi.to_string(),
+            s.red().on_blue().to_string()
+        );
+    }
+
+    #[test]
+    fn overrides2() {
+        let s = "test string";
+        let ansi = Colour::Green.on(Colour::Yellow).paint(s);
+        assert_eq!(
+            ansi.to_string(),
+            s.green().on_yellow().green().on_yellow().to_string()
+        );
+    }
+}

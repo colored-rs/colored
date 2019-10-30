@@ -86,24 +86,12 @@ impl Styles {
 
 impl Style {
     pub fn to_str(self) -> String {
-        let styles = match Styles::from_u8(self.0) {
-            None => return String::new(),
-            Some(s) => s,
-        };
-        let mut res = String::new();
-        let mut first = true;
-
-        for style in styles.iter().map(|s| s.to_str()) {
-            if first {
-                res.push_str(style);
-                first = false;
-                continue;
-            } else {
-                res.push(';');
-                res.push_str(style)
-            }
-        }
-        res
+        let styles = Styles::from_u8(self.0).unwrap_or(Vec::new());
+        styles
+            .iter()
+            .map(|s| s.to_str())
+            .collect::<Vec<&str>>()
+            .join(";")
     }
 
     pub fn new(from: Styles) -> Style {
