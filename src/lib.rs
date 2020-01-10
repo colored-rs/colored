@@ -61,114 +61,222 @@ pub struct ColoredString {
 #[allow(missing_docs)]
 pub trait Colorize {
     // Font Colors
-    fn black(self) -> ColoredString where Self: Sized {
+    fn black(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::Black)
     }
-    fn red(self) -> ColoredString where Self: Sized {
+    fn red(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::Red)
     }
-    fn green(self) -> ColoredString where Self: Sized {
+    fn green(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::Green)
     }
-    fn yellow(self) -> ColoredString where Self: Sized {
+    fn yellow(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::Yellow)
     }
-    fn blue(self) -> ColoredString where Self: Sized {
+    fn blue(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::Blue)
     }
-    fn magenta(self) -> ColoredString where Self: Sized {
+    fn magenta(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::Magenta)
     }
-    fn purple(self) -> ColoredString where Self: Sized {
+    fn purple(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::Magenta)
     }
-    fn cyan(self) -> ColoredString where Self: Sized {
+    fn cyan(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::Cyan)
     }
-    fn white(self) -> ColoredString where Self: Sized {
+    fn white(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::White)
     }
-    fn bright_black(self) -> ColoredString where Self: Sized {
+    fn bright_black(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightBlack)
     }
-    fn bright_red(self) -> ColoredString where Self: Sized {
+    fn bright_red(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightRed)
     }
-    fn bright_green(self) -> ColoredString where Self: Sized {
+    fn bright_green(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightGreen)
     }
-    fn bright_yellow(self) -> ColoredString where Self: Sized {
+    fn bright_yellow(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightYellow)
     }
-    fn bright_blue(self) -> ColoredString where Self: Sized {
+    fn bright_blue(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightBlue)
     }
-    fn bright_magenta(self) -> ColoredString where Self: Sized {
+    fn bright_magenta(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightMagenta)
     }
-    fn bright_purple(self) -> ColoredString where Self: Sized {
+    fn bright_purple(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightMagenta)
     }
-    fn bright_cyan(self) -> ColoredString where Self: Sized {
+    fn bright_cyan(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightCyan)
     }
-    fn bright_white(self) -> ColoredString where Self: Sized {
+    fn bright_white(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.color(Color::BrightWhite)
     }
     fn color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Background Colors
-    fn on_black(self) -> ColoredString where Self: Sized {
+    fn on_black(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::Black)
     }
-    fn on_red(self) -> ColoredString where Self: Sized {
+    fn on_red(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::Red)
     }
-    fn on_green(self) -> ColoredString where Self: Sized {
+    fn on_green(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::Green)
     }
-    fn on_yellow(self) -> ColoredString where Self: Sized {
+    fn on_yellow(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::Yellow)
     }
-    fn on_blue(self) -> ColoredString where Self: Sized {
+    fn on_blue(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::Blue)
     }
-    fn on_magenta(self) -> ColoredString where Self: Sized {
+    fn on_magenta(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::Magenta)
     }
-    fn on_purple(self) -> ColoredString where Self: Sized {
+    fn on_purple(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::Magenta)
     }
-    fn on_cyan(self) -> ColoredString where Self: Sized {
+    fn on_cyan(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::Cyan)
     }
-    fn on_white(self) -> ColoredString where Self: Sized {
+    fn on_white(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::White)
     }
-    fn on_bright_black(self) -> ColoredString where Self: Sized {
+    fn on_bright_black(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightBlack)
     }
-    fn on_bright_red(self) -> ColoredString where Self: Sized {
+    fn on_bright_red(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightRed)
     }
-    fn on_bright_green(self) -> ColoredString where Self: Sized {
+    fn on_bright_green(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightGreen)
     }
-    fn on_bright_yellow(self) -> ColoredString where Self: Sized {
+    fn on_bright_yellow(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightYellow)
     }
-    fn on_bright_blue(self) -> ColoredString where Self: Sized {
+    fn on_bright_blue(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightBlue)
     }
-    fn on_bright_magenta(self) -> ColoredString where Self: Sized {
+    fn on_bright_magenta(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightMagenta)
     }
-    fn on_bright_purple(self) -> ColoredString where Self: Sized {
+    fn on_bright_purple(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightMagenta)
     }
-    fn on_bright_cyan(self) -> ColoredString where Self: Sized {
+    fn on_bright_cyan(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightCyan)
     }
-    fn on_bright_white(self) -> ColoredString where Self: Sized {
+    fn on_bright_white(self) -> ColoredString
+    where
+        Self: Sized,
+    {
         self.on_color(Color::BrightWhite)
     }
     fn on_color<S: Into<Color>>(self, color: S) -> ColoredString;
@@ -217,7 +325,7 @@ impl ColoredString {
     }
 
     /// Get the current [`Style`] which can be check if it contains a [`Styles`].
-    /// 
+    ///
     /// ```rust
     /// # use colored::*;
     /// let colored = "".bold().italic();

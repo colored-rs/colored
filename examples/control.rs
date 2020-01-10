@@ -14,17 +14,29 @@ fn main() {
     colored::control::set_virtual_terminal(true);
     println!("{}", "stdout: Virtual Terminal is in use".bright_green());
     colored::control::set_virtual_terminal(false);
-    println!("{}", "stderr: Virtual Terminal is NOT in use, escape chars should be visible".bright_red());
+    println!(
+        "{}",
+        "stderr: Virtual Terminal is NOT in use, escape chars should be visible".bright_red()
+    );
     colored::control::set_virtual_terminal(true);
-    println!("{}", "stdout: Virtual Terminal is in use AGAIN and should be green!".bright_green());
+    println!(
+        "{}",
+        "stdout: Virtual Terminal is in use AGAIN and should be green!".bright_green()
+    );
     colored::control::set_virtual_terminal(true);
 
     // again with stderr
     eprintln!("{}", "stderr: Virtual Terminal is in use".bright_green());
     colored::control::set_virtual_terminal(false);
-    eprintln!("{}", "stderr: Virtual Terminal is NOT in use, escape chars should be visible".bright_red());
+    eprintln!(
+        "{}",
+        "stderr: Virtual Terminal is NOT in use, escape chars should be visible".bright_red()
+    );
     colored::control::set_virtual_terminal(true);
-    eprintln!("{}", "stderr: Virtual Terminal is in use AGAIN and should be green!".bright_green());
+    eprintln!(
+        "{}",
+        "stderr: Virtual Terminal is in use AGAIN and should be green!".bright_green()
+    );
 }
 
 fn both() {

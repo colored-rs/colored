@@ -209,6 +209,5 @@ mod tests {
             let color: Result<Color, ()> = "bloublou".parse();
             assert_eq!(Err(()), color)
         }
-
     }
 }

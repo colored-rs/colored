@@ -33,7 +33,7 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
             processenv::GetStdHandle,
             winbase::STD_OUTPUT_HANDLE,
             wincon::ENABLE_VIRTUAL_TERMINAL_PROCESSING,
-        }
+        },
     };
 
     unsafe {
@@ -41,13 +41,18 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
         let mut original_mode: DWORD = 0;
         GetConsoleMode(handle, &mut original_mode);
 
-        let enabled = original_mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING == ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        let enabled = original_mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING
+            == ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
         match (use_virtual, enabled) {
             // not enabled, should be enabled
-            (true, false) => SetConsoleMode(handle, ENABLE_VIRTUAL_TERMINAL_PROCESSING | original_mode),
+            (true, false) => {
+                SetConsoleMode(handle, ENABLE_VIRTUAL_TERMINAL_PROCESSING | original_mode)
+            }
             // already enabled, should be disabled
-            (false, true) => SetConsoleMode(handle, ENABLE_VIRTUAL_TERMINAL_PROCESSING ^ original_mode),
+            (false, true) => {
+                SetConsoleMode(handle, ENABLE_VIRTUAL_TERMINAL_PROCESSING ^ original_mode)
+            }
             _ => 0,
         };
     }
@@ -122,7 +127,7 @@ impl ShouldColorize {
         self.clicolor
     }
 
-/// Use this to force colored to ignore the environment and always/never colorize
+    /// Use this to force colored to ignore the environment and always/never colorize
     pub fn set_override(&self, override_colorize: bool) {
         self.has_manual_override.store(true, Ordering::Relaxed);
         self.manual_override

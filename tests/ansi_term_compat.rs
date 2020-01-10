@@ -130,10 +130,7 @@ mod compat_overrides {
     fn overrides1() {
         let s = "test string";
         let ansi = Colour::Red.on(Colour::Black).on(Colour::Blue).paint(s);
-        assert_eq!(
-            ansi.to_string(),
-            s.red().on_blue().to_string()
-        );
+        assert_eq!(ansi.to_string(), s.red().on_blue().to_string());
     }
 
     #[test]

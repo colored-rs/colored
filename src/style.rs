@@ -88,7 +88,7 @@ impl Styles {
 
 impl Style {
     /// Check if the current style has one of [`Styles`](Styles) switched on.
-    /// 
+    ///
     /// ```rust
     /// # use colored::*;
     /// let colored = "".bold().italic();
@@ -179,9 +179,9 @@ mod tests {
         };
 
         fn style_from_multiples(styles: &[Styles]) -> Style {
-            let mut res = Style::new(styles[0]);
+            let mut res = Style(styles[0].to_u8());
             for s in &styles[1..] {
-                res = Style::from_both(res, *s)
+                res = Style(res.0 | s.to_u8());
             }
             res
         }
@@ -285,7 +285,7 @@ mod tests {
     }
 
     fn test_style_contains() {
-        let mut style = Style::new(Styles::Bold);
+        let mut style = Style(Styles::Bold.to_u8());
         style.add(Styles::Italic);
 
         assert_eq!(style.contains(Styles::Bold), true);
