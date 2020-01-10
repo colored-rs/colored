@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 /// The 8 standard colors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum Color {
     Black,
     Red,
@@ -21,6 +22,8 @@ pub enum Color {
     BrightCyan,
     BrightWhite,
 }
+
+#[allow(missing_docs)]
 impl Color {
     pub fn to_fg_str(&self) -> &str {
         match *self {

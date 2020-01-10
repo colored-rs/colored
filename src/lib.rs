@@ -1,5 +1,3 @@
-#![allow(unused_imports, dead_code, unused_parens)]
-
 //!Coloring terminal so simple, you already know how to do it !
 //!
 //!    use colored::Colorize;
@@ -23,6 +21,7 @@
 //!
 //! See [the `Colorize` trait](./trait.Colorize.html) for all the methods.
 //!
+#![warn(missing_docs)]
 
 extern crate atty;
 #[macro_use]
@@ -44,6 +43,8 @@ use std::fmt;
 use std::ops::Deref;
 use std::string::String;
 
+pub use style::{Style, Styles};
+
 /// A string that may have color and/or style applied to it.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ColoredString {
@@ -57,6 +58,7 @@ pub struct ColoredString {
 ///
 /// You can use `colored` effectively simply by importing this trait
 /// and then using its methods on `String` and `&str`.
+#[allow(missing_docs)]
 pub trait Colorize {
     // Font Colors
     fn black(self) -> ColoredString where Self: Sized {
@@ -188,14 +190,60 @@ pub trait Colorize {
 }
 
 impl ColoredString {
+    /// Get the current background color applied.
+    ///
+    /// ```rust
+    /// # use colored::*;
+    /// let cstr = "".blue();
+    /// assert_eq!(cstr.fgcolor(), Some(Color::Blue));
+    /// let cstr = cstr.clear();
+    /// assert_eq!(cstr.fgcolor(), None);
+    /// ```
+    pub fn fgcolor(&self) -> Option<Color> {
+        self.fgcolor.as_ref().copied()
+    }
+
+    /// Get the current background color applied.
+    ///
+    /// ```rust
+    /// # use colored::*;
+    /// let cstr = "".on_blue();
+    /// assert_eq!(cstr.bgcolor(), Some(Color::Blue));
+    /// let cstr = cstr.clear();
+    /// assert_eq!(cstr.bgcolor(), None);
+    /// ```
+    pub fn bgcolor(&self) -> Option<Color> {
+        self.bgcolor.as_ref().copied()
+    }
+
+    /// Get the current [`Style`] which can be check if it contains a [`Styles`].
+    /// 
+    /// ```rust
+    /// # use colored::*;
+    /// let colored = "".bold().italic();
+    /// assert_eq!(colored.style().contains(Styles::Bold), true);
+    /// assert_eq!(colored.style().contains(Styles::Italic), true);
+    /// assert_eq!(colored.style().contains(Styles::Dimmed), false);
+    /// ```
+    pub fn style(&self) -> style::Style {
+        self.style
+    }
+
+    /// Checks if the colored string has no color or styling.
+    ///
+    /// ```rust
+    /// # use colored::*;
+    /// let cstr = "".red();
+    /// assert_eq!(cstr.is_plain(), false);
+    /// let cstr = cstr.clear();
+    /// assert_eq!(cstr.is_plain(), true);
+    /// ```
     pub fn is_plain(&self) -> bool {
         (self.bgcolor.is_none() && self.fgcolor.is_none() && self.style == style::CLEAR)
     }
 
     #[cfg(not(feature = "no-color"))]
     fn has_colors(&self) -> bool {
-        use control;
-
         control::SHOULD_COLORIZE.should_colorize()
     }
 
@@ -412,7 +460,7 @@ impl<'a> Colorize for &'a str {
 impl fmt::Display for ColoredString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if !self.has_colors() || self.is_plain() {
-            return (<String as fmt::Display>::fmt(&self.input, f));
+            return <String as fmt::Display>::fmt(&self.input, f);
         }
 
         // XXX: see tests. Useful when nesting colored strings
@@ -631,5 +679,27 @@ mod tests {
     #[test]
     fn on_bright_color_fn() {
         assert_eq!("blue".on_bright_blue(), "blue".on_color("bright blue"))
+    }
+
+    #[test]
+    fn exposing_tests() {
+        let cstring = "".red();
+        assert_eq!(cstring.fgcolor(), Some(Color::Red));
+        assert_eq!(cstring.bgcolor(), None);
+
+        let cstring = cstring.clear();
+        assert_eq!(cstring.fgcolor(), None);
+        assert_eq!(cstring.bgcolor(), None);
+
+        let cstring = cstring.blue().on_bright_yellow();
+        assert_eq!(cstring.fgcolor(), Some(Color::Blue));
+        assert_eq!(cstring.bgcolor(), Some(Color::BrightYellow));
+
+        let cstring = cstring.bold().italic();
+        assert_eq!(cstring.fgcolor(), Some(Color::Blue));
+        assert_eq!(cstring.bgcolor(), Some(Color::BrightYellow));
+        assert_eq!(cstring.style().contains(Styles::Bold), true);
+        assert_eq!(cstring.style().contains(Styles::Italic), true);
+        assert_eq!(cstring.style().contains(Styles::Dimmed), false);
     }
 }

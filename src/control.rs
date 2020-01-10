@@ -55,6 +55,7 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
     Ok(())
 }
 
+/// A flag to to if coloring should occur.
 pub struct ShouldColorize {
     clicolor: bool,
     clicolor_force: Option<bool>,
@@ -76,6 +77,7 @@ pub fn unset_override() {
 }
 
 lazy_static! {
+/// The persistent [`ShouldColorize`].
     pub static ref SHOULD_COLORIZE: ShouldColorize = ShouldColorize::from_env();
 }
 
@@ -96,8 +98,6 @@ impl ShouldColorize {
     /// `CLICOLOR_FORCE` takes highest priority, followed by `NO_COLOR`,
     /// followed by `CLICOLOR` combined with tty check.
     pub fn from_env() -> Self {
-        use std::io;
-
         ShouldColorize {
             clicolor: ShouldColorize::normalize_env(env::var("CLICOLOR")).unwrap_or_else(|| true)
                 && atty::is(atty::Stream::Stdout),
@@ -109,6 +109,7 @@ impl ShouldColorize {
         }
     }
 
+    /// Returns if the current coloring is expected.
     pub fn should_colorize(&self) -> bool {
         if self.has_manual_override.load(Ordering::Relaxed) {
             return self.manual_override.load(Ordering::Relaxed);
@@ -121,12 +122,14 @@ impl ShouldColorize {
         self.clicolor
     }
 
+/// Use this to force colored to ignore the environment and always/never colorize
     pub fn set_override(&self, override_colorize: bool) {
         self.has_manual_override.store(true, Ordering::Relaxed);
         self.manual_override
             .store(override_colorize, Ordering::Relaxed);
     }
 
+    /// Remove the manual override and let the environment decide if it's ok to colorize
     pub fn unset_override(&self) {
         self.has_manual_override.store(false, Ordering::Relaxed);
     }
