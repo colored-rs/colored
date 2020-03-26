@@ -1,3 +1,4 @@
+#![cfg(not(feature = "no-color"))]
 #![allow(unused_imports)]
 
 extern crate ansi_term;

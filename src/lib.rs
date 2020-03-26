@@ -640,6 +640,7 @@ mod tests {
         assert_eq!("", "".clear().compute_style());
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_simple_fg_blue() {
         let blue = "\x1B[34m";
@@ -647,6 +648,7 @@ mod tests {
         assert_eq!(blue, "".blue().compute_style());
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_simple_bg_blue() {
         let on_blue = "\x1B[44m";
@@ -654,6 +656,7 @@ mod tests {
         assert_eq!(on_blue, "".on_blue().compute_style());
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_blue_on_blue() {
         let blue_on_blue = "\x1B[44;34m";
@@ -661,6 +664,7 @@ mod tests {
         assert_eq!(blue_on_blue, "".blue().on_blue().compute_style());
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_simple_fg_bright_blue() {
         let blue = "\x1B[94m";
@@ -668,6 +672,7 @@ mod tests {
         assert_eq!(blue, "".bright_blue().compute_style());
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_simple_bg_bright_blue() {
         let on_blue = "\x1B[104m";
@@ -675,6 +680,7 @@ mod tests {
         assert_eq!(on_blue, "".on_bright_blue().compute_style());
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_bright_blue_on_bright_blue() {
         let blue_on_blue = "\x1B[104;94m";
@@ -685,6 +691,7 @@ mod tests {
         );
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_simple_bold() {
         let bold = "\x1B[1m";
@@ -692,6 +699,7 @@ mod tests {
         assert_eq!(bold, "".bold().compute_style());
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_blue_bold() {
         let blue_bold = "\x1B[1;34m";
@@ -699,6 +707,7 @@ mod tests {
         assert_eq!(blue_bold, "".blue().bold().compute_style());
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn compute_style_blue_bold_on_blue() {
         let blue_bold_on_blue = "\x1B[1;44;34m";
@@ -732,6 +741,7 @@ mod tests {
         assert_eq!(expected, output);
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn escape_reset_sequence_spec_should_replace_inner_reset_sequence_with_current_style() {
         let input = format!("start {} end", String::from("hello world !").red());
@@ -745,6 +755,7 @@ mod tests {
         assert_eq!(expected, output);
     }
 
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn escape_reset_sequence_spec_should_replace_multiple_inner_reset_sequences_with_current_style()
     {
