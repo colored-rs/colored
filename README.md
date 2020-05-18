@@ -10,6 +10,8 @@ Coloring terminal so simple, you already know how to do it!
     "this is red".red();
     "this is red on blue".red().on_blue();
     "this is also red on blue".on_blue().red();
+    "you can use truecolor values too!".truecolor(0, 255, 136);
+    "background truecolor also works :)".on_truecolor(135, 28, 167);
     "bright colors are welcome as well".on_bright_blue().bright_red();
     "you can also make bold comments".bold();
     println!("{} {} {}", "or use".cyan(), "any".italic().yellow(), "string type".cyan());
@@ -36,7 +38,7 @@ and add this to your `lib.rs` or `main.rs`:
 
 ```rust
     extern crate colored; // not needed in Rust 2018
-    
+
     use colored::*;
 
     // test the example with `cargo run --example most_simple`
@@ -67,6 +69,14 @@ and add this to your `lib.rs` or `main.rs`:
 Bright colors: prepend the color by `bright_`. So easy.
 Background colors: prepend the color by `on_`. Simple as that.
 Bright Background colors: prepend the color by `on_bright_`. Not hard at all.
+
+#### Truecolors
+
+Colored has support for truecolors where you can specify any arbitrary rgb value.
+
+This feature will only work correctly in terminals which support true colors (i.e. most modern terminals).
+
+You can check if your terminal supports true color by checking the value of the environment variable `$COLORTERM` on your terminal. A value of `truecolor` or `24bit` indicates that it will work.
 
 #### Styles:
 
@@ -172,4 +182,3 @@ In non legal terms it means that:
 - Kyle Galloway: [@kylegalloway](https://github.com/kylegalloway)
 - Luke Hsiao: [@lukehsiao](https://github.com/lukehsiao)
 - kurtlawrence: [@kurtlawrence](https://github.com/kurtlawrence)
-

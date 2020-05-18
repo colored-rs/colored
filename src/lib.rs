@@ -6,6 +6,8 @@
 //!    "this is red".red();
 //!    "this is red on blue".red().on_blue();
 //!    "this is also red on blue".on_blue().red();
+//!    "you can use truecolor values too!".truecolor(0, 255, 136);
+//!    "background truecolor also works :)".on_truecolor(135, 28, 167);
 //!    "you can also make bold comments".bold();
 //!    println!("{} {} {}", "or use".cyan(), "any".italic().yellow(), "string type".cyan());
 //!    "or change advice. This is red".yellow().blue().red();
@@ -169,6 +171,12 @@ pub trait Colorize {
     {
         self.color(Color::BrightWhite)
     }
+    fn truecolor(self, r: u8, g: u8, b: u8) -> ColoredString
+    where
+        Self: Sized,
+    {
+        self.color(Color::TrueColor { r, g, b })
+    }
     fn color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Background Colors
     fn on_black(self) -> ColoredString
@@ -279,6 +287,12 @@ pub trait Colorize {
     {
         self.on_color(Color::BrightWhite)
     }
+    fn on_truecolor(self, r: u8, g: u8, b: u8) -> ColoredString
+    where
+        Self: Sized,
+    {
+        self.on_color(Color::TrueColor { r, g, b })
+    }
     fn on_color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Styles
     fn clear(self) -> ColoredString;
@@ -378,7 +392,7 @@ impl ColoredString {
                 res.push(';');
             }
 
-            res.push_str(bgcolor.to_bg_str());
+            res.push_str(&bgcolor.to_bg_str());
             has_wrote = true;
         }
 
@@ -387,7 +401,7 @@ impl ColoredString {
                 res.push(';');
             }
 
-            res.push_str(fgcolor.to_fg_str());
+            res.push_str(&fgcolor.to_fg_str());
         }
 
         res.push('m');
@@ -631,6 +645,9 @@ mod tests {
         println!("{}", toto.cyan());
         println!("{}", toto.white());
         println!("{}", toto.white().red().blue().green());
+        println!("{}", toto.truecolor(255, 0, 0));
+        println!("{}", toto.truecolor(255, 255, 0));
+        println!("{}", toto.on_truecolor(0, 80, 80));
         // uncomment to see term output
         // assert!(false)
     }

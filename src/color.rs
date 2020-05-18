@@ -21,49 +21,52 @@ pub enum Color {
     BrightMagenta,
     BrightCyan,
     BrightWhite,
+    TrueColor { r: u8, g: u8, b: u8 },
 }
 
 #[allow(missing_docs)]
 impl Color {
-    pub fn to_fg_str(&self) -> &str {
+    pub fn to_fg_str(&self) -> String {
         match *self {
-            Color::Black => "30",
-            Color::Red => "31",
-            Color::Green => "32",
-            Color::Yellow => "33",
-            Color::Blue => "34",
-            Color::Magenta => "35",
-            Color::Cyan => "36",
-            Color::White => "37",
-            Color::BrightBlack => "90",
-            Color::BrightRed => "91",
-            Color::BrightGreen => "92",
-            Color::BrightYellow => "93",
-            Color::BrightBlue => "94",
-            Color::BrightMagenta => "95",
-            Color::BrightCyan => "96",
-            Color::BrightWhite => "97",
+            Color::Black => "30".to_string(),
+            Color::Red => "31".to_string(),
+            Color::Green => "32".to_string(),
+            Color::Yellow => "33".to_string(),
+            Color::Blue => "34".to_string(),
+            Color::Magenta => "35".to_string(),
+            Color::Cyan => "36".to_string(),
+            Color::White => "37".to_string(),
+            Color::BrightBlack => "90".to_string(),
+            Color::BrightRed => "91".to_string(),
+            Color::BrightGreen => "92".to_string(),
+            Color::BrightYellow => "93".to_string(),
+            Color::BrightBlue => "94".to_string(),
+            Color::BrightMagenta => "95".to_string(),
+            Color::BrightCyan => "96".to_string(),
+            Color::BrightWhite => "97".to_string(),
+            Color::TrueColor { r, g, b } => format!("38;2;{};{};{}", r, g, b),
         }
     }
 
-    pub fn to_bg_str(&self) -> &str {
+    pub fn to_bg_str(&self) -> String {
         match *self {
-            Color::Black => "40",
-            Color::Red => "41",
-            Color::Green => "42",
-            Color::Yellow => "43",
-            Color::Blue => "44",
-            Color::Magenta => "45",
-            Color::Cyan => "46",
-            Color::White => "47",
-            Color::BrightBlack => "100",
-            Color::BrightRed => "101",
-            Color::BrightGreen => "102",
-            Color::BrightYellow => "103",
-            Color::BrightBlue => "104",
-            Color::BrightMagenta => "105",
-            Color::BrightCyan => "106",
-            Color::BrightWhite => "107",
+            Color::Black => "40".to_string(),
+            Color::Red => "41".to_string(),
+            Color::Green => "42".to_string(),
+            Color::Yellow => "43".to_string(),
+            Color::Blue => "44".to_string(),
+            Color::Magenta => "45".to_string(),
+            Color::Cyan => "46".to_string(),
+            Color::White => "47".to_string(),
+            Color::BrightBlack => "100".to_string(),
+            Color::BrightRed => "101".to_string(),
+            Color::BrightGreen => "102".to_string(),
+            Color::BrightYellow => "103".to_string(),
+            Color::BrightBlue => "104".to_string(),
+            Color::BrightMagenta => "105".to_string(),
+            Color::BrightCyan => "106".to_string(),
+            Color::BrightWhite => "107".to_string(),
+            Color::TrueColor { r, g, b } => format!("48;2;{};{};{}", r, g, b),
         }
     }
 }
