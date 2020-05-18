@@ -308,7 +308,7 @@ impl ColoredString {
     /// assert_eq!(cstr.fgcolor(), None);
     /// ```
     pub fn fgcolor(&self) -> Option<Color> {
-        self.fgcolor.as_ref().map(|x| *x)
+        self.fgcolor.as_ref().copied()
     }
 
     /// Get the current background color applied.
@@ -321,7 +321,7 @@ impl ColoredString {
     /// assert_eq!(cstr.bgcolor(), None);
     /// ```
     pub fn bgcolor(&self) -> Option<Color> {
-        self.bgcolor.as_ref().map(|x| *x)
+        self.bgcolor.as_ref().copied()
     }
 
     /// Get the current [`Style`] which can be check if it contains a [`Styles`].
