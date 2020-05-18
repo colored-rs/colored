@@ -96,7 +96,7 @@ impl Style {
     /// assert_eq!(colored.style().contains(Styles::Italic), true);
     /// assert_eq!(colored.style().contains(Styles::Dimmed), false);
     /// ```
-    pub fn contains(&self, style: Styles) -> bool {
+    pub fn contains(self, style: Styles) -> bool {
         let s = style.to_u8();
         self.0 & s == s
     }
