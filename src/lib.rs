@@ -347,7 +347,7 @@ impl ColoredString {
     /// assert_eq!(cstr.is_plain(), true);
     /// ```
     pub fn is_plain(&self) -> bool {
-        (self.bgcolor.is_none() && self.fgcolor.is_none() && self.style == style::CLEAR)
+        self.bgcolor.is_none() && self.fgcolor.is_none() && self.style == style::CLEAR
     }
 
     #[cfg(not(feature = "no-color"))]
