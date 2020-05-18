@@ -120,8 +120,8 @@ mod tests {
     use super::*;
 
     mod u8_to_styles_invalid_is_none {
+        use super::super::Styles;
         use super::super::CLEARV;
-        use super::super::{Style, Styles};
 
         #[test]
         fn empty_is_none() {
@@ -174,9 +174,6 @@ mod tests {
     mod styles_combine_complex {
         use super::super::Styles::*;
         use super::super::{Style, Styles};
-        use super::super::{
-            BLINK, BOLD, DIMMED, HIDDEN, ITALIC, REVERSED, STRIKETHROUGH, UNDERLINE,
-        };
 
         fn style_from_multiples(styles: &[Styles]) -> Style {
             let mut res = Style(styles[0].to_u8());
