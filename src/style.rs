@@ -284,6 +284,7 @@ mod tests {
         }
     }
 
+    #[test]
     fn test_style_contains() {
         let mut style = Style(Styles::Bold.to_u8());
         style.add(Styles::Italic);
