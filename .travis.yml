@@ -5,6 +5,8 @@ rust:
   - beta
   - stable
 
+cache: cargo
+
 matrix:
   allow_failures:
     - rust: nightly
