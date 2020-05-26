@@ -7,6 +7,13 @@ rust:
 
 cache: cargo
 
+before_script:
+  - rustup component add clippy
+
+script:
+  - cargo test --verbose
+  - cargo clippy -- -Dwarnings
+
 matrix:
   allow_failures:
     - rust: nightly
