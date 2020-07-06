@@ -42,6 +42,7 @@ use std::convert::From;
 use std::fmt;
 use std::ops::Deref;
 use std::string::String;
+use std::borrow::Cow;
 
 pub use style::{Style, Styles};
 
@@ -394,9 +395,9 @@ impl ColoredString {
         res
     }
 
-    fn escape_inner_reset_sequences(&self) -> String {
+    fn escape_inner_reset_sequences(&self) -> Cow<str> {
         if !self.has_colors() || self.is_plain() {
-            return self.input.clone();
+            return self.input.as_str().into();
         }
 
         // TODO: BoyScoutRule
@@ -407,6 +408,9 @@ impl ColoredString {
             .match_indices(reset)
             .map(|(idx, _)| idx)
             .collect();
+        if matches.len() == 0 {
+            return self.input.as_str().into()
+        }
 
         let mut input = self.input.clone();
         input.reserve(matches.len() * style.len());
@@ -422,7 +426,7 @@ impl ColoredString {
             }
         }
 
-        input
+        input.into()
     }
 }
 
@@ -575,7 +579,7 @@ impl fmt::Display for ColoredString {
         let escaped_input = self.escape_inner_reset_sequences();
 
         f.write_str(&self.compute_style())?;
-        <String as fmt::Display>::fmt(&escaped_input, f)?;
+        escaped_input.fmt(f)?;
         f.write_str("\x1B[0m")?;
         Ok(())
     }
