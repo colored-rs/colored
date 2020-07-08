@@ -408,7 +408,7 @@ impl ColoredString {
             .match_indices(reset)
             .map(|(idx, _)| idx)
             .collect();
-        if matches.len() == 0 {
+        if matches.is_empty() {
             return self.input.as_str().into()
         }
 
