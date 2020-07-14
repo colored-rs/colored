@@ -1,5 +1,4 @@
-use std::convert::From;
-use std::str::FromStr;
+use std::{borrow::Cow, str::FromStr};
 
 /// The 8 standard colors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -26,47 +25,47 @@ pub enum Color {
 
 #[allow(missing_docs)]
 impl Color {
-    pub fn to_fg_str(&self) -> String {
+    pub fn to_fg_str(&self) -> Cow<'static, str> {
         match *self {
-            Color::Black => "30".to_string(),
-            Color::Red => "31".to_string(),
-            Color::Green => "32".to_string(),
-            Color::Yellow => "33".to_string(),
-            Color::Blue => "34".to_string(),
-            Color::Magenta => "35".to_string(),
-            Color::Cyan => "36".to_string(),
-            Color::White => "37".to_string(),
-            Color::BrightBlack => "90".to_string(),
-            Color::BrightRed => "91".to_string(),
-            Color::BrightGreen => "92".to_string(),
-            Color::BrightYellow => "93".to_string(),
-            Color::BrightBlue => "94".to_string(),
-            Color::BrightMagenta => "95".to_string(),
-            Color::BrightCyan => "96".to_string(),
-            Color::BrightWhite => "97".to_string(),
-            Color::TrueColor { r, g, b } => format!("38;2;{};{};{}", r, g, b),
+            Color::Black => "30".into(),
+            Color::Red => "31".into(),
+            Color::Green => "32".into(),
+            Color::Yellow => "33".into(),
+            Color::Blue => "34".into(),
+            Color::Magenta => "35".into(),
+            Color::Cyan => "36".into(),
+            Color::White => "37".into(),
+            Color::BrightBlack => "90".into(),
+            Color::BrightRed => "91".into(),
+            Color::BrightGreen => "92".into(),
+            Color::BrightYellow => "93".into(),
+            Color::BrightBlue => "94".into(),
+            Color::BrightMagenta => "95".into(),
+            Color::BrightCyan => "96".into(),
+            Color::BrightWhite => "97".into(),
+            Color::TrueColor { r, g, b } => format!("38;2;{};{};{}", r, g, b).into(),
         }
     }
 
-    pub fn to_bg_str(&self) -> String {
+    pub fn to_bg_str(&self) -> Cow<'static, str> {
         match *self {
-            Color::Black => "40".to_string(),
-            Color::Red => "41".to_string(),
-            Color::Green => "42".to_string(),
-            Color::Yellow => "43".to_string(),
-            Color::Blue => "44".to_string(),
-            Color::Magenta => "45".to_string(),
-            Color::Cyan => "46".to_string(),
-            Color::White => "47".to_string(),
-            Color::BrightBlack => "100".to_string(),
-            Color::BrightRed => "101".to_string(),
-            Color::BrightGreen => "102".to_string(),
-            Color::BrightYellow => "103".to_string(),
-            Color::BrightBlue => "104".to_string(),
-            Color::BrightMagenta => "105".to_string(),
-            Color::BrightCyan => "106".to_string(),
-            Color::BrightWhite => "107".to_string(),
-            Color::TrueColor { r, g, b } => format!("48;2;{};{};{}", r, g, b),
+            Color::Black => "40".into(),
+            Color::Red => "41".into(),
+            Color::Green => "42".into(),
+            Color::Yellow => "43".into(),
+            Color::Blue => "44".into(),
+            Color::Magenta => "45".into(),
+            Color::Cyan => "46".into(),
+            Color::White => "47".into(),
+            Color::BrightBlack => "100".into(),
+            Color::BrightRed => "101".into(),
+            Color::BrightGreen => "102".into(),
+            Color::BrightYellow => "103".into(),
+            Color::BrightBlue => "104".into(),
+            Color::BrightMagenta => "105".into(),
+            Color::BrightCyan => "106".into(),
+            Color::BrightWhite => "107".into(),
+            Color::TrueColor { r, g, b } => format!("48;2;{};{};{}", r, g, b).into(),
         }
     }
 }

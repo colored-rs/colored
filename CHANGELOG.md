@@ -1,4 +1,8 @@
 
+# 2.0.0 (July 14, 2020)
+- Add support for true colours.
+- Alter `Color` interface to return `Cow<'static, str>`
+
 # 1.9.3 (February 24, 2020)
 - Fix compilation regression for 1.34.0. Thanks @jlevon for reporting.
 

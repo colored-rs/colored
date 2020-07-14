@@ -1,7 +1,7 @@
 [package]
 name = "colored"
 description = "The most simple way to add colors in your terminal"
-version = "1.9.3"
+version = "2.0.0"
 authors = ["Thomas Wickham <mackwic@gmail.com>"]
 license = "MPL-2.0"
 homepage = "https://github.com/mackwic/colored"
