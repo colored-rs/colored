@@ -40,11 +40,7 @@ mod style;
 
 pub use color::*;
 
-use std::convert::From;
-use std::fmt;
-use std::ops::Deref;
-use std::string::String;
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt, ops::Deref};
 
 pub use style::{Style, Styles};
 
@@ -423,7 +419,7 @@ impl ColoredString {
             .map(|(idx, _)| idx)
             .collect();
         if matches.is_empty() {
-            return self.input.as_str().into()
+            return self.input.as_str().into();
         }
 
         let mut input = self.input.clone();
