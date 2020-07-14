@@ -31,7 +31,7 @@ Add this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-colored = "1.9"
+colored = "2"
 ```
 
 and add this to your `lib.rs` or `main.rs`:
