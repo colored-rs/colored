@@ -36,11 +36,12 @@ extern crate rspec;
 
 mod color;
 pub mod control;
+mod error;
 mod style;
 
 pub use color::*;
 
-use std::{borrow::Cow, fmt, ops::Deref};
+use std::{borrow::Cow, error::Error, fmt, ops::Deref};
 
 pub use style::{Style, Styles};
 
@@ -592,6 +593,12 @@ impl fmt::Display for ColoredString {
         escaped_input.fmt(f)?;
         f.write_str("\x1B[0m")?;
         Ok(())
+    }
+}
+
+impl From<ColoredString> for Box<dyn Error> {
+    fn from(cs: ColoredString) -> Box<dyn Error> {
+        Box::from(error::ColoredStringError(cs))
     }
 }
 
