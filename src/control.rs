@@ -19,10 +19,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 /// ```rust
 /// use colored::*;
 /// control::set_virtual_terminal(false).unwrap();
-/// println!("{}", "bright cyan".bright_cyan());	// will print '[96mbright cyan[0m' on windows 10
+/// println!("{}", "bright cyan".bright_cyan());    // will print '[96mbright cyan[0m' on windows 10
 ///
 /// control::set_virtual_terminal(true).unwrap();
-/// println!("{}", "bright cyan".bright_cyan());	// will print correctly
+/// println!("{}", "bright cyan".bright_cyan());    // will print correctly
 /// ```
 #[cfg(windows)]
 pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
