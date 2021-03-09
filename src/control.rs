@@ -60,7 +60,7 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
     Ok(())
 }
 
-/// A flag to to if coloring should occur.
+/// A flag for whether coloring should occur.
 pub struct ShouldColorize {
     clicolor: bool,
     clicolor_force: Option<bool>,
