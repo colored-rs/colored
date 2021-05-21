@@ -53,6 +53,7 @@ and add this to your `lib.rs` or `main.rs`:
 - Safe rust, easy to use, minimal dependencies, complete test suite
 - Respect the `CLICOLOR`/`CLICOLOR_FORCE` behavior (see [the specs](http://bixense.com/clicolors/))
 - Respect the `NO_COLOR` behavior (see [the specs](https://no-color.org/))
+- Do note that `CLICOLOR_FORCE` overrules `NO_COLOR`, which overrules `CLICOLOR`
 - Works on Linux, MacOS, and Windows (Powershell)
 
 #### Colors:
