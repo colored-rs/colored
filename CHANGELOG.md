@@ -1,5 +1,6 @@
 # Unreleased
 - Document crate MSRV of `1.70`.
+- Handle errors in `set_virtual_terminal`.
 
 # 2.0.4
 - Switch from `winapi` to `windows-sys`.
