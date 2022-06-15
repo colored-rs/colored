@@ -2,6 +2,7 @@
 name = "colored"
 description = "The most simple way to add colors in your terminal"
 version = "2.0.0"
+edition = "2021"
 authors = ["Thomas Wickham <mackwic@gmail.com>"]
 license = "MPL-2.0"
 homepage = "https://github.com/mackwic/colored"
