@@ -1,6 +1,3 @@
-
-
-
 #[doc = "Custom color structure, it will generate a true color in the result"]
 pub struct CustomColor {
     /// Red
@@ -15,10 +12,6 @@ pub struct CustomColor {
 impl CustomColor {
     /// Create a new custom color
     pub fn new(r: u8, g: u8, b: u8) -> Self {
-        Self {
-            r,
-            g,
-            b,
-        }
+        Self { r, g, b }
     }
 }

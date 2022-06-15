@@ -38,7 +38,6 @@ mod color;
 pub mod control;
 mod style;
 
-
 /// Custom colors support.
 pub mod customcolors;
 
@@ -183,7 +182,11 @@ pub trait Colorize {
     where
         Self: Sized,
     {
-        self.color(Color::TrueColor { r: color.r, g: color.g, b: color.b })
+        self.color(Color::TrueColor {
+            r: color.r,
+            g: color.g,
+            b: color.b,
+        })
     }
     fn color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Background Colors
@@ -305,7 +308,11 @@ pub trait Colorize {
     where
         Self: Sized,
     {
-        self.on_color(Color::TrueColor { r: color.r, g: color.g, b: color.b })
+        self.on_color(Color::TrueColor {
+            r: color.r,
+            g: color.g,
+            b: color.b,
+        })
     }
     fn on_color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Styles
