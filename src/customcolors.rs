@@ -15,3 +15,13 @@ impl CustomColor {
         Self { r, g, b }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+    #[test]
+    fn main() {
+        let my_color = CustomColor::new(0, 120, 120);
+        println!("{}", "Greetings from Ukraine".custom_color(my_color));
+    }
+}
