@@ -38,11 +38,14 @@ mod color;
 pub mod control;
 mod style;
 
+
+pub use self::customcolors::CustomColor;
+
 /// Custom colors support.
 pub mod customcolors;
 
 pub use color::*;
-use customcolors::CustomColor;
+
 
 use std::{borrow::Cow, fmt, ops::Deref};
 
