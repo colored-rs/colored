@@ -37,7 +37,7 @@ colored = "2"
 and add this to your `lib.rs` or `main.rs`:
 
 ```rust
-    extern crate colored; // not needed in Rust 2018
+    extern crate colored; // not needed in Rust 2018+
 
     use colored::*;
 
