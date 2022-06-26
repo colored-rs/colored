@@ -1,4 +1,5 @@
-#[doc = "Custom color structure, it will generate a true color in the result"]
+/// Custom color structure, it will generate a true color in the result
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct CustomColor {
     /// Red
     pub r: u8,
@@ -8,7 +9,7 @@ pub struct CustomColor {
     pub b: u8,
 }
 
-#[doc = "This only makes custom color creation easier.\n\n"]
+/// This only makes custom color creation easier.
 impl CustomColor {
     /// Create a new custom color
     pub fn new(r: u8, g: u8, b: u8) -> Self {
