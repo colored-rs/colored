@@ -179,7 +179,7 @@ pub trait Colorize {
     {
         self.color(Color::TrueColor { r, g, b })
     }
-    fn custom_color(self, color: &CustomColor) -> ColoredString
+    fn custom_color(self, color: CustomColor) -> ColoredString
     where
         Self: Sized,
     {
@@ -305,7 +305,7 @@ pub trait Colorize {
     {
         self.on_color(Color::TrueColor { r, g, b })
     }
-    fn on_custom_color(self, color: &CustomColor) -> ColoredString
+    fn on_custom_color(self, color: CustomColor) -> ColoredString
     where
         Self: Sized,
     {
