@@ -13,6 +13,9 @@
 /// // is equivalent to:
 ///
 /// println!("{}", format!("This will be {} and {}!", "blue", "bold").blue().bold());
+///
+/// // inner colorization will be applied on top
+/// println_color!(magenta, "Most of this is magenta, but {} is red", "this".red());
 /// ```
 #[macro_export]
 macro_rules! println_color {
