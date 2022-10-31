@@ -37,6 +37,8 @@ extern crate rspec;
 mod color;
 pub mod control;
 mod style;
+mod print;
+
 
 pub use self::customcolors::CustomColor;
 
