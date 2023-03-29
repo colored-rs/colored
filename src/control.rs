@@ -104,8 +104,15 @@ impl ShouldColorize {
     /// followed by `CLICOLOR` combined with tty check.
     pub fn from_env() -> Self {
         ShouldColorize {
-            clicolor: ShouldColorize::normalize_env(env::var("CLICOLOR")).unwrap_or_else(|| true)
-                && atty::is(atty::Stream::Stdout),
+            clicolor: (ShouldColorize::normalize_env(env::var("CLICOLOR")).unwrap_or(true))
+                && atty::is(atty::Stream::Stdout)
+                && (if let Ok(db) = terminfo::Database::from_env() {
+                    db.get::<terminfo::capability::MaxColors>()
+                        .map(|mc| 2 < mc.into())
+                        .unwrap_or(false)
+                } else {
+                    true
+                }),
             clicolor_force: ShouldColorize::resolve_clicolor_force(
                 env::var("NO_COLOR"),
                 env::var("CLICOLOR_FORCE"),

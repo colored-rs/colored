@@ -17,6 +17,7 @@ no-color = []
 [dependencies]
 atty = "0.2"
 lazy_static = "1"
+terminfo = "0.7"
 
 [target.'cfg(windows)'.dependencies.winapi]
 version = "0.3"
