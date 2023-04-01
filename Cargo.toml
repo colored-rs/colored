@@ -1,12 +1,12 @@
 [package]
-name = "colored"
+name = "afetch-colored"
 description = "The most simple way to add colors in your terminal"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2021"
 authors = ["Thomas Wickham <mackwic@gmail.com>"]
 license = "MPL-2.0"
-homepage = "https://github.com/mackwic/colored"
-repository = "https://github.com/mackwic/colored"
+homepage = "https://github.com/Asthowen/afetch-colored"
+repository = "https://github.com/Asthowen/afetch-colored"
 readme = "README.md"
 keywords = ["color", "string", "term", "ansi_term", "term-painter"]
 
@@ -28,5 +28,5 @@ features = [
 ]
 
 [dev_dependencies]
-ansi_term = "0.12"
-rspec = "=1.0.0-beta.3"
+ansi_term = "0.12.1"
+rspec = "1.0.0"
