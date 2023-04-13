@@ -25,7 +25,6 @@
 //!
 #![warn(missing_docs)]
 
-extern crate atty;
 #[macro_use]
 extern crate lazy_static;
 #[cfg(windows)]

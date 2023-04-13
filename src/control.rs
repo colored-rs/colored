@@ -1,9 +1,9 @@
 //! A couple of functions to enable and disable coloring.
 
+use is_terminal::IsTerminal;
 use std::default::Default;
 use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
-
 /// Sets a flag to the console to use a virtual terminal environment.
 ///
 /// This is primarily used for Windows 10 environments which will not correctly colorize
@@ -105,7 +105,7 @@ impl ShouldColorize {
     pub fn from_env() -> Self {
         ShouldColorize {
             clicolor: ShouldColorize::normalize_env(env::var("CLICOLOR")).unwrap_or_else(|| true)
-                && atty::is(atty::Stream::Stdout),
+                && std::io::stdout().is_terminal(),
             clicolor_force: ShouldColorize::resolve_clicolor_force(
                 env::var("NO_COLOR"),
                 env::var("CLICOLOR_FORCE"),
