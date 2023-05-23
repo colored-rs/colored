@@ -26,8 +26,7 @@
 #![warn(missing_docs)]
 
 extern crate atty;
-#[macro_use]
-extern crate lazy_static;
+extern crate once_cell;
 #[cfg(windows)]
 extern crate winapi;
 

@@ -1,5 +1,6 @@
 //! A couple of functions to enable and disable coloring.
 
+use once_cell::sync::Lazy;
 use std::default::Default;
 use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -81,10 +82,8 @@ pub fn unset_override() {
     SHOULD_COLORIZE.unset_override()
 }
 
-lazy_static! {
 /// The persistent [`ShouldColorize`].
-    pub static ref SHOULD_COLORIZE: ShouldColorize = ShouldColorize::from_env();
-}
+pub static SHOULD_COLORIZE: Lazy<ShouldColorize> = Lazy::new(ShouldColorize::from_env);
 
 impl Default for ShouldColorize {
     fn default() -> ShouldColorize {
