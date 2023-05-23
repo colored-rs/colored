@@ -27,6 +27,6 @@ features = [
     "winbase"
 ]
 
-[dev_dependencies]
+[dev-dependencies]
 ansi_term = "0.12"
 rspec = "=1.0.0-beta.3"
