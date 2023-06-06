@@ -58,6 +58,7 @@ pub struct ColoredString {
     style: style::Style,
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum AnsiOrCustom {
     Ansi(u8),
     Custom(CustomColor),
