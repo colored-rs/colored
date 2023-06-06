@@ -58,6 +58,17 @@ pub struct ColoredString {
     style: style::Style,
 }
 
+pub enum AnsiOrCustom {
+    Ansi(u8),
+    Custom(CustomColor),
+}
+
+impl From<u8> for AnsiOrCustom {
+    fn from(code: u8) -> Self {
+        AnsiOrCustom::Ansi(code)
+    }
+}
+
 /// The trait that enables something to be given color.
 ///
 /// You can use `colored` effectively simply by importing this trait
@@ -189,6 +200,20 @@ pub trait Colorize {
             b: color.b,
         })
     }
+    fn custom_color_or_ansi_color_code(self, color: impl Into<AnsiOrCustom>) -> ColoredString
+    where
+        Self: Sized,
+    {
+        match color.into() {
+            AnsiOrCustom::Ansi(color_value) => self.color(Color::AnsiColor(color_value)),
+            AnsiOrCustom::Custom(color_value) => self.color(Color::TrueColor {
+                r: color_value.r,
+                g: color_value.g,
+                b: color_value.b,
+            }),
+        }
+    }
+
     fn color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Background Colors
     fn on_black(self) -> ColoredString
