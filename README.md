@@ -175,6 +175,7 @@ In non legal terms it means that:
 ## Contributors
 
 - Thomas Wickham: [@mackwic](https://github.com/mackwic)
+- Hunter Wittenborn [@hwittenborn](https://hwittenborn)
 - Corey "See More" Richardson: [@cmr](https://github.com/cmr)
 - Iban Eguia: [@Razican](https://github.com/Razican)
 - Alexis "Horgix" Chotard: [@horgix](https://github.com/horgix)
