@@ -1,0 +1,16 @@
+name: Run tests
+on: pull_request
+env: { CLICOLOR_FORCE: 1 }
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Run formatting checks
+        run: cargo fmt --check
+      - name: Run clippy checks
+        run: cargo clippy --all-features -- -D warnings
+      - name: Run tests
+        run: cargo test
