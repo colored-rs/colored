@@ -103,9 +103,17 @@ impl ShouldColorize {
     /// `CLICOLOR_FORCE` takes highest priority, followed by `NO_COLOR`,
     /// followed by `CLICOLOR` combined with tty check.
     pub fn from_env() -> Self {
+        let tty = {
+            #[cfg(feature = "tty")]
+            {
+                atty::is(atty::Stream::Stdout)
+            }
+            #[cfg(not(feature = "tty"))]
+            false
+        };
         ShouldColorize {
-            clicolor: ShouldColorize::normalize_env(env::var("CLICOLOR")).unwrap_or_else(|| true)
-                && atty::is(atty::Stream::Stdout),
+            clicolor: ShouldColorize::normalize_env(env::var("CLICOLOR")).unwrap_or(true)
+                && tty,
             clicolor_force: ShouldColorize::resolve_clicolor_force(
                 env::var("NO_COLOR"),
                 env::var("CLICOLOR_FORCE"),

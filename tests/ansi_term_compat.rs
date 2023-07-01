@@ -1,4 +1,4 @@
-#![cfg(not(feature = "no-color"))]
+#![cfg(feature = "color")]
 #![allow(unused_imports)]
 
 extern crate ansi_term;
@@ -12,8 +12,9 @@ macro_rules! test_simple_color {
         #[test]
         fn $colored_name() {
             let s = format!("{} {}", $string, stringify!($colored_name));
+
             assert_eq!(
-                s.$colored_name().to_string(),
+                s.clone().$colored_name().to_string(),
                 Colour::$ansi_term_name.paint(s).to_string()
             )
         }
@@ -40,7 +41,7 @@ macro_rules! test_simple_style {
         fn $style() {
             let s = format!("{} {}", $string, stringify!($style));
             assert_eq!(
-                s.$style().to_string(),
+                s.clone().$style().to_string(),
                 ansi_term::Style::new().$style().paint(s).to_string()
             )
         }
@@ -68,7 +69,7 @@ macro_rules! test_simple_bgcolor {
         fn $colored_name() {
             let s = format!("{} {}", $string, stringify!($colored_name));
             assert_eq!(
-                s.$colored_name().to_string(),
+                s.clone().$colored_name().to_string(),
                 ansi_term::Style::default()
                     .on(ansi_term::Colour::$ansi_term_name)
                     .paint(s)

@@ -11,11 +11,13 @@ readme = "README.md"
 keywords = ["color", "string", "term", "ansi_term", "term-painter"]
 
 [features]
+default = ["tty", "color"]
+tty = ["dep:atty"]
 # with this feature, no color will ever be written
-no-color = []
+color = []
 
 [dependencies]
-atty = "0.2"
+atty = { version = "0.2", optional = true }
 lazy_static = "1"
 
 [target.'cfg(windows)'.dependencies.winapi]

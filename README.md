@@ -118,10 +118,14 @@ using the `no-color` feature.
 For example, you can do this in your `Cargo.toml` to disable color in tests:
 
 ```toml
+[dependencies]
+colored = { version = "2", default-features = false, features = [ "tty" ] }
+
 [features]
-# this effectively enable the feature `no-color` of colored when testing with
+# this effectively disables the feature `color` of colored when testing with
 # `cargo test --feature dumb_terminal`
-dumb_terminal = ["colored/no-color"]
+dumb_terminal = ["colored"]
+color_terminal = ["colored/color"]
 ```
 
 You can use have even finer control by using the
