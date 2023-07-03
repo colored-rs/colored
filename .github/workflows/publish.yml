@@ -24,6 +24,7 @@ jobs:
             echo "false" >> "${GITHUB_OUTPUT}"
           fi
       - name: Install parse-changelog
+        if: steps.needs-update == 'true'
         uses: taiki-e/install-action@parse-changelog
       - name: Create GitHub release
         if: steps.needs-update == 'true'
