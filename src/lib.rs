@@ -28,8 +28,6 @@
 extern crate is_terminal;
 #[macro_use]
 extern crate lazy_static;
-#[cfg(windows)]
-extern crate winapi;
 
 #[cfg(test)]
 extern crate rspec;

@@ -19,13 +19,11 @@ no-color = []
 is-terminal = "0.4"
 lazy_static = "1"
 
-[target.'cfg(windows)'.dependencies.winapi]
-version = "0.3"
-default-features = false
+[target.'cfg(windows)'.dependencies.windows-sys]
+version = "0.48"
 features = [
-    "consoleapi",
-    "processenv",
-    "winbase"
+    "Win32_Foundation",
+    "Win32_System_Console",
 ]
 
 [dev_dependencies]

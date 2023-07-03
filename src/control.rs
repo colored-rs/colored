@@ -29,19 +29,14 @@ use std::sync::atomic::{AtomicBool, Ordering};
 #[allow(clippy::result_unit_err)]
 #[cfg(windows)]
 pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
-    use winapi::{
-        shared::minwindef::DWORD,
-        um::{
-            consoleapi::{GetConsoleMode, SetConsoleMode},
-            processenv::GetStdHandle,
-            winbase::STD_OUTPUT_HANDLE,
-            wincon::ENABLE_VIRTUAL_TERMINAL_PROCESSING,
-        },
+    use windows_sys::Win32::System::Console::{
+        GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING,
+        STD_OUTPUT_HANDLE,
     };
 
     unsafe {
         let handle = GetStdHandle(STD_OUTPUT_HANDLE);
-        let mut original_mode: DWORD = 0;
+        let mut original_mode = 0;
         GetConsoleMode(handle, &mut original_mode);
 
         let enabled = original_mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING
