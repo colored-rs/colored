@@ -1,3 +1,6 @@
+# Unreleased
+- Fix typo in `src/control.rs`.
+
 # 2.0.1 (July 3, 2023)
 - Add edition for future compatibility.
 - Implement custom colors that can be stored in a variable.
