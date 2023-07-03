@@ -28,6 +28,8 @@ jobs:
       - name: Create GitHub release
         if: steps.needs-update == 'true'
         run: gh release create "v${{ steps.local-version.outputs.VERSION }}" -n "$(parse-changelog CHANGELOG.md "${{ steps.local-version.outputs.VERSION }}")"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Publish to crates.io
         if: steps.needs-update == 'true'
         run: cargo publish
