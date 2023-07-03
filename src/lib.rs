@@ -324,10 +324,8 @@ pub trait Colorize {
     fn italic(self) -> ColoredString;
     fn underline(self) -> ColoredString;
     fn blink(self) -> ColoredString;
-    /// Historical name of `Colorize::reversed`. May be removed in a future version. Please use
-    /// `Colorize::reversed` instead
+    #[deprecated(since = "1.5.2", note = "Users should use reversed instead")]
     fn reverse(self) -> ColoredString;
-    /// This should be preferred to `Colorize::reverse`.
     fn reversed(self) -> ColoredString;
     fn hidden(self) -> ColoredString;
     fn strikethrough(self) -> ColoredString;
