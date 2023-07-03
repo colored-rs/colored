@@ -1,7 +1,6 @@
 # Colored
 
-[![Build
-Status](https://travis-ci.org/mackwic/colored.svg?branch=master)](https://travis-ci.org/mackwic/colored) [![Crates.io](https://img.shields.io/crates/v/colored.svg?maxAge=2592000)](https://crates.io/crates/colored) [![Crates.io](https://img.shields.io/crates/l/colored.svg?maxAge=2592000)](https://github.com/mackwic/colored/blob/master/LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/colored.svg?maxAge=2592000)](https://crates.io/crates/colored) [![Crates.io](https://img.shields.io/crates/l/colored.svg?maxAge=2592000)](https://github.com/mackwic/colored/blob/master/LICENSE)
 
 Coloring terminal so simple, you already know how to do it!
 
@@ -127,25 +126,6 @@ dumb_terminal = ["colored/no-color"]
 You can use have even finer control by using the
 `colored::control::set_override` method.
 
-## Build with Docker
-
-### Install Docker
-
-Use the install instructions located [here](https://docs.docker.com/v17.12/install/)
-
-### Build the Docker image
-
-```docker build -t colored_image .```
-
-### Build the library
-
-```docker run --rm -it -v "$PWD":/src -u `id -u`:`id -g` colored_image /bin/bash -c "cargo build"```
-
-### Test the library
-
-```docker run --rm -it -v "$PWD":/src -u `id -u`:`id -g` colored_image /bin/bash -c "cargo test"```
-
-
 ## Todo
 
 - **More tests ?**: We always welcome more tests! Please contribute!
@@ -175,6 +155,7 @@ In non legal terms it means that:
 ## Contributors
 
 - Thomas Wickham: [@mackwic](https://github.com/mackwic)
+- Hunter Wittenborn [@hwittenborn](https://github.com/hwittenborn)
 - Corey "See More" Richardson: [@cmr](https://github.com/cmr)
 - Iban Eguia: [@Razican](https://github.com/Razican)
 - Alexis "Horgix" Chotard: [@horgix](https://github.com/horgix)

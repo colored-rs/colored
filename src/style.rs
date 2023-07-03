@@ -75,7 +75,7 @@ impl Styles {
 
         let res: Vec<Styles> = STYLES
             .iter()
-            .filter(|&&(ref mask, _)| (0 != (u & mask)))
+            .filter(|&(mask, _)| (0 != (u & mask)))
             .map(|&(_, value)| value)
             .collect();
         if res.is_empty() {
