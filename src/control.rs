@@ -83,7 +83,7 @@ pub fn unset_override() {
 }
 
 /// The persistent [`ShouldColorize`].
-pub static SHOULD_COLORIZE: Lazy<ShouldColorize> = Lazy::new(|| ShouldColorize::from_env());
+pub static SHOULD_COLORIZE: Lazy<ShouldColorize> = Lazy::new(ShouldColorize::from_env);
 
 impl Default for ShouldColorize {
     fn default() -> ShouldColorize {
