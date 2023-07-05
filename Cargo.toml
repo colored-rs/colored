@@ -1,7 +1,7 @@
 [package]
 name = "colored"
 description = "The most simple way to add colors in your terminal"
-version = "2.0.1"
+version = "2.0.2"
 edition = "2021"
 authors = ["Thomas Wickham <mackwic@gmail.com>"]
 license = "MPL-2.0"
@@ -15,7 +15,7 @@ keywords = ["color", "string", "term", "ansi_term", "term-painter"]
 no-color = []
 
 [dependencies]
-atty = "0.2"
+is-terminal = "0.4"
 lazy_static = "1"
 
 [target.'cfg(windows)'.dependencies.winapi]

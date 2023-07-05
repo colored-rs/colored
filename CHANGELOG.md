@@ -1,5 +1,8 @@
 # Unreleased
+
+# 2.0.2
 - Fix typo in `src/control.rs`.
+- Replace `atty` dependency with `is-terminal`.
 
 # 2.0.1 (July 3, 2023)
 - Add edition for future compatibility.
