@@ -1,7 +1,9 @@
 //! A couple of functions to enable and disable coloring.
 
+use is_terminal::IsTerminal;
 use std::default::Default;
 use std::env;
+use std::io;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Sets a flag to the console to use a virtual terminal environment.
@@ -19,10 +21,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 /// ```rust
 /// use colored::*;
 /// control::set_virtual_terminal(false).unwrap();
-/// println!("{}", "bright cyan".bright_cyan());	// will print '[96mbright cyan[0m' on windows 10
+/// println!("{}", "bright cyan".bright_cyan());    // will print '[96mbright cyan[0m' on windows 10
 ///
 /// control::set_virtual_terminal(true).unwrap();
-/// println!("{}", "bright cyan".bright_cyan());	// will print correctly
+/// println!("{}", "bright cyan".bright_cyan());    // will print correctly
 /// ```
 #[cfg(windows)]
 pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
@@ -60,7 +62,7 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
     Ok(())
 }
 
-/// A flag to to if coloring should occur.
+/// A flag for whether coloring should occur.
 pub struct ShouldColorize {
     clicolor: bool,
     clicolor_force: Option<bool>,
@@ -105,7 +107,7 @@ impl ShouldColorize {
     pub fn from_env() -> Self {
         ShouldColorize {
             clicolor: ShouldColorize::normalize_env(env::var("CLICOLOR")).unwrap_or(true)
-                && atty::is(atty::Stream::Stdout),
+                && io::stdout().is_terminal(),
             clicolor_force: ShouldColorize::resolve_clicolor_force(
                 env::var("NO_COLOR"),
                 env::var("CLICOLOR_FORCE"),
