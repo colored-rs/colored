@@ -15,7 +15,7 @@ jobs:
           toolchain: stable
           components: rustfmt
       - name: Run formatting checks
-        run: cargo +stable fmt --check
+        run: cargo fmt --check
   cargo-clippy:
     name: cargo-clippy@stable
     runs-on: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
           toolchain: stable
           components: clippy
       - name: Run clippy checks
-        run: cargo +stable clippy --all-features -- -D warnings
+        run: cargo clippy --all-features -- -D warnings
   cargo-test:
     name: cargo-test@${{ matrix.version }}
     runs-on: ubuntu-latest
@@ -43,4 +43,4 @@ jobs:
         with:
           toolchain: ${{ matrix.version }}
       - name: Run tests
-        run: cargo +${{ matrix.version }} test
+        run: cargo test
