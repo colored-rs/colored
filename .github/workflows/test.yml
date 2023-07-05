@@ -10,22 +10,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt
       - name: Run formatting checks
-        run: cargo fmt --check
+        run: cargo +stable fmt --check
   cargo-clippy:
-    name: cargo-clippy@${{ matrix.version }}
+    name: cargo-clippy@stable
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        version: [1.63, stable, beta]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Install Rust ${{ matrix.version }}
-        uses: dtolnay/rust-toolchain@${{ matrix.version }}
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy
       - name: Run clippy checks
-        run: cargo clippy --all-features -- -D warnings
+        run: cargo +stable clippy --all-features -- -D warnings
   cargo-test:
     name: cargo-test@${{ matrix.version }}
     runs-on: ubuntu-latest
@@ -36,6 +39,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Install Rust ${{ matrix.version }}
-        uses: dtolnay/rust-toolchain@${{ matrix.version }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.version }}
       - name: Run tests
-        run: cargo test
+        run: cargo +${{ matrix.version }} test
