@@ -17,8 +17,11 @@ jobs:
       - name: Run formatting checks
         run: cargo fmt --check
   cargo-clippy:
-    name: cargo-clippy@stable
-    runs-on: ubuntu-latest
+    name: "${{ matrix.os }}:cargo-clippy@stable"
+    runs-on: "${{ matrix.os }}-latest"
+    strategy:
+      matrix:
+        os: ["ubuntu", "windows", "macos"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -30,10 +33,11 @@ jobs:
       - name: Run clippy checks
         run: cargo clippy --all-features -- -D warnings
   cargo-test:
-    name: cargo-test@${{ matrix.version }}
-    runs-on: ubuntu-latest
+    name: "${{ matrix.os }}:cargo-test@${{ matrix.version }}"
+    runs-on: "${{ matrix.os }}-latest"
     strategy:
       matrix:
+        os: ["ubuntu", "windows", "macos"]
         version: ["stable", "beta", "1.63"]
     steps:
       - name: Checkout repository
