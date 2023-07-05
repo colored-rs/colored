@@ -1,7 +1,7 @@
 # Unreleased
 
 # 2.0.3
-- Make crate MSRV `1.63`.
+- Document crate MSRV of `1.63`.
 
 # 2.0.2
 - Fix typo in `src/control.rs`.
