@@ -26,6 +26,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 /// control::set_virtual_terminal(true).unwrap();
 /// println!("{}", "bright cyan".bright_cyan());    // will print correctly
 /// ```
+#[allow(clippy::result_unit_err)]
 #[cfg(windows)]
 pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
     use winapi::{
