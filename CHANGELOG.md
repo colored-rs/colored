@@ -1,3 +1,5 @@
+# 1.9.4 (July 24, 2023)
+- Replace 'atty' dependency with 'is-terminal'
 
 # 1.9.3 (February 24, 2020)
 - Fix compilation regression for 1.34.0. Thanks @jlevon for reporting.
