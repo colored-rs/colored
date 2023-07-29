@@ -38,7 +38,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu", "windows", "macos"]
-        version: ["stable", "beta", "1.63"]
+        version: ["stable", "beta", "1.70"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
