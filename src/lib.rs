@@ -56,6 +56,12 @@ pub struct ColoredString {
     style: style::Style,
 }
 
+/// A list of single character strings where each character may have a color applied to it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ColoredList {
+    list: Vec<ColoredString>,
+}
+
 /// The trait that enables something to be given color.
 ///
 /// You can use `colored` effectively simply by importing this trait
@@ -329,6 +335,18 @@ pub trait Colorize {
     fn strikethrough(self) -> ColoredString;
 }
 
+/// The trait that enables color gradients for strings.
+///
+/// You can use `colored` effectively simply by importing this trait
+/// and then using its methods on `String` and `&str`.
+#[allow(missing_docs)]
+pub trait ColorizeList {
+    fn rainbow(self) -> ColoredList;
+    fn on_rainbow(self) -> ColoredList;
+    fn gradient(self, color: &Vec<Color>) -> ColoredList;
+    fn on_gradient(self, color: &Vec<Color>) -> ColoredList;
+}
+
 impl ColoredString {
     /// Get the current background color applied.
     ///
@@ -600,6 +618,121 @@ impl<'a> Colorize for &'a str {
     }
 }
 
+impl ColoredList {
+    fn calc_gradient(input_str: &str, colors: &Vec<Color>, on_bg: bool) -> ColoredList {
+        if colors.len() < 2 || input_str.len() < 2 {
+            //default entire string to one color
+            return ColoredList {
+                list: vec![
+                    (ColoredString {
+                        fgcolor: Some(*colors.get(0).unwrap_or(&Color::White)),
+                        input: String::from(input_str),
+                        ..ColoredString::default()
+                    }),
+                ],
+            };
+        }
+
+        //Convert all gradient colors to true colors
+        let true_colors: Vec<Color> = colors.iter().map(|color| color.to_true_color()).collect();
+
+        let chars_percent: Vec<f32> = (0..input_str.len())
+            .map(|i| i as f32 / (input_str.len() - 1) as f32)
+            .collect();
+        let colors_percent: Vec<f32> = (0..colors.len())
+            .map(|i| i as f32 / (colors.len() - 1) as f32)
+            .collect();
+        let mut left_index = 0;
+
+        ColoredList {
+            list: input_str
+                .chars()
+                .enumerate()
+                .map(|(i, c)| {
+                    if i > 0 && chars_percent[i] >= colors_percent[left_index + 1] {
+                        left_index += 1;
+                    }
+
+                    let right_index =
+                        left_index + (chars_percent[i] > colors_percent[left_index]) as usize;
+                    let divisor = colors_percent[right_index]
+                        + (colors_percent[right_index] == 0.0) as u8 as f32; //default to 1.0
+                    let char_percent = chars_percent[i] / divisor;
+                    let left_color = true_colors[left_index];
+                    let right_color = true_colors[right_index];
+
+                    let (r1, g1, b1) = match left_color {
+                        Color::TrueColor { r, g, b } => (r as f32, g as f32, b as f32),
+                        _ => (255.0, 255.0, 255.0),
+                    };
+                    let (r2, g2, b2) = match right_color {
+                        Color::TrueColor { r, g, b } => (r as f32, g as f32, b as f32),
+                        _ => (255.0, 255.0, 255.0),
+                    };
+
+                    let true_color = Color::TrueColor {
+                        r: (r1 + char_percent * (r2 - r1)) as u8,
+                        g: (g1 + char_percent * (g2 - g1)) as u8,
+                        b: (b1 + char_percent * (b2 - b1)) as u8,
+                    };
+
+                    if on_bg {
+                        ColoredString {
+                            bgcolor: Some(true_color),
+                            input: String::from(c),
+                            ..ColoredString::default()
+                        }
+                    } else {
+                        ColoredString {
+                            fgcolor: Some(true_color),
+                            input: String::from(c),
+                            ..ColoredString::default()
+                        }
+                    }
+                })
+                .collect(),
+        }
+    }
+}
+
+impl<'a> ColorizeList for &'a str {
+    fn rainbow(self) -> ColoredList {
+        let colors = vec![
+            Color::Red,
+            Color::Orange,
+            Color::Yellow,
+            Color::Green,
+            Color::Blue,
+            Color::Indigo,
+            Color::Violet,
+        ];
+        self.gradient(&colors)
+    }
+
+    fn on_rainbow(self) -> ColoredList {
+        let colors = vec![
+            Color::Red,
+            Color::Orange,
+            Color::Yellow,
+            Color::Green,
+            Color::Blue,
+            Color::Indigo,
+            Color::Violet,
+        ];
+        self.on_gradient(&colors)
+    }
+
+    fn gradient(self, colors: &Vec<Color>) -> ColoredList {
+        let on_bg = false;
+        ColoredList::calc_gradient(self, colors, on_bg)
+    }
+
+    fn on_gradient(self, colors: &Vec<Color>) -> ColoredList {
+        let on_bg = true;
+        ColoredList::calc_gradient(self, colors, on_bg)
+    }
+}
+
 impl fmt::Display for ColoredString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if !self.has_colors() || self.is_plain() {
@@ -613,6 +746,14 @@ impl fmt::Display for ColoredString {
         escaped_input.fmt(f)?;
         f.write_str("\x1B[0m")?;
         Ok(())
+    }
+}
+
+impl fmt::Display for ColoredList {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.list
+            .iter()
+            .try_for_each(|color_string| write!(f, "{}", color_string))
     }
 }
 
@@ -669,6 +810,7 @@ mod tests {
         println!("{}", toto.truecolor(255, 0, 0));
         println!("{}", toto.truecolor(255, 255, 0));
         println!("{}", toto.on_truecolor(0, 80, 80));
+        println!("{}", toto.rainbow());
         // uncomment to see term output
         // assert!(false)
     }
@@ -839,10 +981,29 @@ mod tests {
     }
 
     #[test]
+    fn rainbow_fn() {
+        let clist = "abcdefg".rainbow();
+        let colors: Vec<Color> = clist.list.iter().map(|cstring| cstring.fgcolor().unwrap()).collect();
+        assert_eq!(colors, vec![
+            Color::Red.to_true_color(),
+            Color::Orange.to_true_color(),
+            Color::Yellow.to_true_color(),
+            Color::Green.to_true_color(),
+            Color::Blue.to_true_color(),
+            Color::Indigo.to_true_color(),
+            Color::Violet.to_true_color()
+        ]);
+    }
+
+    #[test]
     fn exposing_tests() {
         let cstring = "".red();
         assert_eq!(cstring.fgcolor(), Some(Color::Red));
         assert_eq!(cstring.bgcolor(), None);
+
+        let clist = "".gradient(&vec![Color::Red]);
+        assert_eq!(clist.list[0].fgcolor(), Some(Color::Red));
+        assert_eq!(clist.list[0].bgcolor(), None);
 
         let cstring = cstring.clear();
         assert_eq!(cstring.fgcolor(), None);
