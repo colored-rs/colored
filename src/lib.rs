@@ -343,8 +343,8 @@ pub trait Colorize {
 pub trait ColorizeList {
     fn rainbow(self) -> ColoredList;
     fn on_rainbow(self) -> ColoredList;
-    fn gradient(self, color: &Vec<Color>) -> ColoredList;
-    fn on_gradient(self, color: &Vec<Color>) -> ColoredList;
+    fn gradient(self, color: &[Color]) -> ColoredList;
+    fn on_gradient(self, color: &[Color]) -> ColoredList;
 }
 
 impl ColoredString {
@@ -619,7 +619,7 @@ impl<'a> Colorize for &'a str {
 }
 
 impl ColoredList {
-    fn calc_gradient(input_str: &str, colors: &Vec<Color>, on_bg: bool) -> ColoredList {
+    fn calc_gradient(input_str: &str, colors: &[Color], on_bg: bool) -> ColoredList {
         if colors.len() < 2 || input_str.len() < 2 {
             //default entire string to one color
             return ColoredList {
@@ -722,12 +722,12 @@ impl<'a> ColorizeList for &'a str {
         self.on_gradient(&colors)
     }
 
-    fn gradient(self, colors: &Vec<Color>) -> ColoredList {
+    fn gradient(self, colors: &[Color]) -> ColoredList {
         let on_bg = false;
         ColoredList::calc_gradient(self, colors, on_bg)
     }
 
-    fn on_gradient(self, colors: &Vec<Color>) -> ColoredList {
+    fn on_gradient(self, colors: &[Color]) -> ColoredList {
         let on_bg = true;
         ColoredList::calc_gradient(self, colors, on_bg)
     }
@@ -983,16 +983,23 @@ mod tests {
     #[test]
     fn rainbow_fn() {
         let clist = "abcdefg".rainbow();
-        let colors: Vec<Color> = clist.list.iter().map(|cstring| cstring.fgcolor().unwrap()).collect();
-        assert_eq!(colors, vec![
-            Color::Red.to_true_color(),
-            Color::Orange.to_true_color(),
-            Color::Yellow.to_true_color(),
-            Color::Green.to_true_color(),
-            Color::Blue.to_true_color(),
-            Color::Indigo.to_true_color(),
-            Color::Violet.to_true_color()
-        ]);
+        let colors: Vec<Color> = clist
+            .list
+            .iter()
+            .map(|cstring| cstring.fgcolor().unwrap())
+            .collect();
+        assert_eq!(
+            colors,
+            vec![
+                Color::Red.to_true_color(),
+                Color::Orange.to_true_color(),
+                Color::Yellow.to_true_color(),
+                Color::Green.to_true_color(),
+                Color::Blue.to_true_color(),
+                Color::Indigo.to_true_color(),
+                Color::Violet.to_true_color()
+            ]
+        );
     }
 
     #[test]

@@ -9,7 +9,10 @@ fn main() {
     println!("{}", "Transition from blue to green".gradient(&two_colors));
     println!("{}", "A lot of the colors of the rainbow".rainbow());
 
-    println!("{}", "Transition from blue to green".on_gradient(&two_colors));
+    println!(
+        "{}",
+        "Transition from blue to green".on_gradient(&two_colors)
+    );
     println!("{}", "A lot of the colors of the rainbow".on_rainbow());
 
     //Test edge cases
@@ -18,5 +21,8 @@ fn main() {
     println!("{}", "b".gradient(&one_color));
     println!("{}", "c".gradient(&two_colors));
     println!("{}", "de".gradient(&two_colors));
-    println!("{}", "fg".gradient(&vec![Color::Green, Color::Violet, Color::Blue]));
+    println!(
+        "{}",
+        "fg".gradient(&vec![Color::Green, Color::Violet, Color::Blue])
+    );
 }

@@ -83,22 +83,70 @@ impl Color {
             Color::Black => Color::TrueColor { r: 0, g: 0, b: 0 },
             Color::Red => Color::TrueColor { r: 255, g: 0, b: 0 },
             Color::Green => Color::TrueColor { r: 0, g: 255, b: 0 },
-            Color::Yellow => Color::TrueColor { r: 255, g: 255, b: 0 },
+            Color::Yellow => Color::TrueColor {
+                r: 255,
+                g: 255,
+                b: 0,
+            },
             Color::Blue => Color::TrueColor { r: 0, g: 0, b: 255 },
-            Color::Magenta => Color::TrueColor { r: 255, g: 0, b: 255 },
-            Color::Cyan => Color::TrueColor { r: 0, g: 255, b: 255 },
-            Color::White => Color::TrueColor { r: 255, g: 255, b: 255 },
-            Color::Orange => Color::TrueColor { r: 255, g: 165, b: 0 },
-            Color::Indigo => Color::TrueColor { r: 75, g: 0, b: 130 },
-            Color::Violet => Color::TrueColor { r: 238, g: 130, b: 238 },
-            Color::BrightBlack => Color::TrueColor { r: 128, g: 128, b: 128 },
+            Color::Magenta => Color::TrueColor {
+                r: 255,
+                g: 0,
+                b: 255,
+            },
+            Color::Cyan => Color::TrueColor {
+                r: 0,
+                g: 255,
+                b: 255,
+            },
+            Color::White => Color::TrueColor {
+                r: 255,
+                g: 255,
+                b: 255,
+            },
+            Color::Orange => Color::TrueColor {
+                r: 255,
+                g: 165,
+                b: 0,
+            },
+            Color::Indigo => Color::TrueColor {
+                r: 75,
+                g: 0,
+                b: 130,
+            },
+            Color::Violet => Color::TrueColor {
+                r: 238,
+                g: 130,
+                b: 238,
+            },
+            Color::BrightBlack => Color::TrueColor {
+                r: 128,
+                g: 128,
+                b: 128,
+            },
             Color::BrightRed => Color::TrueColor { r: 255, g: 0, b: 0 },
             Color::BrightGreen => Color::TrueColor { r: 0, g: 255, b: 0 },
-            Color::BrightYellow => Color::TrueColor { r: 255, g: 255, b: 0 },
+            Color::BrightYellow => Color::TrueColor {
+                r: 255,
+                g: 255,
+                b: 0,
+            },
             Color::BrightBlue => Color::TrueColor { r: 0, g: 0, b: 255 },
-            Color::BrightMagenta => Color::TrueColor { r: 255, g: 0, b: 255 },
-            Color::BrightCyan => Color::TrueColor { r: 0, g: 255, b: 255 },
-            Color::BrightWhite => Color::TrueColor { r: 255, g: 255, b: 255 },
+            Color::BrightMagenta => Color::TrueColor {
+                r: 255,
+                g: 0,
+                b: 255,
+            },
+            Color::BrightCyan => Color::TrueColor {
+                r: 0,
+                g: 255,
+                b: 255,
+            },
+            Color::BrightWhite => Color::TrueColor {
+                r: 255,
+                g: 255,
+                b: 255,
+            },
             Color::TrueColor { .. } => *self, // If it's already TrueColor, just return it as is
         }
     }
