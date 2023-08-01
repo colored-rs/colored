@@ -12,6 +12,9 @@ pub enum Color {
     Magenta,
     Cyan,
     White,
+    Orange,
+    Indigo,
+    Violet,
     BrightBlack,
     BrightRed,
     BrightGreen,
@@ -35,6 +38,9 @@ impl Color {
             Color::Magenta => "35".into(),
             Color::Cyan => "36".into(),
             Color::White => "37".into(),
+            Color::Orange => format!("38;2;{};{};{}", 255, 165, 0).into(),
+            Color::Indigo => format!("38;2;{};{};{}", 75, 0, 130).into(),
+            Color::Violet => format!("38;2;{};{};{}", 238, 130, 238).into(),
             Color::BrightBlack => "90".into(),
             Color::BrightRed => "91".into(),
             Color::BrightGreen => "92".into(),
@@ -57,6 +63,9 @@ impl Color {
             Color::Magenta => "45".into(),
             Color::Cyan => "46".into(),
             Color::White => "47".into(),
+            Color::Orange => format!("48;2;{};{};{}", 255, 165, 0).into(),
+            Color::Indigo => format!("48;2;{};{};{}", 75, 0, 130).into(),
+            Color::Violet => format!("48;2;{};{};{}", 238, 130, 238).into(),
             Color::BrightBlack => "100".into(),
             Color::BrightRed => "101".into(),
             Color::BrightGreen => "102".into(),
@@ -66,6 +75,79 @@ impl Color {
             Color::BrightCyan => "106".into(),
             Color::BrightWhite => "107".into(),
             Color::TrueColor { r, g, b } => format!("48;2;{};{};{}", r, g, b).into(),
+        }
+    }
+
+    pub fn to_true_color(&self) -> Color {
+        match *self {
+            Color::Black => Color::TrueColor { r: 0, g: 0, b: 0 },
+            Color::Red => Color::TrueColor { r: 255, g: 0, b: 0 },
+            Color::Green => Color::TrueColor { r: 0, g: 255, b: 0 },
+            Color::Yellow => Color::TrueColor {
+                r: 255,
+                g: 255,
+                b: 0,
+            },
+            Color::Blue => Color::TrueColor { r: 0, g: 0, b: 255 },
+            Color::Magenta => Color::TrueColor {
+                r: 255,
+                g: 0,
+                b: 255,
+            },
+            Color::Cyan => Color::TrueColor {
+                r: 0,
+                g: 255,
+                b: 255,
+            },
+            Color::White => Color::TrueColor {
+                r: 255,
+                g: 255,
+                b: 255,
+            },
+            Color::Orange => Color::TrueColor {
+                r: 255,
+                g: 165,
+                b: 0,
+            },
+            Color::Indigo => Color::TrueColor {
+                r: 75,
+                g: 0,
+                b: 130,
+            },
+            Color::Violet => Color::TrueColor {
+                r: 238,
+                g: 130,
+                b: 238,
+            },
+            Color::BrightBlack => Color::TrueColor {
+                r: 128,
+                g: 128,
+                b: 128,
+            },
+            Color::BrightRed => Color::TrueColor { r: 255, g: 0, b: 0 },
+            Color::BrightGreen => Color::TrueColor { r: 0, g: 255, b: 0 },
+            Color::BrightYellow => Color::TrueColor {
+                r: 255,
+                g: 255,
+                b: 0,
+            },
+            Color::BrightBlue => Color::TrueColor { r: 0, g: 0, b: 255 },
+            Color::BrightMagenta => Color::TrueColor {
+                r: 255,
+                g: 0,
+                b: 255,
+            },
+            Color::BrightCyan => Color::TrueColor {
+                r: 0,
+                g: 255,
+                b: 255,
+            },
+            Color::BrightWhite => Color::TrueColor {
+                r: 255,
+                g: 255,
+                b: 255,
+            },
+            Color::TrueColor { .. } => *self, // If it's already TrueColor, just return it as is
         }
     }
 }
@@ -98,6 +180,9 @@ impl FromStr for Color {
             "purple" => Ok(Color::Magenta),
             "cyan" => Ok(Color::Cyan),
             "white" => Ok(Color::White),
+            "orange" => Ok(Color::Orange),
+            "indigo" => Ok(Color::Indigo),
+            "violet" => Ok(Color::Violet),
             "bright black" => Ok(Color::BrightBlack),
             "bright red" => Ok(Color::BrightRed),
             "bright green" => Ok(Color::BrightGreen),
