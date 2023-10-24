@@ -675,6 +675,8 @@ mod tests {
         println!("{}", toto.truecolor(255, 0, 0));
         println!("{}", toto.truecolor(255, 255, 0));
         println!("{}", toto.on_truecolor(0, 80, 80));
+        println!("{}", toto.custom_color((255, 255, 0)));
+        println!("{}", toto.on_custom_color((0, 80, 80)));
         // uncomment to see term output
         // assert!(false)
     }
