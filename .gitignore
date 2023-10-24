@@ -1,3 +1,7 @@
 target
 Cargo.lock
 *.bk
+
+# ignore folders from IDE
+.idea
+.vscode
