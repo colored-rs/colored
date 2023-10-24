@@ -177,10 +177,13 @@ pub trait Colorize {
     {
         self.color(Color::TrueColor { r, g, b })
     }
-    fn custom_color(self, color: CustomColor) -> ColoredString
+    fn custom_color<T>(self, color: T) -> ColoredString
     where
         Self: Sized,
+        T: Into<CustomColor>,
     {
+        let color = color.into();
+
         self.color(Color::TrueColor {
             r: color.r,
             g: color.g,
