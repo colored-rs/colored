@@ -17,6 +17,12 @@ impl CustomColor {
     }
 }
 
+impl From<(u8, u8, u8)> for CustomColor {
+    fn from((r, g, b): (u8, u8, u8)) -> Self {
+        Self::new(r, g, b)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
@@ -24,5 +30,15 @@ mod tests {
     fn main() {
         let my_color = CustomColor::new(0, 120, 120);
         println!("{}", "Greetings from Ukraine".custom_color(my_color));
+    }
+
+    #[test]
+    fn from_tuple() {
+        let tuple = (1u8, 255u8, 0u8);
+        let cc = CustomColor::from(tuple);
+
+        assert_eq!(cc.r, tuple.0);
+        assert_eq!(cc.g, tuple.1);
+        assert_eq!(cc.b, tuple.2);
     }
 }

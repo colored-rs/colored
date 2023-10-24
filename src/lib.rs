@@ -303,10 +303,13 @@ pub trait Colorize {
     {
         self.on_color(Color::TrueColor { r, g, b })
     }
-    fn on_custom_color(self, color: CustomColor) -> ColoredString
+    fn on_custom_color<T>(self, color: T) -> ColoredString
     where
         Self: Sized,
+        T: Into<CustomColor>,
     {
+        let color = color.into();
+
         self.on_color(Color::TrueColor {
             r: color.r,
             g: color.g,
