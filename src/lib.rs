@@ -43,7 +43,7 @@ pub mod customcolors;
 
 pub use color::*;
 
-use std::{borrow::Cow, fmt, ops::Deref};
+use std::{borrow::Cow, fmt, ops::{Deref, DerefMut}};
 
 pub use style::{Style, Styles};
 
@@ -473,9 +473,15 @@ impl Default for ColoredString {
 }
 
 impl Deref for ColoredString {
-    type Target = str;
-    fn deref(&self) -> &str {
+    type Target = String;
+    fn deref(&self) -> &String {
         &self.input
+    }
+}
+
+impl DerefMut for ColoredString {
+    fn deref_mut(&mut self) -> &mut String {
+        &mut self.input
     }
 }
 
