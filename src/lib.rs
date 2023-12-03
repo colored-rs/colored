@@ -52,7 +52,7 @@ use std::{
 pub use style::{Style, Styles};
 
 /// A string that may have color and/or style applied to it.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ColoredString {
     input: String,
     fgcolor: Option<Color>,
@@ -64,7 +64,7 @@ pub struct ColoredString {
 ///
 /// Useful for acting as style templates or stamps for those
 /// that implement [`CopyColorize`].
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct StyleTemplate {
     /// Foreground color
     pub fgcolor: Option<Color>,
@@ -549,17 +549,6 @@ impl ColoredString {
     }
 }
 
-impl Default for ColoredString {
-    fn default() -> Self {
-        ColoredString {
-            input: String::default(),
-            fgcolor: None,
-            bgcolor: None,
-            style: Style::default(),
-        }
-    }
-}
-
 impl Deref for ColoredString {
     type Target = String;
     fn deref(&self) -> &String {
@@ -775,16 +764,6 @@ impl CopyColorize for StyleTemplate {
 
     fn copy_styling<T: Colorized>(&mut self, other: &T) {
         self.style = other.styling();
-    }
-}
-
-impl Default for StyleTemplate {
-    fn default() -> Self {
-        StyleTemplate {
-            fgcolor: None,
-            bgcolor: None,
-            style: Style::default(),
-        }
     }
 }
 
