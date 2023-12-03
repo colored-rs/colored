@@ -62,8 +62,9 @@ pub struct ColoredString {
 
 /// Simply possesses color and style and nothing more.
 ///
-/// Useful for acting as style templates or stamps for those
-/// that implement [`CopyColorize`].
+/// Useful for simply storing color and or style information as
+/// a stamp to be applied to [`ColoredString`]'s without storing
+/// any actual data itself.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct StyleTemplate {
     /// Foreground color

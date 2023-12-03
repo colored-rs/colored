@@ -24,6 +24,60 @@ static STYLES: [(u8, Styles); 8] = [
 pub static CLEAR: Style = Style(CLEARV);
 
 /// A combinatorial style such as bold, italics, dimmed, etc.
+///
+/// # Implementation of Default
+///
+/// `Style::default()` returns a `Style` with no style switches
+/// activated. Also consider using the [`CLEAR`] constant which
+/// is 100% Equivalent.
+///
+/// # Implementation of logical bitwise operators
+///
+/// `Style` implements bitwise logical operations that operate on
+/// the held style switches collectively. By far the most common
+/// and useful is the bitwise 'or' operator `|` which combines two
+/// styles, merging their combined styles into one. Example:
+///
+/// ```rust
+/// # use colored::*;
+/// let only_bold = Style::from(Styles::Bold);
+/// let underline_and_italic =
+///     Style::from(Styles::Underline) | Style::from(Styles::Italic);
+/// let all_three = only_bold | underline_and_italic;
+/// assert!(all_three.contains(Styles::Bold)
+///     && all_three.contains(Styles::Underline)
+///     && all_three.contains(Styles::Italic));
+/// ```
+///
+/// This functionality also allows for easily turning off styles
+/// of one `Styles` using another by combining the `&` and `!`
+/// operators.
+///
+/// ```rust
+/// # use colored::*;
+/// let mut very_loud_style = Style::default();
+/// for style in [
+///     Styles::Bold,
+///     Styles::Underline,
+///     Styles::Italic,
+///     Styles::Strikethrough,
+///     Styles::Hidden,
+/// ] {
+///     very_loud_style.add(style);
+/// }
+/// // Oops! Some of those should not be in there!
+/// // This Style now has all styles _except_ the two we don't want
+/// // (hidden and strikethough).
+/// let remove_mask =
+///     !(Style::from(Styles::Hidden) | Style::from(Styles::Strikethrough));
+/// very_loud_style &= remove_mask;
+/// // `very_loud_style` no longer contains the undesired style
+/// // switches...
+/// assert!(!very_loud_style.contains(Styles::Hidden)
+///     && !very_loud_style.contains(Styles::Strikethrough));
+/// // ...but it retains everything else!
+/// assert!(very_loud_style.contains(Styles::Bold));
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Style(u8);
 
