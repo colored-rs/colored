@@ -555,7 +555,7 @@ impl Default for ColoredString {
             input: String::default(),
             fgcolor: None,
             bgcolor: None,
-            style: style::CLEAR,
+            style: Style::default(),
         }
     }
 }
@@ -763,6 +763,16 @@ impl CopyColorize for StyleTemplate {
 
     fn copy_styling<T: Colorized>(&mut self, other: &T) {
         self.style = other.styling();
+    }
+}
+
+impl Default for StyleTemplate {
+    fn default() -> Self {
+        StyleTemplate {
+            fgcolor: None,
+            bgcolor: None,
+            style: Style::default()
+        }
     }
 }
 

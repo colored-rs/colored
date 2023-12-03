@@ -1,3 +1,5 @@
+use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
+
 const CLEARV: u8 = 0b0000_0000;
 const BOLD: u8 = 0b0000_0001;
 const UNDERLINE: u8 = 0b0000_0010;
@@ -110,8 +112,159 @@ impl Style {
             .join(";")
     }
 
-    pub(crate) fn add(&mut self, two: Styles) {
+    /// Adds the `two` style switch to this Style.
+    ///
+    /// ```rust
+    /// # use colored::*;
+    /// let cstr = "".red().bold();
+    /// let mut template = StyleTemplate::default();
+    /// template.copy_styling(&cstr);
+    /// template.style.add(Styles::Italic);
+    /// let mut cstr2 = "".blue();
+    /// cstr2.copy_styling(&template);
+    /// assert!(cstr2.styling().contains(Styles::Bold));
+    /// assert!(cstr2.styling().contains(Styles::Italic));
+    /// ```
+    pub fn add(&mut self, two: Styles) {
         self.0 |= two.to_u8();
+    }
+
+    /// Turns off a style switch.
+    ///
+    /// ```rust
+    /// use colored::*;
+    /// let cstr = "".red().bold().italic();
+    /// let mut template = StyleTemplate::default();
+    /// template.copy_styling(&cstr);
+    /// template.style.remove(Styles::Italic);
+    /// let mut cstr2 = "".blue();
+    /// cstr2.copy_styling(&template);
+    /// assert!(cstr2.styling().contains(Styles::Bold));
+    /// assert!(!cstr2.styling().contains(Styles::Italic));
+    /// ```
+    pub fn remove(&mut self, two: Styles) {
+        self.0 &= !two.to_u8();
+    }
+}
+
+macro_rules! auto_impl_ref_binop_trait {
+    (impl $trait_name:ident, $method:ident for $t:ty) => {
+        impl $trait_name<&$t> for $t {
+            type Output = <$t as $trait_name<$t>>::Output;
+
+            #[inline]
+            fn $method(self, rhs: &$t) -> Self::Output {
+                $trait_name::$method(self, *rhs)
+            }
+        }
+
+        impl $trait_name<$t> for &$t {
+            type Output = <$t as $trait_name<$t>>::Output;
+
+            #[inline]
+            fn $method(self, rhs: $t) -> Self::Output {
+                $trait_name::$method(*self, rhs)
+            }
+        }
+
+        impl $trait_name<&$t> for &$t {
+            type Output = <$t as $trait_name<$t>>::Output;
+
+            #[inline]
+            fn $method(self, rhs: &$t) -> Self::Output {
+                $trait_name::$method(*self, *rhs)
+            }
+        }
+    };
+}
+
+impl BitAnd<Style> for Style {
+    type Output = Style;
+
+    fn bitand(self, rhs: Style) -> Self::Output {
+        Style(self.0 & rhs.0)
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitAnd, bitand for Style);
+
+impl BitOr<Style> for Style {
+    type Output = Style;
+
+    fn bitor(self, rhs: Style) -> Self::Output {
+        Style(self.0 | rhs.0)
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitOr, bitor for Style);
+
+impl BitXor<Style> for Style {
+    type Output = Style;
+
+    fn bitxor(self, rhs: Style) -> Self::Output {
+        Style(self.0 ^ rhs.0)
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitXor, bitxor for Style);
+
+impl Not for Style {
+    type Output = Style;
+
+    fn not(self) -> Self::Output {
+        Style(!self.0)
+    }
+}
+
+impl Not for &Style {
+    type Output = Style;
+
+    fn not(self) -> Self::Output {
+        Style(!self.0)
+    }
+}
+
+macro_rules! impl_assign_op_trait {
+    (
+        $trait:ident, $method:ident for $t:ty, using $used_trait:ident::$used_method:ident
+    ) => {
+        impl $trait<$t> for $t {
+            #[inline]
+            fn $method(&mut self, other: $t) {
+                *self = $used_trait::$used_method(&*self, other);
+            }
+        }
+
+        impl $trait<&$t> for $t {
+            #[inline]
+            fn $method(&mut self, other: &$t) {
+                *self = $used_trait::$used_method(&*self, other);
+            }
+        }
+    };
+}
+
+impl_assign_op_trait!(BitAndAssign, bitand_assign for Style, using BitAnd::bitand);
+
+impl_assign_op_trait!(BitOrAssign, bitor_assign for Style, using BitOr::bitor);
+
+impl_assign_op_trait!(BitXorAssign, bitxor_assign for Style, using BitXor::bitxor);
+
+impl Default for Style {
+    fn default() -> Self {
+        CLEAR
+    }
+}
+
+impl From<Styles> for Style {
+    fn from(value: Styles) -> Self {
+        Style(value.to_u8())
+    }
+}
+
+impl From<&Styles> for Style {
+    fn from(value: &Styles) -> Self {
+        Style(value.to_u8())
     }
 }
 
@@ -289,5 +442,62 @@ mod tests {
         assert_eq!(style.contains(Styles::Bold), true);
         assert_eq!(style.contains(Styles::Italic), true);
         assert_eq!(style.contains(Styles::Dimmed), false);
+    }
+
+    #[test]
+    fn style_binops() {
+        for (l, r) in [
+            // BitAnd (&)
+            (Style(BOLD) & Style(UNDERLINE), Style(CLEARV)),
+            // Check impls for refs work
+            (&Style(BOLD) & Style(BOLD), Style(BOLD)),
+            (Style(CLEARV) & Style(CLEARV), Style(CLEARV)),
+            // Full truth table for bits
+            (
+                &Style(0b0011) & &Style(0b0101),
+                Style(0b0001),
+            ),
+            // BitOr (|)
+            (Style(BOLD) | Style(UNDERLINE), Style(BOLD | UNDERLINE)),
+            (&Style(BOLD) | Style(BOLD), Style(BOLD)),
+            (Style(CLEARV) | &Style(UNDERLINE), Style(UNDERLINE)),
+            (
+                &Style(0b0011) | &Style(0b0101),
+                Style(0b0111),
+            ),
+            // BitXor (^)
+            (Style(BOLD) ^ Style(CLEARV), Style(BOLD)),
+            (&Style(BOLD) ^ Style(UNDERLINE), Style(BOLD | UNDERLINE)),
+            (Style(BOLD) ^ &Style(BOLD), Style(CLEARV)),
+            (Style(0b0011) ^ Style(0b0101), Style(0b0110)),
+        ] {
+            assert_eq!(l, r);
+        }
+    }
+
+    #[test]
+    fn style_unops() {
+        let not_bold = !Style(BOLD);
+        assert!(!not_bold.contains(Styles::Bold));
+        assert!(not_bold.contains(Styles::Strikethrough));
+        assert_eq!(!Style(0b0011_0101), Style(0b1100_1010));
+    }
+
+    #[test]
+    fn style_bitwise_assign_ops() {
+        let origional_style = Style(0b0011);
+        let op_style = Style(0b0101);
+        
+        let mut style = origional_style;
+        style &= op_style;
+        assert_eq!(style, Style(0b0001));
+        
+        style = origional_style;
+        style |= op_style;
+        assert_eq!(style, Style(0b0111));
+
+        style = origional_style;
+        style ^= op_style;
+        assert_eq!(style, Style(0b0110));
     }
 }
