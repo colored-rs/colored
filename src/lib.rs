@@ -382,6 +382,53 @@ impl ColoredString {
         self.bgcolor.is_none() && self.fgcolor.is_none() && self.style == style::CLEAR
     }
 
+    /// Copies the foreground color of another ColoredString.
+    /// Default coloring counts as coloring.
+    ///
+    /// Copying from a `ColoredString` without foreground color
+    /// styling will erase its foreground color.
+    ///
+    /// ```rust
+    /// # use colored::*;
+    /// let cstr1 = "Red".color("red").on_color("white");
+    /// let mut cstr2 = "Should be red.".color("blue").on_color("black");
+    /// cstr2.copy_fgcolor(&cstr1);
+    /// assert_eq!(cstr1.fgcolor(), cstr2.fgcolor());
+    /// assert_ne!(cstr1.bgcolor(), cstr2.bgcolor());
+    /// ```
+    pub fn copy_fgcolor(&mut self, other: &ColoredString) {
+        self.fgcolor = other.fgcolor.clone();
+    }
+
+    /// Copies the background color of another ColoredString.
+    /// Clear (no) background counts as a background.
+    ///
+    /// ```rust
+    /// # use colored::*;
+    /// let cstr1 = "Clear background (nice).".color("green");
+    /// let mut cstr2 = "Santa Claus? Nope, not here.".color("red").on_color("green");
+    /// cstr2.copy_bgcolor(&cstr1);
+    /// assert_eq!(cstr1.bgcolor(), cstr2.bgcolor());
+    /// assert_ne!(cstr1.fgcolor(), cstr2.fgcolor());
+    /// ```
+    pub fn copy_bgcolor(&mut self, other: &ColoredString) {
+        self.bgcolor = other.bgcolor.clone();
+    }
+
+    /// Copies the style (not including colors) of another ColoredString.
+    ///
+    /// ```rust
+    /// # use colored::*;
+    /// let cstr1 = "Red".red().bold().italic().underline();
+    /// let mut cstr2 = "blue".blue();
+    /// cstr2.copy_style(&cstr1);
+    /// assert_eq!(cstr1.style(), cstr2.style());
+    /// assert_ne!(cstr1.fgcolor(), cstr2.fgcolor());
+    /// ```
+    pub fn copy_style(&mut self, other: &ColoredString) {
+        self.style = other.style.clone();
+    }
+
     #[cfg(not(feature = "no-color"))]
     fn has_colors(&self) -> bool {
         control::SHOULD_COLORIZE.should_colorize()
