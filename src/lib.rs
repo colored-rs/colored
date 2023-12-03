@@ -738,6 +738,18 @@ impl fmt::Display for ColoredString {
     }
 }
 
+impl StyleTemplate {
+    /// Convenience method that creates a `StyleTemplate` by copying the
+    /// coloring and style of a [`Colorized`] value.
+    pub fn new_from<T: Colorized>(other: &T) -> Self {
+        StyleTemplate {
+            fgcolor: other.foreground_color(),
+            bgcolor: other.background_color(),
+            style: other.styling(),
+        }
+    }
+}
+
 impl Colorized for StyleTemplate {
     fn foreground_color(&self) -> Option<Color> {
         self.fgcolor
@@ -771,7 +783,7 @@ impl Default for StyleTemplate {
         StyleTemplate {
             fgcolor: None,
             bgcolor: None,
-            style: Style::default()
+            style: Style::default(),
         }
     }
 }

@@ -453,18 +453,12 @@ mod tests {
             (&Style(BOLD) & Style(BOLD), Style(BOLD)),
             (Style(CLEARV) & Style(CLEARV), Style(CLEARV)),
             // Full truth table for bits
-            (
-                &Style(0b0011) & &Style(0b0101),
-                Style(0b0001),
-            ),
+            (&Style(0b0011) & &Style(0b0101), Style(0b0001)),
             // BitOr (|)
             (Style(BOLD) | Style(UNDERLINE), Style(BOLD | UNDERLINE)),
             (&Style(BOLD) | Style(BOLD), Style(BOLD)),
             (Style(CLEARV) | &Style(UNDERLINE), Style(UNDERLINE)),
-            (
-                &Style(0b0011) | &Style(0b0101),
-                Style(0b0111),
-            ),
+            (&Style(0b0011) | &Style(0b0101), Style(0b0111)),
             // BitXor (^)
             (Style(BOLD) ^ Style(CLEARV), Style(BOLD)),
             (&Style(BOLD) ^ Style(UNDERLINE), Style(BOLD | UNDERLINE)),
@@ -487,11 +481,11 @@ mod tests {
     fn style_bitwise_assign_ops() {
         let origional_style = Style(0b0011);
         let op_style = Style(0b0101);
-        
+
         let mut style = origional_style;
         style &= op_style;
         assert_eq!(style, Style(0b0001));
-        
+
         style = origional_style;
         style |= op_style;
         assert_eq!(style, Style(0b0111));
