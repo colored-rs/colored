@@ -199,6 +199,54 @@ impl Style {
     pub fn remove(&mut self, two: Styles) {
         self.0 &= !two.to_u8();
     }
+
+    /// Makes this `Style` include Bold.
+    pub fn bold(mut self) -> Self {
+        self.add(Styles::Bold);
+        self
+    }
+
+    /// Makes this `Style` include Dimmed.
+    pub fn dimmed(mut self) -> Self {
+        self.add(Styles::Dimmed);
+        self
+    }
+
+    /// Makes this `Style` include Underline.
+    pub fn underline(mut self) -> Self {
+        self.add(Styles::Underline);
+        self
+    }
+
+    /// Makes this `Style` include Reversed.
+    pub fn reversed(mut self) -> Self {
+        self.add(Styles::Reversed);
+        self
+    }
+
+    /// Makes this `Style` include Italic.
+    pub fn italic(mut self) -> Self {
+        self.add(Styles::Italic);
+        self
+    }
+
+    /// Makes this `Style` include Blink.
+    pub fn blink(mut self) -> Self {
+        self.add(Styles::Blink);
+        self
+    }
+
+    /// Makes this `Style` include Hidden.
+    pub fn hidden(mut self) -> Self {
+        self.add(Styles::Hidden);
+        self
+    }
+
+    /// Makes this `Style` include Strikethrough.
+    pub fn strikethrough(mut self) -> Self {
+        self.add(Styles::Strikethrough);
+        self
+    }
 }
 
 macro_rules! auto_impl_ref_binop_trait {
