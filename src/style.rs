@@ -28,8 +28,7 @@ pub static CLEAR: Style = Style(CLEARV);
 /// # Implementation of Default
 ///
 /// `Style::default()` returns a `Style` with no style switches
-/// activated. Also consider using the [`CLEAR`] constant which
-/// is 100% Equivalent.
+/// activated.
 ///
 /// # `Style` from a set of `Styles`s / `Styles` iterator
 ///
