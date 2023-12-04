@@ -31,6 +31,33 @@ pub static CLEAR: Style = Style(CLEARV);
 /// activated. Also consider using the [`CLEAR`] constant which
 /// is 100% Equivalent.
 ///
+/// # `Style` from a set of `Styles`s / `Styles` iterator
+///
+/// `Style` implements `FromIter<Styles>` which means that it is
+/// possible to do the following:
+///
+/// ```rust
+/// # use colored::*;
+/// let style = Style::from_iter([Styles::Bold, Styles::Italic, Styles::Strikethrough]);
+/// for styles in [Styles::Bold, Styles::Italic, Styles::Strikethrough] {
+///     assert!(style.contains(styles));
+/// }
+/// ```
+///
+/// As you can see, this is a good thing to keep in mind, although for
+/// most cases, where you're not setting styles dynamically and are
+/// simply creating a pre-defined set of styles, using [`Default`] and
+/// then using the builder-style methods is likely prettier.
+///
+/// ```rust
+/// # use colored::*;
+/// let many_styles = Style::default()
+///     .bold()
+///     .underline()
+///     .italic()
+///     .blink();
+/// ```
+///
 /// # Implementation of logical bitwise operators
 ///
 /// `Style` implements bitwise logical operations that operate on
@@ -55,21 +82,17 @@ pub static CLEAR: Style = Style(CLEARV);
 ///
 /// ```rust
 /// # use colored::*;
-/// let mut very_loud_style = Style::default();
-/// for style in [
-///     Styles::Bold,
-///     Styles::Underline,
-///     Styles::Italic,
-///     Styles::Strikethrough,
-///     Styles::Hidden,
-/// ] {
-///     very_loud_style.add(style);
-/// }
+/// let mut very_loud_style = Style::default()
+///     .bold()
+///     .underline()
+///     .italic()
+///     .strikethrough()
+///     .hidden();
 /// // Oops! Some of those should not be in there!
 /// // This Style now has all styles _except_ the two we don't want
 /// // (hidden and strikethough).
 /// let remove_mask =
-///     !(Style::from(Styles::Hidden) | Style::from(Styles::Strikethrough));
+///     !Style::from_iter([Styles::Hidden, Styles::Strikethrough]);
 /// very_loud_style &= remove_mask;
 /// // `very_loud_style` no longer contains the undesired style
 /// // switches...
@@ -367,6 +390,16 @@ impl From<Styles> for Style {
 impl From<&Styles> for Style {
     fn from(value: &Styles) -> Self {
         Style(value.to_u8())
+    }
+}
+
+impl FromIterator<Styles> for Style {
+    fn from_iter<T: IntoIterator<Item = Styles>>(iter: T) -> Self {
+        let mut style = Style::default();
+        for styles in iter.into_iter() {
+            style.add(styles);
+        }
+        style
     }
 }
 
