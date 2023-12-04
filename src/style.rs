@@ -577,55 +577,58 @@ mod tests {
         assert_eq!(style.contains(Styles::Italic), true);
         assert_eq!(style.contains(Styles::Dimmed), false);
     }
+    mod style_bitwise_logic {
+        use super::*;
 
-    #[test]
-    fn style_binops() {
-        for (l, r) in [
-            // BitAnd (&)
-            (Style(BOLD) & Style(UNDERLINE), Style(CLEARV)),
-            // Check impls for refs work
-            (&Style(BOLD) & Style(BOLD), Style(BOLD)),
-            (Style(CLEARV) & Style(CLEARV), Style(CLEARV)),
-            // Full truth table for bits
-            (&Style(0b0011) & &Style(0b0101), Style(0b0001)),
-            // BitOr (|)
-            (Style(BOLD) | Style(UNDERLINE), Style(BOLD | UNDERLINE)),
-            (&Style(BOLD) | Style(BOLD), Style(BOLD)),
-            (Style(CLEARV) | &Style(UNDERLINE), Style(UNDERLINE)),
-            (&Style(0b0011) | &Style(0b0101), Style(0b0111)),
-            // BitXor (^)
-            (Style(BOLD) ^ Style(CLEARV), Style(BOLD)),
-            (&Style(BOLD) ^ Style(UNDERLINE), Style(BOLD | UNDERLINE)),
-            (Style(BOLD) ^ &Style(BOLD), Style(CLEARV)),
-            (Style(0b0011) ^ Style(0b0101), Style(0b0110)),
-        ] {
-            assert_eq!(l, r);
+        #[test]
+        fn binops() {
+            for (l, r) in [
+                // BitAnd (&)
+                (Style(BOLD) & Style(UNDERLINE), Style(CLEARV)),
+                // Check impls for refs work
+                (&Style(BOLD) & Style(BOLD), Style(BOLD)),
+                (Style(CLEARV) & Style(CLEARV), Style(CLEARV)),
+                // Full truth table for bits
+                (&Style(0b0011) & &Style(0b0101), Style(0b0001)),
+                // BitOr (|)
+                (Style(BOLD) | Style(UNDERLINE), Style(BOLD | UNDERLINE)),
+                (&Style(BOLD) | Style(BOLD), Style(BOLD)),
+                (Style(CLEARV) | &Style(UNDERLINE), Style(UNDERLINE)),
+                (&Style(0b0011) | &Style(0b0101), Style(0b0111)),
+                // BitXor (^)
+                (Style(BOLD) ^ Style(CLEARV), Style(BOLD)),
+                (&Style(BOLD) ^ Style(UNDERLINE), Style(BOLD | UNDERLINE)),
+                (Style(BOLD) ^ &Style(BOLD), Style(CLEARV)),
+                (Style(0b0011) ^ Style(0b0101), Style(0b0110)),
+            ] {
+                assert_eq!(l, r);
+            }
         }
-    }
 
-    #[test]
-    fn style_unops() {
-        let not_bold = !Style(BOLD);
-        assert!(!not_bold.contains(Styles::Bold));
-        assert!(not_bold.contains(Styles::Strikethrough));
-        assert_eq!(!Style(0b0011_0101), Style(0b1100_1010));
-    }
+        #[test]
+        fn not() {
+            let not_bold = !Style(BOLD);
+            assert!(!not_bold.contains(Styles::Bold));
+            assert!(not_bold.contains(Styles::Strikethrough));
+            assert_eq!(!Style(0b0011_0101), Style(0b1100_1010));
+        }
 
-    #[test]
-    fn style_bitwise_assign_ops() {
-        let origional_style = Style(0b0011);
-        let op_style = Style(0b0101);
+        #[test]
+        fn assign_ops() {
+            let origional_style = Style(0b0011);
+            let op_style = Style(0b0101);
 
-        let mut style = origional_style;
-        style &= op_style;
-        assert_eq!(style, Style(0b0001));
+            let mut style = origional_style;
+            style &= op_style;
+            assert_eq!(style, Style(0b0001));
 
-        style = origional_style;
-        style |= op_style;
-        assert_eq!(style, Style(0b0111));
+            style = origional_style;
+            style |= op_style;
+            assert_eq!(style, Style(0b0111));
 
-        style = origional_style;
-        style ^= op_style;
-        assert_eq!(style, Style(0b0110));
+            style = origional_style;
+            style ^= op_style;
+            assert_eq!(style, Style(0b0110));
+        }
     }
 }
