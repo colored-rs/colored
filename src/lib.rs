@@ -360,6 +360,19 @@ pub trait Colorized {
     fn styling(&self) -> Style;
 }
 
+/// Trait for colorized types that support having their coloring/style
+/// modified in-place by setting the basic colorization attributes
+/// of foreground color, background color, and text style (represented with
+/// a [`Style`]).
+#[allow(missing_docs)]
+pub trait ColorizedMut {
+    fn set_foreground_color<C: Into<Color>>(&mut self, color: Option<C>);
+
+    fn set_background_color<C: Into<Color>>(&mut self, color: Option<C>);
+
+    fn set_styling<S: Into<Style>>(&mut self, style: S);
+}
+
 /// Implementors can copy foreground color, background color, and
 /// or style from types that implement [`Colorized`].
 pub trait CopyColorize {
@@ -642,6 +655,20 @@ impl Colorized for ColoredString {
     }
 }
 
+impl ColorizedMut for ColoredString {
+    fn set_foreground_color<C: Into<Color>>(&mut self, color: Option<C>) {
+        self.fgcolor = color.map(|c| c.into());
+    }
+
+    fn set_background_color<C: Into<Color>>(&mut self, color: Option<C>) {
+        self.bgcolor = color.map(|c| c.into());
+    }
+
+    fn set_styling<S: Into<Style>>(&mut self, style: S) {
+        self.style = style.into();
+    }
+}
+
 impl CopyColorize for ColoredString {
     fn copy_foreground_color<T: Colorized>(&mut self, other: &T) {
         self.fgcolor = other.foreground_color();
@@ -751,6 +778,20 @@ impl Colorized for StyleTemplate {
 
     fn styling(&self) -> Style {
         self.style
+    }
+}
+
+impl ColorizedMut for StyleTemplate {
+    fn set_foreground_color<C: Into<Color>>(&mut self, color: Option<C>) {
+        self.fgcolor = color.map(|c| c.into());
+    }
+
+    fn set_background_color<C: Into<Color>>(&mut self, color: Option<C>) {
+        self.bgcolor = color.map(|c| c.into());
+    }
+
+    fn set_styling<S: Into<Style>>(&mut self, style: S) {
+        self.style = style.into();
     }
 }
 
