@@ -615,18 +615,18 @@ mod tests {
 
         #[test]
         fn assign_ops() {
-            let origional_style = Style(0b0011);
+            let original_style = Style(0b0011);
             let op_style = Style(0b0101);
 
-            let mut style = origional_style;
+            let mut style = original_style;
             style &= op_style;
             assert_eq!(style, Style(0b0001));
 
-            style = origional_style;
+            style = original_style;
             style |= op_style;
             assert_eq!(style, Style(0b0111));
 
-            style = origional_style;
+            style = original_style;
             style ^= op_style;
             assert_eq!(style, Style(0b0110));
         }
