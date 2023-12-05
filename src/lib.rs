@@ -52,6 +52,120 @@ use std::{
 pub use style::{Style, Styles};
 
 /// A string that may have color and/or style applied to it.
+///
+/// Commonly created via calling the methods of [`Colorize`] on a &str.
+/// All methods of [`Colorize`] either create a new `ColoredString` from
+/// the type called on or modify a callee `ColoredString`. See
+/// [`Colorize`] for more.
+///
+/// The primary usage of `ColoredString`'s is as a way to take text,
+/// apply colors and miscillaneous styling to it (such as bold or
+/// underline), and then use it to create formatted strings that print
+/// to the console with the special styling applied.
+///
+/// ## Usage
+///
+/// As stated, `ColoredString`'s, once created, can be printed to the
+/// console with their colors and style or turned into a string
+/// containing special console codes that has the same effect.
+/// This is made easy via `ColoredString`'s implementations of
+/// [`Display`](std::fmt::Display) and [`ToString`] for those purposes
+/// respectively.
+///
+/// Printing a `ColoredString` with its style is as easy as:
+///
+/// ```
+/// # use colored::*;
+/// let cstring: ColoredString = "Bold and Red!".bold().red();
+/// println!("{}", cstring);
+/// ```
+///
+/// ## Modifying a `ColoredString`'s styling
+///
+/// `ColoredString`'s of course implement [`Colorize`] and calling the
+/// [`Colorize`] methods on one will change the color / text style.
+/// After all, this is what lets you chain together [`Colorize`]
+/// methods in the first place as all of them are defined as returning
+/// `ColoredString`.
+///
+/// These of course re-uses the underlying [`String`] due to move
+/// semantics but if you truly want or need in-place modification, see
+/// [`ColorizedMut`] which is also implemented for `ColoredString` and
+/// is specifically for enabling setting these color / style settings
+///  directly.
+///
+/// ```
+/// # use colored::*;
+/// // Using Colorize:
+/// let mut colored_string = "Red".red();
+/// colored_string = colored_string.bold().underline();
+///
+/// // Using ColorizedMut:
+/// let mut colored_string = "Blue".blue();
+/// colored_string.set_styling(
+///     Style::default()
+///         .bold()
+///         .underline()
+/// );
+/// ```
+///
+/// It's worth noting as well that [`ColorizedMut`] is great for
+/// selectively removing styling as setting the foreground or background
+/// color effectively removes that styling and resets it to plain text
+/// in that regard.
+///
+/// ```
+/// # use colored::*;
+/// let mut colored_text = "Red on Black (Spooky)".red().on_black();
+///
+/// colored_text.set_background_color::<Color>(None);
+/// // The text no longer has a background and thus is no longer spooky.
+/// colored_text.replace_range(.., "Just Red (Not Spooky)");
+///
+/// assert_eq!(colored_text, "Just Red (Not Spooky)".red());
+/// ```
+///
+/// ## Dynamically getting a `ColoredString`'s color / style
+///
+/// `ColoredString` implements [`Colorized`] which allows you to
+/// get a `ColoredString`'s foreground and background colors as
+/// well as its style as a [`Style`].
+///
+/// ```
+/// # use colored::*;
+/// let colored_string = "Red on white, underlined".red().on_white().underline();
+///
+/// assert_eq!(colored_string.foreground_color(), Some(Color::Red));
+/// assert_eq!(colored_string.background_color(), Some(Color::White));
+/// assert_eq!(colored_string.styling(), Style::from(Styles::Underline));
+/// ```
+///
+/// ## Modifying the text of a `ColoredString`
+///
+/// `ColoredString` implements [`Deref<String>`] and [`DerefMut`]. This
+/// allows you not only to use all the methods of [`String`] but also
+/// those of [`str`]. It also lets you replace the underlying string
+/// while keeping everything else intact via deref assigning.
+///
+/// ```
+/// # use colored::*;
+/// let mut blue_string = "This is Blue! Blue, Blue, Blue!!".blue();
+///
+/// // Blue is an ugly color, I prefer green.
+/// blue_string = blue_string.green();
+///
+/// // We should probably change the text to reflect the new style:
+/// *blue_string = // <- mutably dereferencing ColoredString as a String
+///     blue_string.replace("Blue", "Green"); // <- using a method of str on ColoredString.
+/// assert_eq!(blue_string, "This is Green! Green, Green, Green!!".green());
+///
+/// // We should also probably remove the extra exclamation mark; this is the color
+/// // green we're talking about, we don't need to sound so emphatic about it.
+/// blue_string.pop(); // <- using a method of String on ColoredString.
+/// assert_eq!(blue_string, "This is Green! Green, Green, Green!".green());
+/// ```
+///
+/// Notice how this process preserves the coloring and style.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ColoredString {
     input: String,
