@@ -70,6 +70,7 @@ pub static CLEAR: Style = Style(CLEARV);
 /// let underline_and_italic =
 ///     Style::from(Styles::Underline) | Style::from(Styles::Italic);
 /// let all_three = only_bold | underline_and_italic;
+///
 /// assert!(all_three.contains(Styles::Bold)
 ///     && all_three.contains(Styles::Underline)
 ///     && all_three.contains(Styles::Italic));
@@ -87,12 +88,14 @@ pub static CLEAR: Style = Style(CLEARV);
 ///     .italic()
 ///     .strikethrough()
 ///     .hidden();
+///
 /// // Oops! Some of those should not be in there!
 /// // This Style now has all styles _except_ the two we don't want
 /// // (hidden and strikethough).
 /// let remove_mask =
 ///     !Style::from_iter([Styles::Hidden, Styles::Strikethrough]);
 /// very_loud_style &= remove_mask;
+///
 /// // `very_loud_style` no longer contains the undesired style
 /// // switches...
 /// assert!(!very_loud_style.contains(Styles::Hidden)
