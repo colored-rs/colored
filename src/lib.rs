@@ -102,11 +102,7 @@ pub use style::{Style, Styles};
 ///
 /// // Using ColorizedMut:
 /// let mut colored_string = "Blue".blue();
-/// colored_string.set_styling(
-///     Style::default()
-///         .bold()
-///         .underline()
-/// );
+/// colored_string.set_styling(Styles::Bold | Styles::Underline);
 /// ```
 ///
 /// It's worth noting as well that [`ColorizedMut`] is great for

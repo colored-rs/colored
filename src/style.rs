@@ -1,5 +1,56 @@
 use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
 
+macro_rules! auto_impl_ref_binop_trait {
+    (impl $trait_name:ident, $method:ident for $t:ty, $u:ty) => {
+        impl $trait_name<&$u> for $t {
+            type Output = <$t as $trait_name<$t>>::Output;
+
+            #[inline]
+            fn $method(self, rhs: &$u) -> Self::Output {
+                $trait_name::$method(self, *rhs)
+            }
+        }
+
+        impl $trait_name<$u> for &$t {
+            type Output = <$t as $trait_name<$t>>::Output;
+
+            #[inline]
+            fn $method(self, rhs: $u) -> Self::Output {
+                $trait_name::$method(*self, rhs)
+            }
+        }
+
+        impl $trait_name<&$u> for &$t {
+            type Output = <$t as $trait_name<$t>>::Output;
+
+            #[inline]
+            fn $method(self, rhs: &$u) -> Self::Output {
+                $trait_name::$method(*self, *rhs)
+            }
+        }
+    };
+}
+
+macro_rules! impl_assign_op_trait {
+    (
+        $trait:ident, $method:ident for $t:ty, using $used_trait:ident::$used_method:ident
+    ) => {
+        impl $trait<$t> for $t {
+            #[inline]
+            fn $method(&mut self, other: $t) {
+                *self = $used_trait::$used_method(&*self, other);
+            }
+        }
+
+        impl $trait<&$t> for $t {
+            #[inline]
+            fn $method(&mut self, other: &$t) {
+                *self = $used_trait::$used_method(&*self, other);
+            }
+        }
+    };
+}
+
 const CLEARV: u8 = 0b0000_0000;
 const BOLD: u8 = 0b0000_0001;
 const UNDERLINE: u8 = 0b0000_0010;
@@ -67,8 +118,8 @@ pub static CLEAR: Style = Style(CLEARV);
 /// ```rust
 /// # use colored::*;
 /// let only_bold = Style::from(Styles::Bold);
-/// let underline_and_italic =
-///     Style::from(Styles::Underline) | Style::from(Styles::Italic);
+/// // This line is actually an example of `Styles`'s bitwise logic impls but still.
+/// let underline_and_italic = Styles::Underline | Styles::Italic;
 /// let all_three = only_bold | underline_and_italic;
 ///
 /// assert!(all_three.contains(Styles::Bold)
@@ -106,6 +157,41 @@ pub static CLEAR: Style = Style(CLEARV);
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Style(u8);
 
+/// Enum containing all of the available style settings that can be
+/// applied to a [`Styles`] and by extension, a colrized type.
+///
+/// ## Implementation of bitwise logical operators
+///
+/// The implementations of [`BitAnd`], [`BitOr`], [`BitXor`], and
+/// [`Not`] are really extensions of [`Style`]'s implmentations of
+/// the same. [`BitOr`] is great for starting chains of `Styles`'s
+/// for creating [`Style`]'s.
+///
+/// ```
+/// # use colored::*;
+/// let my_styles =
+///     // BitOr<Styles> for Styles (Styles | Styles) = Style
+///     Styles::Bold | Styles::Underline
+///     // BitOr<Styles> for Style (Style | Styles) = Style
+///     | Styles::Italic;
+///
+/// for s in [Styles::Bold, Styles::Underline, Styles::Italic] {
+///     assert!(my_styles.contains(s));
+/// }
+/// ```
+///
+/// [`Not`] has far fewer use cases but can still find use in
+/// turning a `Styles` into a [`Style`] with all styles activated
+/// except that `Styles`.
+///
+/// ```
+/// # use colored::*;
+/// let everything_but_bold = !Styles::Bold;
+///
+/// assert!(everything_but_bold.contains(Styles::Underline));
+/// assert!(everything_but_bold.contains(Styles::Strikethrough));
+/// assert!(!everything_but_bold.contains(Styles::Bold));
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(missing_docs)]
 pub enum Styles {
@@ -164,6 +250,82 @@ impl Styles {
         } else {
             Some(res)
         }
+    }
+}
+
+impl BitAnd<Styles> for Styles {
+    type Output = Style;
+
+    fn bitand(self, rhs: Styles) -> Self::Output {
+        Style(self.to_u8() & rhs.to_u8())
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitAnd, bitand for Styles, Styles);
+
+impl BitAnd<Style> for Styles {
+    type Output = Style;
+
+    fn bitand(self, rhs: Style) -> Self::Output {
+        Style(self.to_u8() & rhs.0)
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitAnd, bitand for Styles, Style);
+
+impl BitOr<Styles> for Styles {
+    type Output = Style;
+
+    fn bitor(self, rhs: Styles) -> Self::Output {
+        Style(self.to_u8() | rhs.to_u8())
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitOr, bitor for Styles, Styles);
+
+impl BitOr<Style> for Styles {
+    type Output = Style;
+
+    fn bitor(self, rhs: Style) -> Self::Output {
+        Style(self.to_u8() | rhs.0)
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitOr, bitor for Styles, Style);
+
+impl BitXor<Styles> for Styles {
+    type Output = Style;
+
+    fn bitxor(self, rhs: Styles) -> Self::Output {
+        Style(self.to_u8() ^ rhs.to_u8())
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitXor, bitxor for Styles, Styles);
+
+impl BitXor<Style> for Styles {
+    type Output = Style;
+
+    fn bitxor(self, rhs: Style) -> Self::Output {
+        Style(self.to_u8() ^ rhs.0)
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitXor, bitxor for Styles, Style);
+
+impl Not for Styles {
+    type Output = Style;
+
+    fn not(self) -> Self::Output {
+        Style(!self.to_u8())
+    }
+}
+
+impl Not for &Styles {
+    type Output = Style;
+
+    fn not(self) -> Self::Output {
+        Style(!self.to_u8())
     }
 }
 
@@ -274,37 +436,6 @@ impl Style {
     }
 }
 
-macro_rules! auto_impl_ref_binop_trait {
-    (impl $trait_name:ident, $method:ident for $t:ty) => {
-        impl $trait_name<&$t> for $t {
-            type Output = <$t as $trait_name<$t>>::Output;
-
-            #[inline]
-            fn $method(self, rhs: &$t) -> Self::Output {
-                $trait_name::$method(self, *rhs)
-            }
-        }
-
-        impl $trait_name<$t> for &$t {
-            type Output = <$t as $trait_name<$t>>::Output;
-
-            #[inline]
-            fn $method(self, rhs: $t) -> Self::Output {
-                $trait_name::$method(*self, rhs)
-            }
-        }
-
-        impl $trait_name<&$t> for &$t {
-            type Output = <$t as $trait_name<$t>>::Output;
-
-            #[inline]
-            fn $method(self, rhs: &$t) -> Self::Output {
-                $trait_name::$method(*self, *rhs)
-            }
-        }
-    };
-}
-
 impl BitAnd<Style> for Style {
     type Output = Style;
 
@@ -313,7 +444,17 @@ impl BitAnd<Style> for Style {
     }
 }
 
-auto_impl_ref_binop_trait!(impl BitAnd, bitand for Style);
+auto_impl_ref_binop_trait!(impl BitAnd, bitand for Style, Style);
+
+impl BitAnd<Styles> for Style {
+    type Output = Style;
+
+    fn bitand(self, rhs: Styles) -> Self::Output {
+        Style(self.0 & rhs.to_u8())
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitAnd, bitand for Style, Styles);
 
 impl BitOr<Style> for Style {
     type Output = Style;
@@ -323,7 +464,17 @@ impl BitOr<Style> for Style {
     }
 }
 
-auto_impl_ref_binop_trait!(impl BitOr, bitor for Style);
+auto_impl_ref_binop_trait!(impl BitOr, bitor for Style, Style);
+
+impl BitOr<Styles> for Style {
+    type Output = Style;
+
+    fn bitor(self, rhs: Styles) -> Self::Output {
+        Style(self.0 | rhs.to_u8())
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitOr, bitor for Style, Styles);
 
 impl BitXor<Style> for Style {
     type Output = Style;
@@ -333,7 +484,17 @@ impl BitXor<Style> for Style {
     }
 }
 
-auto_impl_ref_binop_trait!(impl BitXor, bitxor for Style);
+auto_impl_ref_binop_trait!(impl BitXor, bitxor for Style, Style);
+
+impl BitXor<Styles> for Style {
+    type Output = Style;
+
+    fn bitxor(self, rhs: Styles) -> Self::Output {
+        Style(self.0 ^ rhs.to_u8())
+    }
+}
+
+auto_impl_ref_binop_trait!(impl BitXor, bitxor for Style, Styles);
 
 impl Not for Style {
     type Output = Style;
@@ -349,26 +510,6 @@ impl Not for &Style {
     fn not(self) -> Self::Output {
         Style(!self.0)
     }
-}
-
-macro_rules! impl_assign_op_trait {
-    (
-        $trait:ident, $method:ident for $t:ty, using $used_trait:ident::$used_method:ident
-    ) => {
-        impl $trait<$t> for $t {
-            #[inline]
-            fn $method(&mut self, other: $t) {
-                *self = $used_trait::$used_method(&*self, other);
-            }
-        }
-
-        impl $trait<&$t> for $t {
-            #[inline]
-            fn $method(&mut self, other: &$t) {
-                *self = $used_trait::$used_method(&*self, other);
-            }
-        }
-    };
 }
 
 impl_assign_op_trait!(BitAndAssign, bitand_assign for Style, using BitAnd::bitand);
@@ -580,32 +721,64 @@ mod tests {
         assert_eq!(style.contains(Styles::Italic), true);
         assert_eq!(style.contains(Styles::Dimmed), false);
     }
+
     mod style_bitwise_logic {
         use super::*;
 
+        macro_rules! check_impl {
+            ($lh:expr, $method:path, $rh:expr => $res:expr) => {
+                assert_eq!($method($lh, $rh), $res);
+                assert_eq!($method(&$lh, $rh), $res);
+                assert_eq!($method($lh, &$rh), $res);
+                assert_eq!($method(&$lh, &$rh), $res);
+            };
+        }
+
+        macro_rules! check_impl_reflexive {
+            ($lh:expr, $method:path, $rh:expr => $res:expr) => {
+                check_impl!($lh, $method, $rh => $res);
+                check_impl!($rh, $method, $lh => $res);
+            }
+        }
+
+        /// TTABLE = TRUTH_TABLE
+        const TTABLE: (u8, u8) = (0b0101, 0b0011);
+
         #[test]
         fn binops() {
-            for (l, r) in [
-                // BitAnd (&)
-                (Style(BOLD) & Style(UNDERLINE), Style(CLEARV)),
-                // Check impls for refs work
-                (&Style(BOLD) & Style(BOLD), Style(BOLD)),
-                (Style(CLEARV) & Style(CLEARV), Style(CLEARV)),
-                // Full truth table for bits
-                (&Style(0b0011) & &Style(0b0101), Style(0b0001)),
-                // BitOr (|)
-                (Style(BOLD) | Style(UNDERLINE), Style(BOLD | UNDERLINE)),
-                (&Style(BOLD) | Style(BOLD), Style(BOLD)),
-                (Style(CLEARV) | &Style(UNDERLINE), Style(UNDERLINE)),
-                (&Style(0b0011) | &Style(0b0101), Style(0b0111)),
-                // BitXor (^)
-                (Style(BOLD) ^ Style(CLEARV), Style(BOLD)),
-                (&Style(BOLD) ^ Style(UNDERLINE), Style(BOLD | UNDERLINE)),
-                (Style(BOLD) ^ &Style(BOLD), Style(CLEARV)),
-                (Style(0b0011) ^ Style(0b0101), Style(0b0110)),
-            ] {
-                assert_eq!(l, r);
-            }
+            let tstyle_l = Style(TTABLE.0);
+            let tstyle_r = Style(TTABLE.1);
+            let and_res = Style(TTABLE.0 & TTABLE.1);
+            let or_res = Style(TTABLE.0 | TTABLE.1);
+            let xor_res = Style(TTABLE.0 ^ TTABLE.1);
+
+            check_impl!(tstyle_l, BitAnd::bitand, tstyle_r => and_res);
+            check_impl!(tstyle_l, BitOr::bitor, tstyle_r => or_res);
+            check_impl!(tstyle_l, BitXor::bitxor, tstyle_r => xor_res);
+        }
+
+        #[test]
+        fn binops_with_styles() {
+            let bold_underline = Style(0b0011);
+
+            check_impl_reflexive!(
+                bold_underline,
+                BitAnd::bitand,
+                Styles::Bold
+                => Style(0b0000_0001)
+            );
+            check_impl_reflexive!(
+                bold_underline,
+                BitOr::bitor,
+                Styles::Reversed
+                => Style(0b0000_0111)
+            );
+            check_impl_reflexive!(
+                bold_underline,
+                BitXor::bitxor,
+                Styles::Underline
+                => Style(0b0000_0001)
+            );
         }
 
         #[test]
@@ -632,6 +805,36 @@ mod tests {
             style = original_style;
             style ^= op_style;
             assert_eq!(style, Style(0b0110));
+        }
+
+        #[test]
+        fn syles_binops() {
+            check_impl!(
+                Styles::Bold,
+                BitAnd::bitand,
+                Styles::Bold
+                => Style(0b0000_0001)
+            );
+            // The check_impl is only to verify it works with all the combos
+            // of refs. We already know it compines so let's spare ourselves
+            // the extra assertions.
+            assert_eq!(Styles::Bold & Styles::Underline, Style(0b0000_0000));
+
+            check_impl!(
+                Styles::Bold,
+                BitOr::bitor,
+                Styles::Underline
+                => Style(0b0000_0011)
+            );
+            assert_eq!(Styles::Bold | Styles::Bold, Style(0b0000_0001));
+
+            check_impl!(
+                Styles::Bold,
+                BitXor::bitxor,
+                Styles::Underline
+                => Style(0b0000_0011)
+            );
+            assert_eq!(Styles::Bold ^ Styles::Bold, Style(0b0000_0000));
         }
     }
 }
