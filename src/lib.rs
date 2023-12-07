@@ -706,6 +706,15 @@ impl DerefMut for ColoredString {
     }
 }
 
+impl From<String> for ColoredString {
+    fn from(s: String) -> Self {
+        ColoredString {
+            input: s,
+            ..ColoredString::default()
+        }
+    }
+}
+
 impl<'a> From<&'a str> for ColoredString {
     fn from(s: &'a str) -> Self {
         ColoredString {
