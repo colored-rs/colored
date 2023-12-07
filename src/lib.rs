@@ -170,21 +170,6 @@ pub struct ColoredString {
     style: style::Style,
 }
 
-/// Simply possesses color and style and nothing more.
-///
-/// Useful for simply storing color and or style information as
-/// a stamp to be applied to [`ColoredString`]'s without storing
-/// any actual data itself.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct StyleTemplate {
-    /// Foreground color
-    pub fgcolor: Option<Color>,
-    /// Background color
-    pub bgcolor: Option<Color>,
-    /// Style
-    pub style: Style,
-}
-
 /// The trait that enables something to be given color.
 ///
 /// You can use `colored` effectively simply by importing this trait
@@ -460,7 +445,7 @@ pub trait Colorize {
 
 /// Represents something that has colorization applied to it.
 ///
-/// Examples mainly include [`ColoredString`] and [`StyleTemplate`].
+/// In `colored`, this is exclusively [`ColoredString`].
 #[allow(missing_docs)]
 pub trait Colorized {
     fn foreground_color(&self) -> Option<Color>;
@@ -862,60 +847,6 @@ impl fmt::Display for ColoredString {
         escaped_input.fmt(f)?;
         f.write_str("\x1B[0m")?;
         Ok(())
-    }
-}
-
-impl StyleTemplate {
-    /// Convenience method that creates a `StyleTemplate` by copying the
-    /// coloring and style of a [`Colorized`] value.
-    pub fn new_from<T: Colorized>(other: &T) -> Self {
-        StyleTemplate {
-            fgcolor: other.foreground_color(),
-            bgcolor: other.background_color(),
-            style: other.styling(),
-        }
-    }
-}
-
-impl Colorized for StyleTemplate {
-    fn foreground_color(&self) -> Option<Color> {
-        self.fgcolor
-    }
-
-    fn background_color(&self) -> Option<Color> {
-        self.bgcolor
-    }
-
-    fn styling(&self) -> Style {
-        self.style
-    }
-}
-
-impl ColorizedMut for StyleTemplate {
-    fn set_foreground_color<C: Into<Color>>(&mut self, color: Option<C>) {
-        self.fgcolor = color.map(|c| c.into());
-    }
-
-    fn set_background_color<C: Into<Color>>(&mut self, color: Option<C>) {
-        self.bgcolor = color.map(|c| c.into());
-    }
-
-    fn set_styling<S: Into<Style>>(&mut self, style: S) {
-        self.style = style.into();
-    }
-}
-
-impl CopyColorize for StyleTemplate {
-    fn copy_foreground_color<T: Colorized>(&mut self, other: &T) {
-        self.fgcolor = other.foreground_color();
-    }
-
-    fn copy_background_color<T: Colorized>(&mut self, other: &T) {
-        self.bgcolor = other.background_color();
-    }
-
-    fn copy_styling<T: Colorized>(&mut self, other: &T) {
-        self.style = other.styling();
     }
 }
 

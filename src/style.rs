@@ -358,13 +358,14 @@ impl Style {
     /// ```rust
     /// # use colored::*;
     /// let cstr = "".red().bold();
-    /// let mut template = StyleTemplate::default();
-    /// template.copy_styling(&cstr);
-    /// template.style.add(Styles::Italic);
+    /// let mut style = cstr.styling();
+    /// style.add(Styles::Italic);
     /// let mut cstr2 = "".blue();
-    /// cstr2.copy_styling(&template);
+    /// cstr2.set_styling(style);
+    ///
     /// assert!(cstr2.styling().contains(Styles::Bold));
     /// assert!(cstr2.styling().contains(Styles::Italic));
+    /// assert_eq!(cstr2.foreground_color(), Some(Color::Blue));
     /// ```
     pub fn add(&mut self, two: Styles) {
         self.0 |= two.to_u8();
@@ -375,13 +376,13 @@ impl Style {
     /// ```rust
     /// use colored::*;
     /// let cstr = "".red().bold().italic();
-    /// let mut template = StyleTemplate::default();
-    /// template.copy_styling(&cstr);
-    /// template.style.remove(Styles::Italic);
+    /// let mut style = cstr.styling();
+    /// style.remove(Styles::Italic);
     /// let mut cstr2 = "".blue();
-    /// cstr2.copy_styling(&template);
+    /// cstr2.set_styling(style);
     /// assert!(cstr2.styling().contains(Styles::Bold));
     /// assert!(!cstr2.styling().contains(Styles::Italic));
+    /// assert_eq!(cstr2.foreground_color(), Some(Color::Blue));
     /// ```
     pub fn remove(&mut self, two: Styles) {
         self.0 &= !two.to_u8();
