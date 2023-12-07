@@ -23,6 +23,10 @@
 //!
 //! See [the `Colorize` trait](./trait.Colorize.html) for all the methods.
 //!
+//! Note: The methods of [`Colorize`], when used on [`str`]'s, return
+//! [`ColoredString`]'s. See [`ColoredString`] to learn more about them and
+//! what you can do with them beyond continue to use [`Colorize`] to further
+//! modify them.
 #![warn(missing_docs)]
 
 extern crate is_terminal;
