@@ -335,9 +335,9 @@ impl Style {
     /// ```rust
     /// # use colored::*;
     /// let colored = "".bold().italic();
-    /// assert_eq!(colored.style().contains(Styles::Bold), true);
-    /// assert_eq!(colored.style().contains(Styles::Italic), true);
-    /// assert_eq!(colored.style().contains(Styles::Dimmed), false);
+    /// assert_eq!(colored.style.contains(Styles::Bold), true);
+    /// assert_eq!(colored.style.contains(Styles::Italic), true);
+    /// assert_eq!(colored.style.contains(Styles::Dimmed), false);
     /// ```
     pub fn contains(self, style: Styles) -> bool {
         let s = style.to_u8();
@@ -358,14 +358,14 @@ impl Style {
     /// ```rust
     /// # use colored::*;
     /// let cstr = "".red().bold();
-    /// let mut style = cstr.styling();
+    /// let mut style = cstr.style;
     /// style.add(Styles::Italic);
     /// let mut cstr2 = "".blue();
-    /// cstr2.set_styling(style);
+    /// cstr2.style = style;
     ///
-    /// assert!(cstr2.styling().contains(Styles::Bold));
-    /// assert!(cstr2.styling().contains(Styles::Italic));
-    /// assert_eq!(cstr2.foreground_color(), Some(Color::Blue));
+    /// assert!(cstr2.style.contains(Styles::Bold));
+    /// assert!(cstr2.style.contains(Styles::Italic));
+    /// assert_eq!(cstr2.fgcolor, Some(Color::Blue));
     /// ```
     pub fn add(&mut self, two: Styles) {
         self.0 |= two.to_u8();
@@ -376,13 +376,13 @@ impl Style {
     /// ```rust
     /// use colored::*;
     /// let cstr = "".red().bold().italic();
-    /// let mut style = cstr.styling();
+    /// let mut style = cstr.style;
     /// style.remove(Styles::Italic);
     /// let mut cstr2 = "".blue();
-    /// cstr2.set_styling(style);
-    /// assert!(cstr2.styling().contains(Styles::Bold));
-    /// assert!(!cstr2.styling().contains(Styles::Italic));
-    /// assert_eq!(cstr2.foreground_color(), Some(Color::Blue));
+    /// cstr2.style = style;
+    /// assert!(cstr2.style.contains(Styles::Bold));
+    /// assert!(!cstr2.style.contains(Styles::Italic));
+    /// assert_eq!(cstr2.fgcolor, Some(Color::Blue));
     /// ```
     pub fn remove(&mut self, two: Styles) {
         self.0 &= !two.to_u8();

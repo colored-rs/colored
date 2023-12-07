@@ -80,68 +80,45 @@ pub use style::{Style, Styles};
 /// println!("{}", cstring);
 /// ```
 ///
-/// ## Modifying a `ColoredString`'s styling
+/// ## Manipulating the coloring/style of a `ColoredString`
 ///
-/// `ColoredString`'s of course implement [`Colorize`] and calling the
-/// [`Colorize`] methods on one will change the color / text style.
-/// After all, this is what lets you chain together [`Colorize`]
-/// methods in the first place as all of them are defined as returning
-/// `ColoredString`.
-///
-/// These of course re-uses the underlying [`String`] due to move
-/// semantics but if you truly want or need in-place modification, see
-/// [`ColorizedMut`] which is also implemented for `ColoredString` and
-/// is specifically for enabling setting these color / style settings
-///  directly.
+/// Getting or changing the foreground color, background color, and or
+/// style of a `ColoredString` is as easy as manually reading / modifying
+/// the fields of `ColoredString`.
 ///
 /// ```
 /// # use colored::*;
-/// // Using Colorize:
-/// let mut colored_string = "Red".red();
-/// colored_string = colored_string.bold().underline();
+/// let mut red_text = "Red".red();
+/// // Changing color using re-assignment and [`Colorize`]:
+/// red_text = red_text.blue();
+/// // Manipulating fields of `ColoredString` in-place:
+/// red_text.fgcolor = Some(Color::Blue);
 ///
-/// // Using ColorizedMut:
-/// let mut colored_string = "Blue".blue();
-/// colored_string.set_styling(Styles::Bold | Styles::Underline);
-/// ```
-///
-/// It's worth noting as well that [`ColorizedMut`] is great for
-/// selectively removing styling as setting the foreground or background
-/// color effectively removes that styling and resets it to plain text
-/// in that regard.
-///
-/// ```
-/// # use colored::*;
-/// let mut colored_text = "Red on Black (Spooky)".red().on_black();
-///
-/// colored_text.clear_background_color();
-/// // The text no longer has a background and thus is no longer spooky.
-/// colored_text.replace_range(.., "Just Red (Not Spooky)");
-///
-/// assert_eq!(colored_text, "Just Red (Not Spooky)".red());
-/// ```
-///
-/// ## Dynamically getting a `ColoredString`'s color / style
-///
-/// `ColoredString` implements [`Colorized`] which allows you to
-/// get a `ColoredString`'s foreground and background colors as
-/// well as its style as a [`Style`].
-///
-/// ```
-/// # use colored::*;
-/// let colored_string = "Red on white, underlined".red().on_white().underline();
-///
-/// assert_eq!(colored_string.foreground_color(), Some(Color::Red));
-/// assert_eq!(colored_string.background_color(), Some(Color::White));
-/// assert_eq!(colored_string.styling(), Style::from(Styles::Underline));
+/// let styled_text1 = "Bold".bold();
+/// let styled_text2 = "Italic".italic();
+/// let mut styled_text3 = ColoredString::from("Bold and Italic");
+/// styled_text3.style = styled_text1.style | styled_text2.style;
 /// ```
 ///
 /// ## Modifying the text of a `ColoredString`
 ///
+/// Modifying the text is as easy as modifying the `input` field of
+/// `ColoredString`...
+///
+/// ```
+/// # use colored::*;
+/// let mut colored_text = "Magenta".magenta();
+/// colored_text = colored_text.blue();
+/// colored_text.input.replace_range(.., "Blue");
+///
+/// assert_eq!(&**colored_text, "Blue");
+/// ```
+///
 /// `ColoredString` implements [`Deref<String>`] and [`DerefMut`]. This
 /// allows you not only to use all the methods of [`String`] but also
 /// those of [`str`]. It also lets you replace the underlying string
-/// while keeping everything else intact via deref assigning.
+/// via deref assigning in addition to being able to set the `input`
+/// field which can be useful for some cases involving trait objects.
 ///
 /// ```
 /// # use colored::*;
@@ -164,10 +141,16 @@ pub use style::{Style, Styles};
 /// Notice how this process preserves the coloring and style.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ColoredString {
-    input: String,
-    fgcolor: Option<Color>,
-    bgcolor: Option<Color>,
-    style: style::Style,
+    /// The plain text that will have color and style applied to it.
+    pub input: String,
+    /// The color of the text as it will be printed.
+    pub fgcolor: Option<Color>,
+    /// The background color (if any). None means that the text will be printed
+    /// without a special background.
+    pub bgcolor: Option<Color>,
+    /// Any special styling to be applied to the text (see Styles for a list of
+    /// available options).
+    pub style: style::Style,
 }
 
 /// The trait that enables something to be given color.
@@ -443,118 +426,6 @@ pub trait Colorize {
     fn strikethrough(self) -> ColoredString;
 }
 
-/// Represents something that has colorization applied to it.
-///
-/// In `colored`, this is exclusively [`ColoredString`].
-#[allow(missing_docs)]
-pub trait Colorized {
-    fn foreground_color(&self) -> Option<Color>;
-
-    fn background_color(&self) -> Option<Color>;
-
-    fn styling(&self) -> Style;
-}
-
-/// Trait for colorized types that support having their coloring/style
-/// modified in-place by setting the basic underlying colorization
-/// attributes of foreground color, background color, and text style
-/// (represented with a [`Style`]).
-///
-/// Also provides convenience methods for clearing foreground color,
-/// background color, and style that only affect that attribute
-/// specifically.
-///
-/// ```
-/// # use colored::*;
-/// let mut colored_string = "Blue".blue();
-///
-/// colored_string.set_foreground_color(Some(Color::Red));
-/// colored_string.replace_range(.., "Now it's red.");
-/// assert_eq!(colored_string.foreground_color(), Some(Color::Red));
-///
-/// colored_string.set_background_color(Some(Color::Green));
-/// colored_string.push_str(".. and now with a green background. Must be Christmas, I suppose");
-/// assert_eq!(colored_string.background_color(), Some(Color::Green));
-///
-/// colored_string.clear_background_color();
-/// colored_string.replace_range(.., "The green background didn't look so nice. Back to just red.");
-/// assert_eq!(colored_string.background_color(), None);
-/// ```
-#[allow(missing_docs)]
-pub trait ColorizedMut {
-    fn set_foreground_color<C: Into<Color>>(&mut self, color: Option<C>);
-
-    fn clear_foreground_color(&mut self) {
-        self.set_foreground_color::<Color>(None);
-    }
-
-    fn set_background_color<C: Into<Color>>(&mut self, color: Option<C>);
-
-    fn clear_background_color(&mut self) {
-        self.set_background_color::<Color>(None);
-    }
-
-    fn set_styling<S: Into<Style>>(&mut self, style: S);
-
-    fn clear_styling(&mut self) {
-        self.set_styling(Style::default());
-    }
-}
-
-/// Implementors can copy foreground color, background color, and
-/// or style from other values of types that implement [`Colorized`].
-pub trait CopyColorize {
-    /// Copies the foreground color of any value that implements
-    /// [`Colorized`].
-    ///
-    /// Default coloring counts as coloring; copying from a
-    /// [`Colorized`] without foreground color
-    /// styling will erase its foreground color.
-    ///
-    /// ```rust
-    /// # use colored::*;
-    /// let cstr1 = "Red".color("red").on_color("white");
-    /// let mut cstr2 = "Should be red.".color("blue").on_color("black");
-    /// cstr2.copy_foreground_color(&cstr1);
-    ///
-    /// assert_eq!(cstr1.foreground_color(), cstr2.foreground_color());
-    /// assert_ne!(cstr1.background_color(), cstr2.background_color());
-    /// ```
-    fn copy_foreground_color<T: Colorized>(&mut self, other: &T);
-
-    /// Copies the background color of another value that implements
-    /// [`Colorized`].
-    ///
-    /// Clear (no) background counts as a background.
-    ///
-    /// ```rust
-    /// # use colored::*;
-    /// let cstr1 = "Clear background (nice).".color("green");
-    /// let mut cstr2 = "Santa Claus? Nope, not here."
-    ///     .color("red")
-    ///     .on_color("green");
-    /// cstr2.copy_background_color(&cstr1);
-    ///
-    /// assert_eq!(cstr1.background_color(), cstr2.background_color());
-    /// assert_ne!(cstr1.foreground_color(), cstr2.foreground_color());
-    /// ```
-    fn copy_background_color<T: Colorized>(&mut self, other: &T);
-
-    /// Copies the style (not including colors) of another value
-    /// that implements [`Colorized`].
-    ///
-    /// ```rust
-    /// # use colored::*;
-    /// let cstr1 = "Red".red().bold().italic().underline();
-    /// let mut cstr2 = "blue".blue();
-    /// cstr2.copy_styling(&cstr1);
-    ///
-    /// assert_eq!(cstr1.styling(), cstr2.styling());
-    /// assert_ne!(cstr1.foreground_color(), cstr2.foreground_color());
-    /// ```
-    fn copy_styling<T: Colorized>(&mut self, other: &T);
-}
-
 impl ColoredString {
     /// Get the current background color applied.
     ///
@@ -565,9 +436,7 @@ impl ColoredString {
     /// let cstr = cstr.clear();
     /// assert_eq!(cstr.fgcolor(), None);
     /// ```
-    #[deprecated(
-        note = "Deprecated in favor of the `foreground_color` method of the `Colorized` trait."
-    )]
+    #[deprecated(note = "Deprecated due to the exposing of the fgcolor struct field.")]
     pub fn fgcolor(&self) -> Option<Color> {
         self.fgcolor.as_ref().copied()
     }
@@ -581,9 +450,7 @@ impl ColoredString {
     /// let cstr = cstr.clear();
     /// assert_eq!(cstr.bgcolor(), None);
     /// ```
-    #[deprecated(
-        note = "Deprecated in favor of the `background_color` method of the `Colorized` trait."
-    )]
+    #[deprecated(note = "Deprecated due to the exposing of the bgcolor struct field.")]
     pub fn bgcolor(&self) -> Option<Color> {
         self.bgcolor.as_ref().copied()
     }
@@ -597,9 +464,26 @@ impl ColoredString {
     /// assert_eq!(colored.style().contains(Styles::Italic), true);
     /// assert_eq!(colored.style().contains(Styles::Dimmed), false);
     /// ```
-    #[deprecated(note = "Deprecated in favor of the `styling` method of the `Colorized` trait.")]
+    #[deprecated(note = "Deprecated due to the exposing of the style struct field.")]
     pub fn style(&self) -> style::Style {
         self.style
+    }
+
+    /// Clears foreground coloring on this `ColoredString`, meaning that it
+    /// will be printed with the default terminal text color.
+    pub fn clear_fgcolor(&mut self) {
+        self.fgcolor = None;
+    }
+
+    /// Gets rid of this `ColoredString`'s background.
+    pub fn clear_bgcolor(&mut self) {
+        self.bgcolor = None;
+    }
+
+    /// Clears any special styling and sets it back to the default (plain,
+    /// maybe colored, text).
+    pub fn clear_style(&mut self) {
+        self.style = Style::default();
     }
 
     /// Checks if the colored string has no color or styling.
@@ -778,48 +662,6 @@ impl Colorize for ColoredString {
     fn strikethrough(mut self) -> ColoredString {
         self.style.add(style::Styles::Strikethrough);
         self
-    }
-}
-
-impl Colorized for ColoredString {
-    fn foreground_color(&self) -> Option<Color> {
-        self.fgcolor
-    }
-
-    fn background_color(&self) -> Option<Color> {
-        self.bgcolor
-    }
-
-    fn styling(&self) -> Style {
-        self.style
-    }
-}
-
-impl ColorizedMut for ColoredString {
-    fn set_foreground_color<C: Into<Color>>(&mut self, color: Option<C>) {
-        self.fgcolor = color.map(|c| c.into());
-    }
-
-    fn set_background_color<C: Into<Color>>(&mut self, color: Option<C>) {
-        self.bgcolor = color.map(|c| c.into());
-    }
-
-    fn set_styling<S: Into<Style>>(&mut self, style: S) {
-        self.style = style.into();
-    }
-}
-
-impl CopyColorize for ColoredString {
-    fn copy_foreground_color<T: Colorized>(&mut self, other: &T) {
-        self.fgcolor = other.foreground_color();
-    }
-
-    fn copy_background_color<T: Colorized>(&mut self, other: &T) {
-        self.bgcolor = other.background_color();
-    }
-
-    fn copy_styling<T: Colorized>(&mut self, other: &T) {
-        self.style = other.styling();
     }
 }
 
@@ -1139,38 +981,5 @@ mod tests {
         assert_eq!(cstring.style().contains(Styles::Bold), true);
         assert_eq!(cstring.style().contains(Styles::Italic), true);
         assert_eq!(cstring.style().contains(Styles::Dimmed), false);
-    }
-
-    #[test]
-    fn colorized_trait() {
-        let mut cstring = "".red();
-        assert_eq!(cstring.foreground_color(), Some(Color::Red));
-        assert_eq!(cstring.background_color(), None);
-
-        cstring = "Ugly text".blue().on_red();
-        assert_eq!(cstring.foreground_color(), Some(Color::Blue));
-        assert_eq!(cstring.background_color(), Some(Color::Red));
-
-        cstring = "Shiny!".bold().italic();
-        assert!(cstring.styling().contains(Styles::Bold));
-        assert!(cstring.styling().contains(Styles::Italic));
-    }
-
-    #[test]
-    fn copy_colorize() {
-        let mut cstring1 = "".red().bold();
-        let mut cstring2 = "".blue().italic();
-        cstring2.copy_foreground_color(&cstring1);
-        assert_eq!(cstring2.foreground_color(), Some(Color::Red));
-        // ... but did not copy the style.
-        assert!(!cstring2.styling().contains(Styles::Bold));
-
-        cstring1 = "".red().on_magenta();
-        cstring2 = "".blue();
-        cstring2.copy_background_color(&cstring1);
-        assert_eq!(cstring1.foreground_color(), Some(Color::Red));
-        assert_eq!(cstring2.foreground_color(), Some(Color::Blue));
-        assert_eq!(cstring1.background_color(), Some(Color::Magenta));
-        assert_eq!(cstring2.background_color(), Some(Color::Magenta));
     }
 }
