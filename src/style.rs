@@ -76,12 +76,12 @@ pub static CLEAR: Style = Style(CLEARV);
 
 /// A combinatorial style such as bold, italics, dimmed, etc.
 ///
-/// # Implementation of Default
+/// ## Creation
 ///
 /// `Style::default()` returns a `Style` with no style switches
-/// activated.
+/// activated and is the default method of creating a plain `Style`.
 ///
-/// # `Style` from a set of `Styles`s / `Styles` iterator
+/// ## `Style` from a set of `Styles`s / `Styles` iterator
 ///
 /// `Style` implements `FromIter<Styles>` which means that it is
 /// possible to do the following:
@@ -108,7 +108,7 @@ pub static CLEAR: Style = Style(CLEARV);
 ///     .blink();
 /// ```
 ///
-/// # Implementation of logical bitwise operators
+/// ## Implementation of logical bitwise operators
 ///
 /// `Style` implements bitwise logical operations that operate on
 /// the held style switches collectively. By far the most common
