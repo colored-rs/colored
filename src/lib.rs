@@ -114,7 +114,7 @@ pub use style::{Style, Styles};
 /// # use colored::*;
 /// let mut colored_text = "Red on Black (Spooky)".red().on_black();
 ///
-/// colored_text.set_background_color::<Color>(None);
+/// colored_text.clear_background_color();
 /// // The text no longer has a background and thus is no longer spooky.
 /// colored_text.replace_range(.., "Just Red (Not Spooky)");
 ///
@@ -456,16 +456,48 @@ pub trait Colorized {
 }
 
 /// Trait for colorized types that support having their coloring/style
-/// modified in-place by setting the basic colorization attributes
-/// of foreground color, background color, and text style (represented with
-/// a [`Style`]).
+/// modified in-place by setting the basic underlying colorization
+/// attributes of foreground color, background color, and text style
+/// (represented with a [`Style`]).
+///
+/// Also provides convenience methods for clearing foreground color,
+/// background color, and style.
+///
+/// ```
+/// # use colored::*;
+/// let mut colored_string = "Blue".blue();
+///
+/// colored_string.set_foreground_color(Some(Color::Red));
+/// colored_string.replace_range(.., "Now it's red.");
+/// assert_eq!(colored_string.foreground_color(), Some(Color::Red));
+///
+/// colored_string.set_background_color(Some(Color::Green));
+/// colored_string.push_str(".. and now with a green background. Must be Christmas, I suppose");
+/// assert_eq!(colored_string.background_color(), Some(Color::Green));
+///
+/// colored_string.clear_background_color();
+/// colored_string.replace_range(.., "The green background didn't look so nice. Back to just red.");
+/// assert_eq!(colored_string.background_color(), None);
+/// ```
 #[allow(missing_docs)]
 pub trait ColorizedMut {
     fn set_foreground_color<C: Into<Color>>(&mut self, color: Option<C>);
 
+    fn clear_foreground_color(&mut self) {
+        self.set_foreground_color::<Color>(None);
+    }
+
     fn set_background_color<C: Into<Color>>(&mut self, color: Option<C>);
 
+    fn clear_background_color(&mut self) {
+        self.set_background_color::<Color>(None);
+    }
+
     fn set_styling<S: Into<Style>>(&mut self, style: S);
+
+    fn clear_styling(&mut self) {
+        self.set_styling(Style::default());
+    }
 }
 
 /// Implementors can copy foreground color, background color, and
