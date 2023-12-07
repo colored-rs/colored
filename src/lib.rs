@@ -461,7 +461,8 @@ pub trait Colorized {
 /// (represented with a [`Style`]).
 ///
 /// Also provides convenience methods for clearing foreground color,
-/// background color, and style.
+/// background color, and style that only affect that attribute
+/// specifically.
 ///
 /// ```
 /// # use colored::*;

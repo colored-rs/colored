@@ -163,7 +163,7 @@ pub struct Style(u8);
 /// ## Implementation of bitwise logical operators
 ///
 /// The implementations of [`BitAnd`], [`BitOr`], [`BitXor`], and
-/// [`Not`] are really extensions of [`Style`]'s implmentations of
+/// [`Not`] are really extensions of [`Style`]'s implementations of
 /// the same. [`BitOr`] is great for starting chains of `Styles`'s
 /// for creating [`Style`]'s.
 ///
@@ -809,7 +809,7 @@ mod tests {
         }
 
         #[test]
-        fn syles_binops() {
+        fn styles_binops() {
             check_impl!(
                 Styles::Bold,
                 BitAnd::bitand,
