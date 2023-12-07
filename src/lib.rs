@@ -501,7 +501,7 @@ pub trait ColorizedMut {
 }
 
 /// Implementors can copy foreground color, background color, and
-/// or style from types that implement [`Colorized`].
+/// or style from other values of types that implement [`Colorized`].
 pub trait CopyColorize {
     /// Copies the foreground color of any value that implements
     /// [`Colorized`].
@@ -515,6 +515,7 @@ pub trait CopyColorize {
     /// let cstr1 = "Red".color("red").on_color("white");
     /// let mut cstr2 = "Should be red.".color("blue").on_color("black");
     /// cstr2.copy_foreground_color(&cstr1);
+    ///
     /// assert_eq!(cstr1.foreground_color(), cstr2.foreground_color());
     /// assert_ne!(cstr1.background_color(), cstr2.background_color());
     /// ```
@@ -532,6 +533,7 @@ pub trait CopyColorize {
     ///     .color("red")
     ///     .on_color("green");
     /// cstr2.copy_background_color(&cstr1);
+    ///
     /// assert_eq!(cstr1.background_color(), cstr2.background_color());
     /// assert_ne!(cstr1.foreground_color(), cstr2.foreground_color());
     /// ```
@@ -545,6 +547,7 @@ pub trait CopyColorize {
     /// let cstr1 = "Red".red().bold().italic().underline();
     /// let mut cstr2 = "blue".blue();
     /// cstr2.copy_styling(&cstr1);
+    ///
     /// assert_eq!(cstr1.styling(), cstr2.styling());
     /// assert_ne!(cstr1.foreground_color(), cstr2.foreground_color());
     /// ```
