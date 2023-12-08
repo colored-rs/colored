@@ -33,18 +33,18 @@ macro_rules! auto_impl_ref_binop_trait {
 
 macro_rules! impl_assign_op_trait {
     (
-        $trait:ident, $method:ident for $t:ty, using $used_trait:ident::$used_method:ident
+        $trait:ident, $method:ident for $t:ty, $u:ty, using $used_trait:ident::$used_method:ident
     ) => {
-        impl $trait<$t> for $t {
+        impl $trait<$u> for $t {
             #[inline]
-            fn $method(&mut self, other: $t) {
+            fn $method(&mut self, other: $u) {
                 *self = $used_trait::$used_method(&*self, other);
             }
         }
 
-        impl $trait<&$t> for $t {
+        impl $trait<&$u> for $t {
             #[inline]
-            fn $method(&mut self, other: &$t) {
+            fn $method(&mut self, other: &$u) {
                 *self = $used_trait::$used_method(&*self, other);
             }
         }
@@ -513,11 +513,17 @@ impl Not for &Style {
     }
 }
 
-impl_assign_op_trait!(BitAndAssign, bitand_assign for Style, using BitAnd::bitand);
+impl_assign_op_trait!(BitAndAssign, bitand_assign for Style, Style, using BitAnd::bitand);
 
-impl_assign_op_trait!(BitOrAssign, bitor_assign for Style, using BitOr::bitor);
+impl_assign_op_trait!(BitAndAssign, bitand_assign for Style, Styles, using BitAnd::bitand);
 
-impl_assign_op_trait!(BitXorAssign, bitxor_assign for Style, using BitXor::bitxor);
+impl_assign_op_trait!(BitOrAssign, bitor_assign for Style, Style, using BitOr::bitor);
+
+impl_assign_op_trait!(BitOrAssign, bitor_assign for Style, Styles, using BitOr::bitor);
+
+impl_assign_op_trait!(BitXorAssign, bitxor_assign for Style, Style, using BitXor::bitxor);
+
+impl_assign_op_trait!(BitXorAssign, bitxor_assign for Style, Styles, using BitXor::bitxor);
 
 impl Default for Style {
     fn default() -> Self {
@@ -809,6 +815,23 @@ mod tests {
         }
 
         #[test]
+        fn assign_ops_with_styles() {
+            let original_style = Style(0b0011);
+
+            let mut style = original_style;
+            style &= Styles::Bold;
+            assert_eq!(style, Style(0b0001));
+
+            style = original_style;
+            style |= Styles::Reversed;
+            assert_eq!(style, Style(0b0111));
+
+            style = original_style;
+            style ^= Styles::Bold;
+            assert_eq!(style, Style(0b0010));
+        }
+
+        #[test]
         fn styles_binops() {
             check_impl!(
                 Styles::Bold,
@@ -836,6 +859,12 @@ mod tests {
                 => Style(0b0000_0011)
             );
             assert_eq!(Styles::Bold ^ Styles::Bold, Style(0b0000_0000));
+        }
+
+        #[test]
+        fn styles_not() {
+            let not_bold = !Styles::Bold;
+            assert_eq!(not_bold, Style(!BOLD));
         }
     }
 }
