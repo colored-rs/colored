@@ -34,6 +34,7 @@
 - Changes to `Styles`:
   - Implemented bitwise operators `BitAnd`, `BitOr`, `BitXor`, and `Not` which all combine `Styles`\'s and output `Style`\'s. These can also take a `Style` as an operand.
 - Added additional testing for all of the above changes.
+- Added methods `with_style` and `with_color_and_style` to `Colorize`.
 
 # 2.0.4
 - Switch from `winapi` to `windows-sys`.
