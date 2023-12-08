@@ -113,7 +113,9 @@ pub use style::{Style, Styles};
 /// # use colored::*;
 /// let mut colored_text = "Magenta".magenta();
 /// colored_text = colored_text.blue();
-/// colored_text.input.replace_range(.., "Blue");
+/// colored_text.input = "Blue".to_string();
+/// // NOTE: The above is inefficient and `colored_text.replace_range(.., "Blue")` would
+/// // be more proper. This is just for example.
 ///
 /// assert_eq!(&**colored_text, "Blue");
 /// ```
