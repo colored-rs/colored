@@ -114,38 +114,15 @@ pub use style::{Style, Styles};
 /// let mut colored_text = "Magenta".magenta();
 /// colored_text = colored_text.blue();
 /// colored_text.input = "Blue".to_string();
-/// // NOTE: The above is inefficient and `colored_text.replace_range(.., "Blue")` would
+/// // Note: The above is inefficient and `colored_text.input.replace_range(.., "Blue")` would
 /// // be more proper. This is just for example.
 ///
-/// assert_eq!(&**colored_text, "Blue");
-/// ```
-///
-/// `ColoredString` implements [`Deref<String>`] and [`DerefMut`]. This
-/// allows you not only to use all the methods of [`String`] but also
-/// those of [`str`]. It also lets you replace the underlying string
-/// via deref assigning in addition to being able to set the `input`
-/// field which can be useful for some cases involving trait objects.
-///
-/// ```
-/// # use colored::*;
-/// let mut blue_string = "This is Blue! Blue, Blue, Blue!!".blue();
-///
-/// // Blue is an ugly color, I prefer green.
-/// blue_string = blue_string.green();
-///
-/// // We should probably change the text to reflect the new style:
-/// *blue_string = // <- mutably dereferencing ColoredString as a String
-///     blue_string.replace("Blue", "Green"); // <- using a method of str on ColoredString.
-/// assert_eq!(blue_string, "This is Green! Green, Green, Green!!".green());
-///
-/// // We should also probably remove the extra exclamation mark; this is the color
-/// // green we're talking about, we don't need to sound so emphatic about it.
-/// blue_string.pop(); // <- using a method of String on ColoredString.
-/// assert_eq!(blue_string, "This is Green! Green, Green, Green!".green());
+/// assert_eq!(&*colored_text, "Blue");
 /// ```
 ///
 /// Notice how this process preserves the coloring and style.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ColoredString {
     /// The plain text that will have color and style applied to it.
     pub input: String,
@@ -587,14 +564,14 @@ impl ColoredString {
 }
 
 impl Deref for ColoredString {
-    type Target = String;
-    fn deref(&self) -> &String {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
         &self.input
     }
 }
 
 impl DerefMut for ColoredString {
-    fn deref_mut(&mut self) -> &mut String {
+    fn deref_mut(&mut self) -> &mut <Self as Deref>::Target {
         &mut self.input
     }
 }
