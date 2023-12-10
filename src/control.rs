@@ -1,9 +1,8 @@
 //! A couple of functions to enable and disable coloring.
 
-use is_terminal::IsTerminal;
 use std::default::Default;
 use std::env;
-use std::io;
+use std::io::{self, IsTerminal};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Sets a flag to the console to use a virtual terminal environment.

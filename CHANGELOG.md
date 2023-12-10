@@ -1,4 +1,5 @@
 # Unreleased
+- Document crate MSRV of `1.70`.
 
 # 2.0.4
 - Switch from `winapi` to `windows-sys`.
