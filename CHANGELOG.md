@@ -1,4 +1,5 @@
 # Unreleased
+- Breaking: Return `io::Error` from `set_virtual_terminal`.
 - Document crate MSRV of `1.70`.
 - Handle errors in `set_virtual_terminal`.
 
