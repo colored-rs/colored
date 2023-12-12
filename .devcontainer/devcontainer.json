@@ -6,5 +6,6 @@
             "extensions": ["rust-lang.rust-analyzer"]
         }
     },
+    "postCreateCommand": "cargo install cargo-insta",
     "remoteUser": "vscode"
 }
