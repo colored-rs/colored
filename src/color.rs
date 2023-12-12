@@ -52,7 +52,9 @@ impl Color {
             Color::BrightMagenta => "95".into(),
             Color::BrightCyan => "96".into(),
             Color::BrightWhite => "97".into(),
-            Color::TrueColor {..} if !truecolor_support() => self.closest_color_euclidean().to_fg_str(),
+            Color::TrueColor { .. } if !truecolor_support() => {
+                self.closest_color_euclidean().to_fg_str()
+            }
             Color::TrueColor { r, g, b } => format!("38;2;{};{};{}", r, g, b).into(),
         }
     }
@@ -75,18 +77,24 @@ impl Color {
             Color::BrightMagenta => "105".into(),
             Color::BrightCyan => "106".into(),
             Color::BrightWhite => "107".into(),
-            Color::TrueColor {..} if !truecolor_support() => self.closest_color_euclidean().to_bg_str(),
+            Color::TrueColor { .. } if !truecolor_support() => {
+                self.closest_color_euclidean().to_bg_str()
+            }
             Color::TrueColor { r, g, b } => format!("48;2;{};{};{}", r, g, b).into(),
         }
     }
 
     /// Gets the closest plain color to the TrueColor
     fn closest_color_euclidean(&self) -> Self {
-        use Color::*;
         use std::cmp;
+        use Color::*;
 
         match *self {
-            TrueColor { r: r1, g: g1, b: b1 } => {
+            TrueColor {
+                r: r1,
+                g: g1,
+                b: b1,
+            } => {
                 let colors = vec![
                     Black,
                     Red,
@@ -104,7 +112,9 @@ impl Color {
                     BrightMagenta,
                     BrightCyan,
                     BrightWhite,
-                ].into_iter().map(|c| (c, c.into_truecolor()));
+                ]
+                .into_iter()
+                .map(|c| (c, c.into_truecolor()));
                 let distances = colors.map(|(c_original, c)| {
                     if let TrueColor { r, g, b } = c {
                         let rd = cmp::max(r, r1) - cmp::min(r, r1);
@@ -123,28 +133,67 @@ impl Color {
             }
             c => c,
         }
-
     }
 
     fn into_truecolor(self) -> Self {
         use Color::*;
         match self {
-            Black => TrueColor         { r: 0,   g: 0,   b: 0   },
-            Red => TrueColor           { r: 205, g: 0,   b: 0   },
-            Green => TrueColor         { r: 0,   g: 205, b: 0   },
-            Yellow => TrueColor        { r: 205, g: 205, b: 0   },
-            Blue => TrueColor          { r: 0,   g: 0,   b: 238 },
-            Magenta => TrueColor       { r: 205, g: 0,   b: 205 },
-            Cyan => TrueColor          { r: 0,   g: 205, b: 205 },
-            White => TrueColor         { r: 229, g: 229, b: 229 },
-            BrightBlack => TrueColor   { r: 127, g: 127, b: 127 },
-            BrightRed => TrueColor     { r: 255, g: 0,   b: 0   },
-            BrightGreen => TrueColor   { r: 0,   g: 255, b: 0   },
-            BrightYellow => TrueColor  { r: 255, g: 255, b: 0   },
-            BrightBlue => TrueColor    { r: 92,  g: 92,  b: 255 },
-            BrightMagenta => TrueColor { r: 255, g: 0,   b: 255 },
-            BrightCyan => TrueColor    { r: 0,   g: 255, b: 255 },
-            BrightWhite => TrueColor   { r: 255, g: 255, b: 255 },
+            Black => TrueColor { r: 0, g: 0, b: 0 },
+            Red => TrueColor { r: 205, g: 0, b: 0 },
+            Green => TrueColor { r: 0, g: 205, b: 0 },
+            Yellow => TrueColor {
+                r: 205,
+                g: 205,
+                b: 0,
+            },
+            Blue => TrueColor { r: 0, g: 0, b: 238 },
+            Magenta => TrueColor {
+                r: 205,
+                g: 0,
+                b: 205,
+            },
+            Cyan => TrueColor {
+                r: 0,
+                g: 205,
+                b: 205,
+            },
+            White => TrueColor {
+                r: 229,
+                g: 229,
+                b: 229,
+            },
+            BrightBlack => TrueColor {
+                r: 127,
+                g: 127,
+                b: 127,
+            },
+            BrightRed => TrueColor { r: 255, g: 0, b: 0 },
+            BrightGreen => TrueColor { r: 0, g: 255, b: 0 },
+            BrightYellow => TrueColor {
+                r: 255,
+                g: 255,
+                b: 0,
+            },
+            BrightBlue => TrueColor {
+                r: 92,
+                g: 92,
+                b: 255,
+            },
+            BrightMagenta => TrueColor {
+                r: 255,
+                g: 0,
+                b: 255,
+            },
+            BrightCyan => TrueColor {
+                r: 0,
+                g: 255,
+                b: 255,
+            },
+            BrightWhite => TrueColor {
+                r: 255,
+                g: 255,
+                b: 255,
+            },
             TrueColor { r, g, b } => TrueColor { r, g, b },
         }
     }
@@ -300,11 +349,15 @@ mod tests {
             ( $test:ident : ( $r:literal, $g: literal, $b:literal ), $expected:expr ) => {
                 #[test]
                 fn $test() {
-                    let true_color = Color::TrueColor { r: $r, g: $g, b: $b };
+                    let true_color = Color::TrueColor {
+                        r: $r,
+                        g: $g,
+                        b: $b,
+                    };
                     let actual = true_color.closest_color_euclidean();
                     assert_eq!(actual, $expected);
                 }
-            }
+            };
         }
 
         make_euclidean_distance_test! { exact_black: (0, 0, 0), Color::Black }
