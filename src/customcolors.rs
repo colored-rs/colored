@@ -26,10 +26,11 @@ impl From<(u8, u8, u8)> for CustomColor {
 #[cfg(test)]
 mod tests {
     use crate::*;
+    #[cfg_attr(feature = "no-color", ignore)]
     #[test]
     fn main() {
         let my_color = CustomColor::new(0, 120, 120);
-        println!("{}", "Greetings from Ukraine".custom_color(my_color));
+        insta::assert_display_snapshot!("Greetings from Ukraine".custom_color(my_color));
     }
 
     #[test]

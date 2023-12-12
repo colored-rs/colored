@@ -640,6 +640,7 @@ impl From<ColoredString> for Box<dyn Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{fmt::Write, error::Error};
 
     #[test]
     fn formatting() {
@@ -653,47 +654,51 @@ mod tests {
     }
 
     #[test]
-    fn it_works() {
+    fn it_works() -> Result<(), Box<dyn Error>> {
+        let mut buf = String::new();
         let toto = "toto";
-        println!("{}", toto.red());
-        println!("{}", String::from(toto).red());
-        println!("{}", toto.blue());
+        writeln!(&mut buf, "{}", toto.red())?;
+        writeln!(&mut buf, "{}", String::from(toto).red())?;
+        writeln!(&mut buf, "{}", toto.blue())?;
 
-        println!("blue style ****");
-        println!("{}", toto.bold());
-        println!("{}", "yeah ! Red bold !".red().bold());
-        println!("{}", "yeah ! Yellow bold !".bold().yellow());
-        println!("{}", toto.bold().blue());
-        println!("{}", toto.blue().bold());
-        println!("{}", toto.blue().bold().underline());
-        println!("{}", toto.blue().italic());
-        println!("******");
-        println!("test clearing");
-        println!("{}", "red cleared".red().clear());
-        println!("{}", "bold cyan cleared".bold().cyan().clear());
-        println!("******");
-        println!("Bg tests");
-        println!("{}", toto.green().on_blue());
-        println!("{}", toto.on_magenta().yellow());
-        println!("{}", toto.purple().on_yellow());
-        println!("{}", toto.magenta().on_white());
-        println!("{}", toto.cyan().on_green());
-        println!("{}", toto.black().on_white());
-        println!("******");
-        println!("{}", toto.green());
-        println!("{}", toto.yellow());
-        println!("{}", toto.purple());
-        println!("{}", toto.magenta());
-        println!("{}", toto.cyan());
-        println!("{}", toto.white());
-        println!("{}", toto.white().red().blue().green());
-        println!("{}", toto.truecolor(255, 0, 0));
-        println!("{}", toto.truecolor(255, 255, 0));
-        println!("{}", toto.on_truecolor(0, 80, 80));
-        println!("{}", toto.custom_color((255, 255, 0)));
-        println!("{}", toto.on_custom_color((0, 80, 80)));
-        // uncomment to see term output
-        // assert!(false)
+        writeln!(&mut buf, "blue style ****")?;
+        writeln!(&mut buf, "{}", toto.bold())?;
+        writeln!(&mut buf, "{}", "yeah ! Red bold !".red().bold())?;
+        writeln!(&mut buf, "{}", "yeah ! Yellow bold !".bold().yellow())?;
+        writeln!(&mut buf, "{}", toto.bold().blue())?;
+        writeln!(&mut buf, "{}", toto.blue().bold())?;
+        writeln!(&mut buf, "{}", toto.blue().bold().underline())?;
+        writeln!(&mut buf, "{}", toto.blue().italic())?;
+        writeln!(&mut buf, "******")?;
+        writeln!(&mut buf, "test clearing")?;
+        writeln!(&mut buf, "{}", "red cleared".red().clear())?;
+        writeln!(&mut buf, "{}", "bold cyan cleared".bold().cyan().clear())?;
+        writeln!(&mut buf, "******")?;
+        writeln!(&mut buf, "Bg tests")?;
+        writeln!(&mut buf, "{}", toto.green().on_blue())?;
+        writeln!(&mut buf, "{}", toto.on_magenta().yellow())?;
+        writeln!(&mut buf, "{}", toto.purple().on_yellow())?;
+        writeln!(&mut buf, "{}", toto.magenta().on_white())?;
+        writeln!(&mut buf, "{}", toto.cyan().on_green())?;
+        writeln!(&mut buf, "{}", toto.black().on_white())?;
+        writeln!(&mut buf, "******")?;
+        writeln!(&mut buf, "{}", toto.green())?;
+        writeln!(&mut buf, "{}", toto.yellow())?;
+        writeln!(&mut buf, "{}", toto.purple())?;
+        writeln!(&mut buf, "{}", toto.magenta())?;
+        writeln!(&mut buf, "{}", toto.cyan())?;
+        writeln!(&mut buf, "{}", toto.white())?;
+        writeln!(&mut buf, "{}", toto.white().red().blue().green())?;
+        writeln!(&mut buf, "{}", toto.truecolor(255, 0, 0))?;
+        writeln!(&mut buf, "{}", toto.truecolor(255, 255, 0))?;
+        writeln!(&mut buf, "{}", toto.on_truecolor(0, 80, 80))?;
+        writeln!(&mut buf, "{}", toto.custom_color((255, 255, 0)))?;
+        writeln!(&mut buf, "{}", toto.on_custom_color((0, 80, 80)))?;
+        #[cfg(feature = "no-color")]
+        insta::assert_snapshot!("it_works_no_color", buf);
+        #[cfg(not(feature = "no-color"))]
+        insta::assert_snapshot!("it_works", buf);
+        Ok(())
     }
 
     #[test]
