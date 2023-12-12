@@ -10,6 +10,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 /// This is primarily used for Windows 10 environments which will not correctly colorize
 /// the outputs based on ANSI escape codes.
 ///
+/// The returned `Result` is _always_ `Ok(())`, the return type was kept to ensure backwards
+/// compatibility.
+///
 /// # Notes
 /// > Only available to `Windows` build targets.
 ///
@@ -25,7 +28,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 #[allow(clippy::result_unit_err)]
 #[cfg(windows)]
 pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
-    use windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE;
     use windows_sys::Win32::System::Console::{
         GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING,
         STD_OUTPUT_HANDLE,
@@ -33,17 +35,8 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
 
     unsafe {
         let handle = GetStdHandle(STD_OUTPUT_HANDLE);
-        if handle == INVALID_HANDLE_VALUE {
-            return Err(());
-        }
-
         let mut original_mode = 0;
-        // Return value of 0 means that the function failed:
-        // https://learn.microsoft.com/en-us/windows/console/getconsolemode#return-value
-        if GetConsoleMode(handle, &mut original_mode) == 0 {
-            // TODO: It would be prudent to get the error using `GetLastError` here.
-            return Err(());
-        }
+        GetConsoleMode(handle, &mut original_mode);
 
         let enabled = original_mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING
             == ENABLE_VIRTUAL_TERMINAL_PROCESSING;
