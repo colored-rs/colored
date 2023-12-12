@@ -407,8 +407,6 @@ pub trait Colorize {
     fn reversed(self) -> ColoredString;
     fn hidden(self) -> ColoredString;
     fn strikethrough(self) -> ColoredString;
-    fn with_style<S: Into<Style>>(self, style: S) -> ColoredString;
-    fn with_color_and_style(self, other: &ColoredString) -> ColoredString;
 }
 
 impl ColoredString {
@@ -603,16 +601,6 @@ impl Colorize for ColoredString {
         self.bgcolor = Some(color.into());
         self
     }
-    fn with_style<S: Into<Style>>(mut self, style: S) -> ColoredString {
-        self.style = style.into();
-        self
-    }
-    fn with_color_and_style(mut self, other: &ColoredString) -> ColoredString {
-        self.fgcolor = other.fgcolor;
-        self.bgcolor = other.bgcolor;
-        self.style = other.style;
-        self
-    }
 
     fn clear(self) -> ColoredString {
         ColoredString {
@@ -674,23 +662,6 @@ impl<'a> Colorize for &'a str {
             bgcolor: Some(color.into()),
             input: String::from(self),
             ..ColoredString::default()
-        }
-    }
-
-    fn with_style<S: Into<Style>>(self, style: S) -> ColoredString {
-        ColoredString {
-            input: self.to_string(),
-            style: style.into(),
-            ..Default::default()
-        }
-    }
-
-    fn with_color_and_style(self, other: &ColoredString) -> ColoredString {
-        ColoredString {
-            input: self.to_string(),
-            fgcolor: other.fgcolor,
-            bgcolor: other.bgcolor,
-            style: other.style,
         }
     }
 
