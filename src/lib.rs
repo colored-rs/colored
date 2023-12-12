@@ -29,7 +29,6 @@
 //! modify them.
 #![warn(missing_docs)]
 
-extern crate is_terminal;
 #[macro_use]
 extern crate lazy_static;
 
@@ -38,6 +37,7 @@ extern crate rspec;
 
 mod color;
 pub mod control;
+mod error;
 mod style;
 
 pub use self::customcolors::CustomColor;
@@ -49,6 +49,7 @@ pub use color::*;
 
 use std::{
     borrow::Cow,
+    error::Error,
     fmt,
     ops::{Deref, DerefMut},
 };
@@ -257,10 +258,13 @@ pub trait Colorize {
     {
         self.color(Color::TrueColor { r, g, b })
     }
-    fn custom_color(self, color: CustomColor) -> ColoredString
+    fn custom_color<T>(self, color: T) -> ColoredString
     where
         Self: Sized,
+        T: Into<CustomColor>,
     {
+        let color = color.into();
+
         self.color(Color::TrueColor {
             r: color.r,
             g: color.g,
@@ -383,10 +387,13 @@ pub trait Colorize {
     {
         self.on_color(Color::TrueColor { r, g, b })
     }
-    fn on_custom_color(self, color: CustomColor) -> ColoredString
+    fn on_custom_color<T>(self, color: T) -> ColoredString
     where
         Self: Sized,
+        T: Into<CustomColor>,
     {
+        let color = color.into();
+
         self.on_color(Color::TrueColor {
             r: color.r,
             g: color.g,
@@ -720,6 +727,12 @@ impl fmt::Display for ColoredString {
     }
 }
 
+impl From<ColoredString> for Box<dyn Error> {
+    fn from(cs: ColoredString) -> Box<dyn Error> {
+        Box::from(error::ColoredStringError(cs))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -773,6 +786,8 @@ mod tests {
         println!("{}", toto.truecolor(255, 0, 0));
         println!("{}", toto.truecolor(255, 255, 0));
         println!("{}", toto.on_truecolor(0, 80, 80));
+        println!("{}", toto.custom_color((255, 255, 0)));
+        println!("{}", toto.on_custom_color((0, 80, 80)));
         // uncomment to see term output
         // assert!(false)
     }

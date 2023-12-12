@@ -38,7 +38,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu", "windows", "macos"]
-        version: ["stable", "beta", "1.63"]
+        version: ["stable", "beta", "1.70"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -48,3 +48,10 @@ jobs:
           toolchain: ${{ matrix.version }}
       - name: Run tests
         run: cargo test
+  check-semver:
+    name: Check semver compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+

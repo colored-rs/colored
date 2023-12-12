@@ -1,0 +1,10 @@
+{
+    "name": "Rust",
+    "image": "mcr.microsoft.com/vscode/devcontainers/rust:1",
+    "customizations": {
+        "vscode": {
+            "extensions": ["rust-lang.rust-analyzer"]
+        }
+    },
+    "remoteUser": "vscode"
+}
