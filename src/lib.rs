@@ -736,7 +736,7 @@ impl From<ColoredString> for Box<dyn Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{fmt::Write, error::Error};
+    use std::{error::Error, fmt::Write};
 
     #[test]
     fn formatting() {
