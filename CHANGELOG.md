@@ -20,6 +20,7 @@
   - Implemented bitwise operators `BitAnd`, `BitOr`, `BitXor`, and `Not` which all combine `Styles`\'s and output `Style`\'s. These can also take a `Style` as an operand.
 - Added additional testing for all of the above changes.
 - Added methods `with_style` and `with_color_and_style` to `Colorize`.
+- Replaced lazy_static with `std::sync::OnceLock`. Soft breaking change by removing the global `SHOULD_COLORIZE`.
 
 # 2.1.0
 * Impl From<String> for ColoredString by @mahor1221 in https://github.com/colored-rs/colored/pull/126

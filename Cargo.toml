@@ -16,7 +16,6 @@ rust-version = "1.70"
 no-color = []
 
 [dependencies]
-lazy_static = "1"
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 version = "0.48"
