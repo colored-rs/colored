@@ -29,9 +29,6 @@
 //! modify them.
 #![warn(missing_docs)]
 
-#[macro_use]
-extern crate lazy_static;
-
 #[cfg(test)]
 extern crate rspec;
 
@@ -491,7 +488,7 @@ impl ColoredString {
 
     #[cfg(not(feature = "no-color"))]
     fn has_colors(&self) -> bool {
-        control::SHOULD_COLORIZE.should_colorize()
+        control::should_colorize_global().should_colorize()
     }
 
     #[cfg(feature = "no-color")]
