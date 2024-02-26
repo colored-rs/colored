@@ -40,7 +40,7 @@ and add this to your `lib.rs` or `main.rs`:
 ```rust
     extern crate colored; // not needed in Rust 2018+
 
-    use colored::*;
+    use colored::Colorize;
 
     // test the example with `cargo run --example most_simple`
     fn main() {
