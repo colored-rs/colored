@@ -1,7 +1,6 @@
 # Colored
 
-[![Build
-Status](https://travis-ci.org/mackwic/colored.svg?branch=master)](https://travis-ci.org/mackwic/colored) [![Crates.io](https://img.shields.io/crates/v/colored.svg?maxAge=2592000)](https://crates.io/crates/colored) [![Crates.io](https://img.shields.io/crates/l/colored.svg?maxAge=2592000)](https://github.com/mackwic/colored/blob/master/LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/colored.svg?maxAge=2592000)](https://crates.io/crates/colored) [![Crates.io](https://img.shields.io/crates/l/colored.svg?maxAge=2592000)](https://github.com/mackwic/colored/blob/master/LICENSE)
 
 Coloring terminal so simple, you already know how to do it!
 
@@ -12,6 +11,8 @@ Coloring terminal so simple, you already know how to do it!
     "this is also red on blue".on_blue().red();
     "you can use truecolor values too!".truecolor(0, 255, 136);
     "background truecolor also works :)".on_truecolor(135, 28, 167);
+    "truecolor from tuple".custom_color((0, 255, 136));
+    "background truecolor from tuple".on_custom_color((0, 255, 136));
     "bright colors are welcome as well".on_bright_blue().bright_red();
     "you can also make bold comments".bold();
     println!("{} {} {}", "or use".cyan(), "any".italic().yellow(), "string type".cyan());
@@ -39,7 +40,7 @@ and add this to your `lib.rs` or `main.rs`:
 ```rust
     extern crate colored; // not needed in Rust 2018+
 
-    use colored::*;
+    use colored::Colorize;
 
     // test the example with `cargo run --example most_simple`
     fn main() {
@@ -53,6 +54,7 @@ and add this to your `lib.rs` or `main.rs`:
 - Safe rust, easy to use, minimal dependencies, complete test suite
 - Respect the `CLICOLOR`/`CLICOLOR_FORCE` behavior (see [the specs](http://bixense.com/clicolors/))
 - Respect the `NO_COLOR` behavior (see [the specs](https://no-color.org/))
+- Do note that `CLICOLOR_FORCE` overrules `NO_COLOR`, which overrules `CLICOLOR`
 - Works on Linux, MacOS, and Windows (Powershell)
 
 #### Colors:
@@ -127,25 +129,6 @@ dumb_terminal = ["colored/no-color"]
 You can use have even finer control by using the
 `colored::control::set_override` method.
 
-## Build with Docker
-
-### Install Docker
-
-Use the install instructions located [here](https://docs.docker.com/v17.12/install/)
-
-### Build the Docker image
-
-```docker build -t colored_image .```
-
-### Build the library
-
-```docker run --rm -it -v "$PWD":/src -u `id -u`:`id -g` colored_image /bin/bash -c "cargo build"```
-
-### Test the library
-
-```docker run --rm -it -v "$PWD":/src -u `id -u`:`id -g` colored_image /bin/bash -c "cargo test"```
-
-
 ## Todo
 
 - **More tests ?**: We always welcome more tests! Please contribute!
@@ -157,6 +140,9 @@ This library wouldn't have been the same without the marvelous ruby gem [colored
 Thanks for the [ansi\_term crate](https://github.com/ogham/rust-ansi-term) for
 providing a reference implementation, which greatly helped making this crate
 output correct strings.
+
+## Minimum Supported Rust Version (MSRV)
+The current MSRV is `1.70`, which is checked and enforced automatically via CI. This version may change in the future in minor version bumps, so if you require a specific Rust version you should use a restricted version requirement such as `~X.Y`.
 
 ## License
 
@@ -175,6 +161,7 @@ In non legal terms it means that:
 ## Contributors
 
 - Thomas Wickham: [@mackwic](https://github.com/mackwic)
+- Hunter Wittenborn [@hwittenborn](https://github.com/hwittenborn)
 - Corey "See More" Richardson: [@cmr](https://github.com/cmr)
 - Iban Eguia: [@Razican](https://github.com/Razican)
 - Alexis "Horgix" Chotard: [@horgix](https://github.com/horgix)

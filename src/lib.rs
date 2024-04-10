@@ -23,19 +23,21 @@
 //!
 //! See [the `Colorize` trait](./trait.Colorize.html) for all the methods.
 //!
+//! Note: The methods of [`Colorize`], when used on [`str`]'s, return
+//! [`ColoredString`]'s. See [`ColoredString`] to learn more about them and
+//! what you can do with them beyond continue to use [`Colorize`] to further
+//! modify them.
 #![warn(missing_docs)]
 
-extern crate atty;
 #[macro_use]
 extern crate lazy_static;
-#[cfg(windows)]
-extern crate winapi;
 
 #[cfg(test)]
 extern crate rspec;
 
 mod color;
 pub mod control;
+mod error;
 mod style;
 
 pub use self::customcolors::CustomColor;
@@ -45,17 +47,94 @@ pub mod customcolors;
 
 pub use color::*;
 
-use std::{borrow::Cow, fmt, ops::Deref};
+use std::{
+    borrow::Cow,
+    error::Error,
+    fmt,
+    ops::{Deref, DerefMut},
+};
 
 pub use style::{Style, Styles};
 
 /// A string that may have color and/or style applied to it.
-#[derive(Clone, Debug, PartialEq, Eq)]
+///
+/// Commonly created via calling the methods of [`Colorize`] on a &str.
+/// All methods of [`Colorize`] either create a new `ColoredString` from
+/// the type called on or modify a callee `ColoredString`. See
+/// [`Colorize`] for more.
+///
+/// The primary usage of `ColoredString`'s is as a way to take text,
+/// apply colors and miscillaneous styling to it (such as bold or
+/// underline), and then use it to create formatted strings that print
+/// to the console with the special styling applied.
+///
+/// ## Usage
+///
+/// As stated, `ColoredString`'s, once created, can be printed to the
+/// console with their colors and style or turned into a string
+/// containing special console codes that has the same effect.
+/// This is made easy via `ColoredString`'s implementations of
+/// [`Display`](std::fmt::Display) and [`ToString`] for those purposes
+/// respectively.
+///
+/// Printing a `ColoredString` with its style is as easy as:
+///
+/// ```
+/// # use colored::*;
+/// let cstring: ColoredString = "Bold and Red!".bold().red();
+/// println!("{}", cstring);
+/// ```
+///
+/// ## Manipulating the coloring/style of a `ColoredString`
+///
+/// Getting or changing the foreground color, background color, and or
+/// style of a `ColoredString` is as easy as manually reading / modifying
+/// the fields of `ColoredString`.
+///
+/// ```
+/// # use colored::*;
+/// let mut red_text = "Red".red();
+/// // Changing color using re-assignment and [`Colorize`]:
+/// red_text = red_text.blue();
+/// // Manipulating fields of `ColoredString` in-place:
+/// red_text.fgcolor = Some(Color::Blue);
+///
+/// let styled_text1 = "Bold".bold();
+/// let styled_text2 = "Italic".italic();
+/// let mut styled_text3 = ColoredString::from("Bold and Italic");
+/// styled_text3.style = styled_text1.style | styled_text2.style;
+/// ```
+///
+/// ## Modifying the text of a `ColoredString`
+///
+/// Modifying the text is as easy as modifying the `input` field of
+/// `ColoredString`...
+///
+/// ```
+/// # use colored::*;
+/// let mut colored_text = "Magenta".magenta();
+/// colored_text = colored_text.blue();
+/// colored_text.input = "Blue".to_string();
+/// // Note: The above is inefficient and `colored_text.input.replace_range(.., "Blue")` would
+/// // be more proper. This is just for example.
+///
+/// assert_eq!(&*colored_text, "Blue");
+/// ```
+///
+/// Notice how this process preserves the coloring and style.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ColoredString {
-    input: String,
-    fgcolor: Option<Color>,
-    bgcolor: Option<Color>,
-    style: style::Style,
+    /// The plain text that will have color and style applied to it.
+    pub input: String,
+    /// The color of the text as it will be printed.
+    pub fgcolor: Option<Color>,
+    /// The background color (if any). None means that the text will be printed
+    /// without a special background.
+    pub bgcolor: Option<Color>,
+    /// Any special styling to be applied to the text (see Styles for a list of
+    /// available options).
+    pub style: style::Style,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -191,10 +270,13 @@ pub trait Colorize {
     {
         self.color(Color::TrueColor { r, g, b })
     }
-    fn custom_color(self, color: CustomColor) -> ColoredString
+    fn custom_color<T>(self, color: T) -> ColoredString
     where
         Self: Sized,
+        T: Into<CustomColor>,
     {
+        let color = color.into();
+
         self.color(Color::TrueColor {
             r: color.r,
             g: color.g,
@@ -331,10 +413,13 @@ pub trait Colorize {
     {
         self.on_color(Color::TrueColor { r, g, b })
     }
-    fn on_custom_color(self, color: CustomColor) -> ColoredString
+    fn on_custom_color<T>(self, color: T) -> ColoredString
     where
         Self: Sized,
+        T: Into<CustomColor>,
     {
+        let color = color.into();
+
         self.on_color(Color::TrueColor {
             r: color.r,
             g: color.g,
@@ -350,10 +435,8 @@ pub trait Colorize {
     fn italic(self) -> ColoredString;
     fn underline(self) -> ColoredString;
     fn blink(self) -> ColoredString;
-    /// Historical name of `Colorize::reversed`. May be removed in a future version. Please use
-    /// `Colorize::reversed` instead
+    #[deprecated(since = "1.5.2", note = "Users should use reversed instead")]
     fn reverse(self) -> ColoredString;
-    /// This should be preferred to `Colorize::reverse`.
     fn reversed(self) -> ColoredString;
     fn hidden(self) -> ColoredString;
     fn strikethrough(self) -> ColoredString;
@@ -369,6 +452,7 @@ impl ColoredString {
     /// let cstr = cstr.clear();
     /// assert_eq!(cstr.fgcolor(), None);
     /// ```
+    #[deprecated(note = "Deprecated due to the exposing of the fgcolor struct field.")]
     pub fn fgcolor(&self) -> Option<Color> {
         self.fgcolor.as_ref().copied()
     }
@@ -382,6 +466,7 @@ impl ColoredString {
     /// let cstr = cstr.clear();
     /// assert_eq!(cstr.bgcolor(), None);
     /// ```
+    #[deprecated(note = "Deprecated due to the exposing of the bgcolor struct field.")]
     pub fn bgcolor(&self) -> Option<Color> {
         self.bgcolor.as_ref().copied()
     }
@@ -395,8 +480,26 @@ impl ColoredString {
     /// assert_eq!(colored.style().contains(Styles::Italic), true);
     /// assert_eq!(colored.style().contains(Styles::Dimmed), false);
     /// ```
+    #[deprecated(note = "Deprecated due to the exposing of the style struct field.")]
     pub fn style(&self) -> style::Style {
         self.style
+    }
+
+    /// Clears foreground coloring on this `ColoredString`, meaning that it
+    /// will be printed with the default terminal text color.
+    pub fn clear_fgcolor(&mut self) {
+        self.fgcolor = None;
+    }
+
+    /// Gets rid of this `ColoredString`'s background.
+    pub fn clear_bgcolor(&mut self) {
+        self.bgcolor = None;
+    }
+
+    /// Clears any special styling and sets it back to the default (plain,
+    /// maybe colored, text).
+    pub fn clear_style(&mut self) {
+        self.style = Style::default();
     }
 
     /// Checks if the colored string has no color or styling.
@@ -491,21 +594,25 @@ impl ColoredString {
     }
 }
 
-impl Default for ColoredString {
-    fn default() -> Self {
-        ColoredString {
-            input: String::default(),
-            fgcolor: None,
-            bgcolor: None,
-            style: style::CLEAR,
-        }
+impl Deref for ColoredString {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        &self.input
     }
 }
 
-impl Deref for ColoredString {
-    type Target = str;
-    fn deref(&self) -> &str {
-        &self.input
+impl DerefMut for ColoredString {
+    fn deref_mut(&mut self) -> &mut <Self as Deref>::Target {
+        &mut self.input
+    }
+}
+
+impl From<String> for ColoredString {
+    fn from(s: String) -> Self {
+        ColoredString {
+            input: s,
+            ..ColoredString::default()
+        }
     }
 }
 
@@ -646,9 +753,16 @@ impl fmt::Display for ColoredString {
     }
 }
 
+impl From<ColoredString> for Box<dyn Error> {
+    fn from(cs: ColoredString) -> Box<dyn Error> {
+        Box::from(error::ColoredStringError(cs))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{error::Error, fmt::Write};
 
     #[test]
     fn formatting() {
@@ -662,45 +776,51 @@ mod tests {
     }
 
     #[test]
-    fn it_works() {
+    fn it_works() -> Result<(), Box<dyn Error>> {
+        let mut buf = String::new();
         let toto = "toto";
-        println!("{}", toto.red());
-        println!("{}", String::from(toto).red());
-        println!("{}", toto.blue());
+        writeln!(&mut buf, "{}", toto.red())?;
+        writeln!(&mut buf, "{}", String::from(toto).red())?;
+        writeln!(&mut buf, "{}", toto.blue())?;
 
-        println!("blue style ****");
-        println!("{}", toto.bold());
-        println!("{}", "yeah ! Red bold !".red().bold());
-        println!("{}", "yeah ! Yellow bold !".bold().yellow());
-        println!("{}", toto.bold().blue());
-        println!("{}", toto.blue().bold());
-        println!("{}", toto.blue().bold().underline());
-        println!("{}", toto.blue().italic());
-        println!("******");
-        println!("test clearing");
-        println!("{}", "red cleared".red().clear());
-        println!("{}", "bold cyan cleared".bold().cyan().clear());
-        println!("******");
-        println!("Bg tests");
-        println!("{}", toto.green().on_blue());
-        println!("{}", toto.on_magenta().yellow());
-        println!("{}", toto.purple().on_yellow());
-        println!("{}", toto.magenta().on_white());
-        println!("{}", toto.cyan().on_green());
-        println!("{}", toto.black().on_white());
-        println!("******");
-        println!("{}", toto.green());
-        println!("{}", toto.yellow());
-        println!("{}", toto.purple());
-        println!("{}", toto.magenta());
-        println!("{}", toto.cyan());
-        println!("{}", toto.white());
-        println!("{}", toto.white().red().blue().green());
-        println!("{}", toto.truecolor(255, 0, 0));
-        println!("{}", toto.truecolor(255, 255, 0));
-        println!("{}", toto.on_truecolor(0, 80, 80));
-        // uncomment to see term output
-        // assert!(false)
+        writeln!(&mut buf, "blue style ****")?;
+        writeln!(&mut buf, "{}", toto.bold())?;
+        writeln!(&mut buf, "{}", "yeah ! Red bold !".red().bold())?;
+        writeln!(&mut buf, "{}", "yeah ! Yellow bold !".bold().yellow())?;
+        writeln!(&mut buf, "{}", toto.bold().blue())?;
+        writeln!(&mut buf, "{}", toto.blue().bold())?;
+        writeln!(&mut buf, "{}", toto.blue().bold().underline())?;
+        writeln!(&mut buf, "{}", toto.blue().italic())?;
+        writeln!(&mut buf, "******")?;
+        writeln!(&mut buf, "test clearing")?;
+        writeln!(&mut buf, "{}", "red cleared".red().clear())?;
+        writeln!(&mut buf, "{}", "bold cyan cleared".bold().cyan().clear())?;
+        writeln!(&mut buf, "******")?;
+        writeln!(&mut buf, "Bg tests")?;
+        writeln!(&mut buf, "{}", toto.green().on_blue())?;
+        writeln!(&mut buf, "{}", toto.on_magenta().yellow())?;
+        writeln!(&mut buf, "{}", toto.purple().on_yellow())?;
+        writeln!(&mut buf, "{}", toto.magenta().on_white())?;
+        writeln!(&mut buf, "{}", toto.cyan().on_green())?;
+        writeln!(&mut buf, "{}", toto.black().on_white())?;
+        writeln!(&mut buf, "******")?;
+        writeln!(&mut buf, "{}", toto.green())?;
+        writeln!(&mut buf, "{}", toto.yellow())?;
+        writeln!(&mut buf, "{}", toto.purple())?;
+        writeln!(&mut buf, "{}", toto.magenta())?;
+        writeln!(&mut buf, "{}", toto.cyan())?;
+        writeln!(&mut buf, "{}", toto.white())?;
+        writeln!(&mut buf, "{}", toto.white().red().blue().green())?;
+        writeln!(&mut buf, "{}", toto.truecolor(255, 0, 0))?;
+        writeln!(&mut buf, "{}", toto.truecolor(255, 255, 0))?;
+        writeln!(&mut buf, "{}", toto.on_truecolor(0, 80, 80))?;
+        writeln!(&mut buf, "{}", toto.custom_color((255, 255, 0)))?;
+        writeln!(&mut buf, "{}", toto.on_custom_color((0, 80, 80)))?;
+        #[cfg(feature = "no-color")]
+        insta::assert_snapshot!("it_works_no_color", buf);
+        #[cfg(not(feature = "no-color"))]
+        insta::assert_snapshot!("it_works", buf);
+        Ok(())
     }
 
     #[test]
@@ -870,6 +990,8 @@ mod tests {
 
     #[test]
     fn exposing_tests() {
+        #![allow(deprecated)]
+
         let cstring = "".red();
         assert_eq!(cstring.fgcolor(), Some(Color::Red));
         assert_eq!(cstring.bgcolor(), None);
