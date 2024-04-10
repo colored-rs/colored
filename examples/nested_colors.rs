@@ -1,6 +1,6 @@
-extern crate colored;
+extern crate afetch_colored;
 
-use colored::*;
+use afetch_colored::Colorize;
 
 /*
  * This example use colored strings in a nested way (at line 14). It shows that colored is able to

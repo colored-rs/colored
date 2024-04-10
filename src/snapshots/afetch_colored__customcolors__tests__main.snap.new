@@ -1,0 +1,6 @@
+---
+source: src/customcolors.rs
+assertion_line: 33
+expression: "\"Greetings from Ukraine\".custom_color(my_color)"
+---
+[36mGreetings from Ukraine[0m

@@ -1,6 +1,6 @@
-extern crate colored;
+extern crate afetch_colored;
 
-use colored::Colorize;
+use afetch_colored::Colorize;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {

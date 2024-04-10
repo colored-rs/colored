@@ -1,0 +1,32 @@
+[package]
+name = "afetch-colored"
+description = "The most simple way to add colors in your terminal"
+version = "2.0.1"
+edition = "2021"
+authors = ["Thomas Wickham <mackwic@gmail.com>"]
+license = "MPL-2.0"
+homepage = "https://github.com/Asthowen/afetch-colored"
+repository = "https://github.com/Asthowen/afetch-colored"
+readme = "README.md"
+keywords = ["color", "string", "term", "ansi_term", "term-painter"]
+
+[features]
+# with this feature, no color will ever be written
+no-color = []
+
+[dependencies]
+atty = "0.2"
+lazy_static = "1"
+
+[target.'cfg(windows)'.dependencies.winapi]
+version = "0.3"
+default-features = false
+features = [
+    "consoleapi",
+    "processenv",
+    "winbase"
+]
+
+[dev_dependencies]
+ansi_term = "0.12.1"
+rspec = "1.0.0"

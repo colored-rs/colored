@@ -198,6 +198,7 @@ impl Color {
                 b: 255,
             },
             TrueColor { r, g, b } => TrueColor { r, g, b },
+            AnsiColor(color) => AnsiColor(color),
         }
     }
 }

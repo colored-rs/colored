@@ -1,5 +1,5 @@
-extern crate colored;
-use colored::*;
+extern crate afetch_colored;
+use afetch_colored::{Color, Colorize};
 
 fn main() {
     // the easy way

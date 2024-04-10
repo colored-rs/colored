@@ -1,0 +1,40 @@
+[package]
+name = "afetch-colored"
+description = "The most simple way to add colors in your terminal"
+<<<<<<< HEAD
+version = "2.1.0"
+=======
+version = "2.0.1"
+>>>>>>> 534f0ae (Changes)
+edition = "2021"
+authors = ["Thomas Wickham <mackwic@gmail.com>"]
+license = "MPL-2.0"
+homepage = "https://github.com/Asthowen/afetch-colored"
+repository = "https://github.com/Asthowen/afetch-colored"
+readme = "README.md"
+keywords = ["color", "string", "term", "ansi_term", "term-painter"]
+rust-version = "1.70"
+
+[features]
+# with this feature, no color will ever be written
+no-color = []
+
+[dependencies]
+lazy_static = "1"
+
+[target.'cfg(windows)'.dependencies.windows-sys]
+version = "0.48"
+features = [
+    "Win32_Foundation",
+    "Win32_System_Console",
+]
+
+[dev_dependencies]
+<<<<<<< HEAD
+ansi_term = "0.12"
+insta = "1"
+rspec = "=1.0.0-beta.3"
+=======
+ansi_term = "0.12.1"
+rspec = "1.0.0"
+>>>>>>> 534f0ae (Changes)

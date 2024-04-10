@@ -1,6 +1,6 @@
-extern crate colored;
+extern crate afetch_colored;
 
-use colored::*;
+use afetch_colored::Colorize;
 
 fn main() {
     // TADAA !

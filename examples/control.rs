@@ -1,6 +1,6 @@
 #![allow(unused_must_use)]
-extern crate colored;
-use colored::*;
+extern crate afetch_colored;
+use afetch_colored::Colorize;
 
 #[cfg(not(windows))]
 fn main() {
@@ -44,11 +44,11 @@ fn both() {
     // this will be yellow if your environment allow it
     println!("{}", "some warning".yellow());
     // now , this will be always yellow
-    colored::control::set_override(true);
+    afetch_colored::control::set_override(true);
     println!("{}", "some warning".yellow());
     // now, this will be never yellow
-    colored::control::set_override(false);
+    afetch_colored::control::set_override(false);
     println!("{}", "some warning".yellow());
     // let the environment decide again
-    colored::control::unset_override();
+    afetch_colored::control::unset_override();
 }

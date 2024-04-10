@@ -137,6 +137,7 @@ pub struct ColoredString {
     pub style: style::Style,
 }
 
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Debug)]
 pub enum AnsiOrCustom {
     Ansi(u8),
