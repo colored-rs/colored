@@ -4,6 +4,7 @@ use std::default::Default;
 use std::env;
 use std::io::{self, IsTerminal};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::OnceLock;
 
 /// Sets a flag to the console to use a virtual terminal environment.
 ///
@@ -69,19 +70,19 @@ pub struct ShouldColorize {
 /// Use this to force colored to ignore the environment and always/never colorize
 /// See example/control.rs
 pub fn set_override(override_colorize: bool) {
-    SHOULD_COLORIZE.set_override(override_colorize)
+    let colorize = SHOULD_COLORIZE.get_or_init(ShouldColorize::from_env);
+    colorize.set_override(override_colorize)
 }
 
 /// Remove the manual override and let the environment decide if it's ok to colorize
 /// See example/control.rs
 pub fn unset_override() {
-    SHOULD_COLORIZE.unset_override()
+    let colorize = SHOULD_COLORIZE.get_or_init(ShouldColorize::from_env);
+    colorize.unset_override()
 }
 
-lazy_static! {
 /// The persistent [`ShouldColorize`].
-    pub static ref SHOULD_COLORIZE: ShouldColorize = ShouldColorize::from_env();
-}
+pub static SHOULD_COLORIZE: OnceLock<ShouldColorize> = OnceLock::new();
 
 impl Default for ShouldColorize {
     fn default() -> ShouldColorize {
