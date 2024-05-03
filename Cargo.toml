@@ -15,9 +15,6 @@ rust-version = "1.70"
 # with this feature, no color will ever be written
 no-color = []
 
-[dependencies]
-lazy_static = "1"
-
 [target.'cfg(windows)'.dependencies.windows-sys]
 version = "0.48"
 features = [
