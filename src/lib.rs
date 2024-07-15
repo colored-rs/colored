@@ -40,10 +40,10 @@ pub mod control;
 mod error;
 mod style;
 
-pub use self::customcolors::CustomColor;
+pub use rgb::RGB;
 
 /// Custom colors support.
-pub mod customcolors;
+pub use rgb;
 
 pub use color::*;
 
@@ -261,7 +261,7 @@ pub trait Colorize {
     fn custom_color<T>(self, color: T) -> ColoredString
     where
         Self: Sized,
-        T: Into<CustomColor>,
+        T: Into<RGB<u8>>,
     {
         let color = color.into();
 
@@ -390,7 +390,7 @@ pub trait Colorize {
     fn on_custom_color<T>(self, color: T) -> ColoredString
     where
         Self: Sized,
-        T: Into<CustomColor>,
+        T: Into<RGB<u8>>,
     {
         let color = color.into();
 
