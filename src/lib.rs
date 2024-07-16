@@ -20,6 +20,15 @@
 //!    format!("{:30}", "format works as expected. This will be padded".blue());
 //!    format!("{:.3}", "and this will be green but truncated to 3 chars".green());
 //!
+//! Custom colours are implemented using the `rgb` crate, which is re-exported for
+//! convenience.
+//! 
+//! ```
+//! use colored::*;
+//! let my_color = Rgb::new(0, 120, 120);
+//! println!("{}", "This is using a custom colour".custom_color(my_color));
+//! ```
+//! see `examples/custom_colors.rs` for more info
 //!
 //! See [the `Colorize` trait](./trait.Colorize.html) for all the methods.
 //!
@@ -27,6 +36,7 @@
 //! [`ColoredString`]'s. See [`ColoredString`] to learn more about them and
 //! what you can do with them beyond continue to use [`Colorize`] to further
 //! modify them.
+//! 
 #![warn(missing_docs)]
 
 #[macro_use]
