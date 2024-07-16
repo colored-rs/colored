@@ -50,10 +50,13 @@ pub mod control;
 mod error;
 mod style;
 
-pub use rgb::Rgb;
+
 
 /// Custom colors support.
+mod customcolors;
+pub use customcolors::CustomColor;
 pub use rgb;
+pub use rgb::Rgb;
 
 pub use color::*;
 
