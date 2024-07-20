@@ -51,7 +51,7 @@ mod error;
 mod style;
 
 /// Custom colors support.
-mod customcolors;
+pub mod customcolors;
 #[allow(deprecated)]
 pub use customcolors::CustomColor;
 pub use rgb;
