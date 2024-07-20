@@ -13,6 +13,7 @@ pub struct CustomColor {
     pub b: u8,
 }
 
+#[allow(deprecated)]
 /// This only makes custom color creation easier.
 impl CustomColor {
     /// Create a new custom color
@@ -21,6 +22,7 @@ impl CustomColor {
     }
 }
 
+#[allow(deprecated)]
 impl From<CustomColor> for Rgb<u8> {
     fn from(value: CustomColor) -> Self {
         Rgb {
@@ -31,6 +33,7 @@ impl From<CustomColor> for Rgb<u8> {
     }
 }
 
+#[allow(deprecated)]
 impl From<(u8, u8, u8)> for CustomColor {
     fn from((r, g, b): (u8, u8, u8)) -> Self {
         Self::new(r, g, b)
@@ -41,6 +44,7 @@ impl From<(u8, u8, u8)> for CustomColor {
 mod tests {
     use crate::*;
     #[cfg_attr(feature = "no-color", ignore)]
+    #[allow(deprecated)]
     #[test]
     fn test_custom_colour() {
         let my_color = CustomColor::new(0, 120, 120);
@@ -48,6 +52,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn from_tuple() {
         let tuple = (1u8, 255u8, 0u8);
         let cc = CustomColor::from(tuple);
