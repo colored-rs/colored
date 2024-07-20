@@ -22,7 +22,7 @@
 //!
 //! Custom colours are implemented using the `rgb` crate, which is re-exported for
 //! convenience.
-//! 
+//!
 //! ```
 //! use colored::*;
 //! let my_color = Rgb::new(0, 120, 120);
@@ -36,7 +36,7 @@
 //! [`ColoredString`]'s. See [`ColoredString`] to learn more about them and
 //! what you can do with them beyond continue to use [`Colorize`] to further
 //! modify them.
-//! 
+//!
 #![warn(missing_docs)]
 
 #[macro_use]
@@ -49,8 +49,6 @@ mod color;
 pub mod control;
 mod error;
 mod style;
-
-
 
 /// Custom colors support.
 mod customcolors;
