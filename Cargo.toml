@@ -9,14 +9,12 @@ homepage = "https://github.com/mackwic/colored"
 repository = "https://github.com/mackwic/colored"
 readme = "README.md"
 keywords = ["color", "string", "term", "ansi_term", "term-painter"]
-rust-version = "1.70"
+rust-version = "1.80"
 
 [features]
 # with this feature, no color will ever be written
 no-color = []
 
-[dependencies]
-lazy_static = "1"
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 version = "0.48"

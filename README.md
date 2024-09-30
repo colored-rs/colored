@@ -142,7 +142,7 @@ providing a reference implementation, which greatly helped making this crate
 output correct strings.
 
 ## Minimum Supported Rust Version (MSRV)
-The current MSRV is `1.70`, which is checked and enforced automatically via CI. This version may change in the future in minor version bumps, so if you require a specific Rust version you should use a restricted version requirement such as `~X.Y`.
+The current MSRV is `1.80`, which is checked and enforced automatically via CI. This version may change in the future in minor version bumps, so if you require a specific Rust version you should use a restricted version requirement such as `~X.Y`.
 
 ## License
 
