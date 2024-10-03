@@ -28,4 +28,4 @@ features = [
 [dev_dependencies]
 ansi_term = "0.12"
 insta = "1"
-rspec = "=1.0.0-beta.3"
+rspec = "1"
