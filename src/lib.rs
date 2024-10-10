@@ -490,17 +490,17 @@ impl ColoredString {
     }
 
     #[cfg(not(feature = "no-color"))]
-    fn has_colors(&self) -> bool {
+    fn has_colors() -> bool {
         control::SHOULD_COLORIZE.should_colorize()
     }
 
     #[cfg(feature = "no-color")]
-    fn has_colors(&self) -> bool {
+    fn has_colors() -> bool {
         false
     }
 
     fn compute_style(&self) -> String {
-        if !self.has_colors() || self.is_plain() {
+        if !ColoredString::has_colors() || self.is_plain() {
             return String::new();
         }
 
@@ -534,7 +534,7 @@ impl ColoredString {
     }
 
     fn escape_inner_reset_sequences(&self) -> Cow<str> {
-        if !self.has_colors() || self.is_plain() {
+        if !ColoredString::has_colors() || self.is_plain() {
             return self.input.as_str().into();
         }
 
@@ -713,7 +713,7 @@ impl<'a> Colorize for &'a str {
 
 impl fmt::Display for ColoredString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if !self.has_colors() || self.is_plain() {
+        if !ColoredString::has_colors() || self.is_plain() {
             return <String as fmt::Display>::fmt(&self.input, f);
         }
 
@@ -944,22 +944,22 @@ mod tests {
 
     #[test]
     fn color_fn() {
-        assert_eq!("blue".blue(), "blue".color("blue"))
+        assert_eq!("blue".blue(), "blue".color("blue"));
     }
 
     #[test]
     fn on_color_fn() {
-        assert_eq!("blue".on_blue(), "blue".on_color("blue"))
+        assert_eq!("blue".on_blue(), "blue".on_color("blue"));
     }
 
     #[test]
     fn bright_color_fn() {
-        assert_eq!("blue".bright_blue(), "blue".color("bright blue"))
+        assert_eq!("blue".bright_blue(), "blue".color("bright blue"));
     }
 
     #[test]
     fn on_bright_color_fn() {
-        assert_eq!("blue".on_bright_blue(), "blue".on_color("bright blue"))
+        assert_eq!("blue".on_bright_blue(), "blue".on_color("bright blue"));
     }
 
     #[test]
@@ -981,8 +981,8 @@ mod tests {
         let cstring = cstring.bold().italic();
         assert_eq!(cstring.fgcolor(), Some(Color::Blue));
         assert_eq!(cstring.bgcolor(), Some(Color::BrightYellow));
-        assert_eq!(cstring.style().contains(Styles::Bold), true);
-        assert_eq!(cstring.style().contains(Styles::Italic), true);
-        assert_eq!(cstring.style().contains(Styles::Dimmed), false);
+        assert!(cstring.style().contains(Styles::Bold));
+        assert!(cstring.style().contains(Styles::Italic));
+        assert!(!cstring.style().contains(Styles::Dimmed));
     }
 }

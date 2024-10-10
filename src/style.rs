@@ -563,7 +563,7 @@ mod tests {
 
         #[test]
         fn empty_is_none() {
-            assert_eq!(None, Styles::from_u8(CLEARV))
+            assert_eq!(None, Styles::from_u8(CLEARV));
         }
     }
 
@@ -632,19 +632,19 @@ mod tests {
         #[test]
         fn aggreg1() {
             let styles: &[Styles] = &[Bold, Bold, Bold];
-            test_aggreg!(styles, [Bold])
+            test_aggreg!(styles, [Bold]);
         }
 
         #[test]
         fn aggreg2() {
             let styles: &[Styles] = &[Italic, Italic, Bold, Bold];
-            test_aggreg!(styles, [Bold, Italic])
+            test_aggreg!(styles, [Bold, Italic]);
         }
 
         #[test]
         fn aggreg3() {
             let styles: &[Styles] = &[Bold, Italic, Bold];
-            test_aggreg!(styles, [Bold, Italic])
+            test_aggreg!(styles, [Bold, Italic]);
         }
 
         macro_rules! test_combine {
@@ -658,49 +658,49 @@ mod tests {
         #[test]
         fn two1() {
             let s: &[Styles] = &[Bold, Underline];
-            test_combine!(s)
+            test_combine!(s);
         }
 
         #[test]
         fn two2() {
             let s: &[Styles] = &[Underline, Italic];
-            test_combine!(s)
+            test_combine!(s);
         }
 
         #[test]
         fn two3() {
             let s: &[Styles] = &[Bold, Italic];
-            test_combine!(s)
+            test_combine!(s);
         }
 
         #[test]
         fn three1() {
             let s: &[Styles] = &[Bold, Underline, Italic];
-            test_combine!(s)
+            test_combine!(s);
         }
 
         #[test]
         fn three2() {
             let s: &[Styles] = &[Dimmed, Underline, Italic];
-            test_combine!(s)
+            test_combine!(s);
         }
 
         #[test]
         fn four() {
             let s: &[Styles] = &[Dimmed, Underline, Italic, Hidden];
-            test_combine!(s)
+            test_combine!(s);
         }
 
         #[test]
         fn five() {
             let s: &[Styles] = &[Dimmed, Underline, Italic, Blink, Hidden];
-            test_combine!(s)
+            test_combine!(s);
         }
 
         #[test]
         fn six() {
             let s: &[Styles] = &[Bold, Dimmed, Underline, Italic, Blink, Hidden];
-            test_combine!(s)
+            test_combine!(s);
         }
 
         #[test]
@@ -715,7 +715,7 @@ mod tests {
                 Hidden,
                 Strikethrough,
             ];
-            test_combine!(s)
+            test_combine!(s);
         }
     }
 
@@ -724,9 +724,9 @@ mod tests {
         let mut style = Style(Styles::Bold.to_u8());
         style.add(Styles::Italic);
 
-        assert_eq!(style.contains(Styles::Bold), true);
-        assert_eq!(style.contains(Styles::Italic), true);
-        assert_eq!(style.contains(Styles::Dimmed), false);
+        assert!(style.contains(Styles::Bold));
+        assert!(style.contains(Styles::Italic));
+        assert!(!style.contains(Styles::Dimmed));
     }
 
     mod style_bitwise_logic {

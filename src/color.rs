@@ -85,11 +85,11 @@ impl Color {
     }
 
     /// Gets the closest plain color to the TrueColor
-    fn closest_color_euclidean(&self) -> Self {
+    fn closest_color_euclidean(self) -> Self {
         use std::cmp;
         use Color::*;
 
-        match *self {
+        match self {
             TrueColor {
                 r: r1,
                 g: g1,
@@ -332,13 +332,13 @@ mod tests {
         #[test]
         fn parse() {
             let color: Result<Color, _> = "blue".parse();
-            assert_eq!(Ok(Color::Blue), color)
+            assert_eq!(Ok(Color::Blue), color);
         }
 
         #[test]
         fn error() {
             let color: Result<Color, ()> = "bloublou".parse();
-            assert_eq!(Err(()), color)
+            assert_eq!(Err(()), color);
         }
     }
 
