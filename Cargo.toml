@@ -25,7 +25,7 @@ features = [
     "Win32_System_Console",
 ]
 
-[dev_dependencies]
+[dev-dependencies]
 ansi_term = "0.12"
 insta = "1"
 rspec = "1"
