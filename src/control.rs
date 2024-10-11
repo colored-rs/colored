@@ -4,6 +4,7 @@ use std::default::Default;
 use std::env;
 use std::io::{self, IsTerminal};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::LazyLock;
 
 /// Sets a flag to the console to use a virtual terminal environment.
 ///
@@ -78,10 +79,8 @@ pub fn unset_override() {
     SHOULD_COLORIZE.unset_override();
 }
 
-lazy_static! {
 /// The persistent [`ShouldColorize`].
-    pub static ref SHOULD_COLORIZE: ShouldColorize = ShouldColorize::from_env();
-}
+pub static SHOULD_COLORIZE: LazyLock<ShouldColorize> = LazyLock::new(ShouldColorize::from_env);
 
 impl Default for ShouldColorize {
     fn default() -> ShouldColorize {
