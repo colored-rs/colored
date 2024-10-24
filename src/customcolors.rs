@@ -30,7 +30,7 @@ mod tests {
     #[test]
     fn main() {
         let my_color = CustomColor::new(0, 120, 120);
-        insta::assert_display_snapshot!("Greetings from Ukraine".custom_color(my_color));
+        insta::assert_snapshot!("Greetings from Ukraine".custom_color(my_color));
     }
 
     #[test]

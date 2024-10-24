@@ -35,13 +35,16 @@ mod compat_colors {
 }
 
 macro_rules! test_simple_style {
-    ($string:expr, $style:ident) => {
+    ($string:expr, $colored_style:ident, $ansi_term_style:ident) => {
         #[test]
-        fn $style() {
-            let s = format!("{} {}", $string, stringify!($style));
+        fn $colored_style() {
+            let s = format!("{} {}", $string, stringify!($colored_style));
             assert_eq!(
-                s.$style().to_string(),
-                ansi_term::Style::new().$style().paint(s).to_string()
+                s.$colored_style().to_string(),
+                ansi_term::Style::new()
+                    .$ansi_term_style()
+                    .paint(s)
+                    .to_string()
             )
         }
     };
@@ -53,13 +56,13 @@ mod compat_styles {
     use super::colored;
     use super::colored::*;
 
-    test_simple_style!("test string", bold);
-    test_simple_style!("test string", dimmed);
-    test_simple_style!("test string", italic);
-    test_simple_style!("test string", underline);
-    test_simple_style!("test string", blink);
-    test_simple_style!("test string", reverse);
-    test_simple_style!("test string", hidden);
+    test_simple_style!("test string", bold, bold);
+    test_simple_style!("test string", dimmed, dimmed);
+    test_simple_style!("test string", italic, italic);
+    test_simple_style!("test string", underline, underline);
+    test_simple_style!("test string", blink, blink);
+    test_simple_style!("test string", reversed, reverse);
+    test_simple_style!("test string", hidden, hidden);
 }
 
 macro_rules! test_simple_bgcolor {

@@ -70,13 +70,13 @@ pub struct ShouldColorize {
 /// Use this to force colored to ignore the environment and always/never colorize
 /// See example/control.rs
 pub fn set_override(override_colorize: bool) {
-    SHOULD_COLORIZE.set_override(override_colorize)
+    SHOULD_COLORIZE.set_override(override_colorize);
 }
 
 /// Remove the manual override and let the environment decide if it's ok to colorize
 /// See example/control.rs
 pub fn unset_override() {
-    SHOULD_COLORIZE.unset_override()
+    SHOULD_COLORIZE.unset_override();
 }
 
 /// The persistent [`ShouldColorize`].
@@ -162,18 +162,13 @@ impl ShouldColorize {
 mod specs {
     use super::*;
     use rspec;
-    use rspec::context::*;
     use std::env;
 
     #[test]
     fn clicolor_behavior() {
-        use std::io;
-
-        let stdout = &mut io::stdout();
-        let mut formatter = rspec::formatter::Simple::new(stdout);
-        let mut runner = describe("ShouldColorize", |ctx| {
-            ctx.describe("::normalize_env", |ctx| {
-                ctx.it("should return None if error", || {
+        rspec::run(&rspec::describe("ShouldColorize", (), |ctx| {
+            ctx.specify("::normalize_env", |ctx| {
+                ctx.it("should return None if error", |_| {
                     assert_eq!(
                         None,
                         ShouldColorize::normalize_env(Err(env::VarError::NotPresent))
@@ -181,22 +176,22 @@ mod specs {
                     assert_eq!(
                         None,
                         ShouldColorize::normalize_env(Err(env::VarError::NotUnicode("".into())))
-                    )
+                    );
                 });
 
-                ctx.it("should return Some(true) if != 0", || {
+                ctx.it("should return Some(true) if != 0", |_| {
                     Some(true) == ShouldColorize::normalize_env(Ok(String::from("1")))
                 });
 
-                ctx.it("should return Some(false) if == 0", || {
+                ctx.it("should return Some(false) if == 0", |_| {
                     Some(false) == ShouldColorize::normalize_env(Ok(String::from("0")))
                 });
             });
 
-            ctx.describe("::resolve_clicolor_force", |ctx| {
+            ctx.specify("::resolve_clicolor_force", |ctx| {
                 ctx.it(
                     "should return None if NO_COLOR is not set and CLICOLOR_FORCE is not set or set to 0",
-                    || {
+                    |_| {
                         assert_eq!(
                             None,
                             ShouldColorize::resolve_clicolor_force(
@@ -216,7 +211,7 @@ mod specs {
 
                 ctx.it(
                     "should return Some(false) if NO_COLOR is set and CLICOLOR_FORCE is not enabled",
-                    || {
+                    |_| {
                         assert_eq!(
                             Some(false),
                             ShouldColorize::resolve_clicolor_force(
@@ -243,7 +238,7 @@ mod specs {
 
                 ctx.it(
                     "should prioritize CLICOLOR_FORCE over NO_COLOR if CLICOLOR_FORCE is set to non-zero value",
-                    || {
+                    |_| {
                         assert_eq!(
                             Some(true),
                             ShouldColorize::resolve_clicolor_force(
@@ -269,139 +264,126 @@ mod specs {
                 );
             });
 
-            ctx.describe("constructors", |ctx| {
-                ctx.it("should have a default constructor", || {
+            ctx.specify("constructors", |ctx| {
+                ctx.it("should have a default constructor", |_| {
                     ShouldColorize::default();
                 });
 
-                ctx.it("should have an environment constructor", || {
+                ctx.it("should have an environment constructor", |_| {
                     ShouldColorize::from_env();
                 });
             });
 
-            ctx.describe("when only changing clicolors", |ctx| {
-                ctx.it("clicolor == false means no colors", || {
+            ctx.specify("when only changing clicolors", |ctx| {
+                ctx.it("clicolor == false means no colors", |_| {
                     let colorize_control = ShouldColorize {
                         clicolor: false,
                         ..ShouldColorize::default()
                     };
-                    false == colorize_control.should_colorize()
+                    !colorize_control.should_colorize()
                 });
 
-                ctx.it("clicolor == true means colors !", || {
+                ctx.it("clicolor == true means colors !", |_| {
                     let colorize_control = ShouldColorize {
                         clicolor: true,
                         ..ShouldColorize::default()
                     };
-                    true == colorize_control.should_colorize()
+                    colorize_control.should_colorize()
                 });
 
-                ctx.it("unset clicolors implies true", || {
-                    true == ShouldColorize::default().should_colorize()
+                ctx.it("unset clicolors implies true", |_| {
+                    ShouldColorize::default().should_colorize()
                 });
             });
 
-            ctx.describe("when using clicolor_force", |ctx| {
+            ctx.specify("when using clicolor_force", |ctx| {
                 ctx.it(
                     "clicolor_force should force to true no matter clicolor",
-                    || {
+                    |_| {
                         let colorize_control = ShouldColorize {
                             clicolor: false,
                             clicolor_force: Some(true),
                             ..ShouldColorize::default()
                         };
 
-                        true == colorize_control.should_colorize()
+                        colorize_control.should_colorize()
                     },
                 );
 
                 ctx.it(
                     "clicolor_force should force to false no matter clicolor",
-                    || {
+                    |_| {
                         let colorize_control = ShouldColorize {
                             clicolor: true,
                             clicolor_force: Some(false),
                             ..ShouldColorize::default()
                         };
 
-                        false == colorize_control.should_colorize()
+                        !colorize_control.should_colorize()
                     },
                 );
             });
 
-            ctx.describe("using a manual override", |ctx| {
-                ctx.it("shoud colorize if manual_override is true, but clicolor is false and clicolor_force also false", || {
+            ctx.specify("using a manual override", |ctx| {
+                ctx.it("shoud colorize if manual_override is true, but clicolor is false and clicolor_force also false", |_| {
                     let colorize_control = ShouldColorize {
                         clicolor: false,
                         clicolor_force: None,
                         has_manual_override: AtomicBool::new(true),
                         manual_override: AtomicBool::new(true),
-                        .. ShouldColorize::default()
                     };
 
-                    true == colorize_control.should_colorize()
+                    colorize_control.should_colorize();
                 });
 
-                ctx.it("should not colorize if manual_override is false, but clicolor is true or clicolor_force is true", || {
+                ctx.it("should not colorize if manual_override is false, but clicolor is true or clicolor_force is true", |_| {
                     let colorize_control = ShouldColorize {
                         clicolor: true,
                         clicolor_force: Some(true),
                         has_manual_override: AtomicBool::new(true),
                         manual_override: AtomicBool::new(false),
-                        .. ShouldColorize::default()
                     };
 
-                    false == colorize_control.should_colorize()
-                })
+                    !colorize_control.should_colorize()
+                });
             });
 
-            ctx.describe("::set_override", |ctx| {
-                ctx.it("should exists", || {
+            ctx.specify("::set_override", |ctx| {
+                ctx.it("should exists", |_| {
                     let colorize_control = ShouldColorize::default();
                     colorize_control.set_override(true);
                 });
 
-                ctx.it("set the manual_override property", || {
+                ctx.it("set the manual_override property", |_| {
                     let colorize_control = ShouldColorize::default();
                     colorize_control.set_override(true);
                     {
-                        assert_eq!(
-                            true,
-                            colorize_control.has_manual_override.load(Ordering::Relaxed)
-                        );
+                        assert!(colorize_control.has_manual_override.load(Ordering::Relaxed));
                         let val = colorize_control.manual_override.load(Ordering::Relaxed);
-                        assert_eq!(true, val);
+                        assert!(val);
                     }
                     colorize_control.set_override(false);
                     {
-                        assert_eq!(
-                            true,
-                            colorize_control.has_manual_override.load(Ordering::Relaxed)
-                        );
+                        assert!(colorize_control.has_manual_override.load(Ordering::Relaxed));
                         let val = colorize_control.manual_override.load(Ordering::Relaxed);
-                        assert_eq!(false, val);
+                        assert!(!val);
                     }
                 });
             });
 
-            ctx.describe("::unset_override", |ctx| {
-                ctx.it("should exists", || {
+            ctx.specify("::unset_override", |ctx| {
+                ctx.it("should exists", |_| {
                     let colorize_control = ShouldColorize::default();
                     colorize_control.unset_override();
                 });
 
-                ctx.it("unset the manual_override property", || {
+                ctx.it("unset the manual_override property", |_| {
                     let colorize_control = ShouldColorize::default();
                     colorize_control.set_override(true);
                     colorize_control.unset_override();
-                    assert_eq!(
-                        false,
-                        colorize_control.has_manual_override.load(Ordering::Relaxed)
-                    );
+                    assert!(!colorize_control.has_manual_override.load(Ordering::Relaxed));
                 });
             });
-        });
-        runner.add_event_handler(&mut formatter);
-        runner.run().unwrap();
+        }));
     }
 }

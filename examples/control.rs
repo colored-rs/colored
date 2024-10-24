@@ -4,7 +4,7 @@ use colored::*;
 
 #[cfg(not(windows))]
 fn main() {
-    both()
+    both();
 }
 
 #[cfg(windows)]
