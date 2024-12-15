@@ -199,7 +199,7 @@ impl Color {
     }
 }
 
-impl<'a> From<&'a str> for Color {
+impl From<&str> for Color {
     fn from(src: &str) -> Self {
         src.parse().unwrap_or(Color::White)
     }

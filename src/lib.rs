@@ -655,7 +655,7 @@ impl Colorize for ColoredString {
     }
 }
 
-impl<'a> Colorize for &'a str {
+impl Colorize for &str {
     fn color<S: Into<Color>>(self, color: S) -> ColoredString {
         ColoredString {
             fgcolor: Some(color.into()),
