@@ -17,7 +17,7 @@ no-color = []
 
 
 [target.'cfg(windows)'.dependencies.windows-sys]
-version = "0.48"
+version = ">=0.48,<=0.59"
 features = [
     "Win32_Foundation",
     "Win32_System_Console",
