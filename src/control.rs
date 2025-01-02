@@ -5,6 +5,8 @@ use std::env;
 use std::io::{self, IsTerminal};
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use once_cell::sync::Lazy;
+
 /// Sets a flag to the console to use a virtual terminal environment.
 ///
 /// This is primarily used for Windows 10 environments which will not correctly colorize
@@ -78,10 +80,8 @@ pub fn unset_override() {
     SHOULD_COLORIZE.unset_override();
 }
 
-lazy_static! {
 /// The persistent [`ShouldColorize`].
-    pub static ref SHOULD_COLORIZE: ShouldColorize = ShouldColorize::from_env();
-}
+pub static SHOULD_COLORIZE: Lazy<ShouldColorize> = Lazy::new(ShouldColorize::from_env);
 
 impl Default for ShouldColorize {
     fn default() -> ShouldColorize {

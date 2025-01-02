@@ -29,9 +29,6 @@
 //! modify them.
 #![warn(missing_docs)]
 
-#[macro_use]
-extern crate lazy_static;
-
 #[cfg(test)]
 extern crate rspec;
 
