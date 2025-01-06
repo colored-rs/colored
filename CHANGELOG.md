@@ -1,5 +1,6 @@
 # Unreleased
 
+# 2.2.0
 - Updated top-level docs to include a note about `ColoredString`\'s role in the `Colorize` pipeline as well as link to it to suggest learning more about how to manipulate existing `ColoredString`\'s.
 - Changes to `ColoredString`:
   - Expose fields.
