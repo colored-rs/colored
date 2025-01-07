@@ -1,5 +1,8 @@
 # Unreleased
 
+# 3.0.0
+- **[BREAKING CHANGE]:** Upgrade MSRV to 1.80 and remove the then unnecessary lazy_static dependency.
+
 # 2.2.0
 - Updated top-level docs to include a note about `ColoredString`\'s role in the `Colorize` pipeline as well as link to it to suggest learning more about how to manipulate existing `ColoredString`\'s.
 - Changes to `ColoredString`:
