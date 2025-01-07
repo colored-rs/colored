@@ -28,7 +28,8 @@ use std::sync::LazyLock;
 /// ```
 #[allow(clippy::result_unit_err)]
 #[cfg(windows)]
-pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
+pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), io::Error> {
+    use windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE;
     use windows_sys::Win32::System::Console::{
         GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING,
         STD_OUTPUT_HANDLE,
@@ -36,13 +37,21 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
 
     unsafe {
         let handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        if handle == INVALID_HANDLE_VALUE {
+            return Err(io::Error::last_os_error());
+        }
+
         let mut original_mode = 0;
-        GetConsoleMode(handle, &mut original_mode);
+        // Return value of 0 means that `GetConsoleMode` failed:
+        // https://learn.microsoft.com/en-us/windows/console/getconsolemode#return-value
+        if GetConsoleMode(handle, &mut original_mode) == 0 {
+            return Err(io::Error::last_os_error());
+        }
 
         let enabled = original_mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING
             == ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 
-        match (use_virtual, enabled) {
+        let ret = match (use_virtual, enabled) {
             // not enabled, should be enabled
             (true, false) => {
                 SetConsoleMode(handle, ENABLE_VIRTUAL_TERMINAL_PROCESSING | original_mode)
@@ -53,6 +62,12 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
             }
             _ => 0,
         };
+
+        // Return value of 0 means that `SetConsoleMode` failed:
+        // https://learn.microsoft.com/en-us/windows/console/setconsolemode#return-value
+        if ret == 0 {
+            return Err(io::Error::last_os_error());
+        }
     }
 
     Ok(())

@@ -1,5 +1,7 @@
 # Unreleased
 
+- **[BREAKING CHANGE]:** Return `io::Error` from `control::set_virtual_terminal`.
+
 # 3.0.0
 - **[BREAKING CHANGE]:** Upgrade MSRV to 1.80 and remove the then unnecessary lazy_static dependency.
 
