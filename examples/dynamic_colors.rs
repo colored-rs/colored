@@ -1,5 +1,5 @@
 extern crate colored;
-use colored::*;
+use colored::{Color, Colorize};
 
 fn main() {
     // the easy way

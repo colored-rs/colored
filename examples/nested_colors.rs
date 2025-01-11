@@ -1,6 +1,6 @@
 extern crate colored;
 
-use colored::*;
+use colored::Colorize;
 
 /*
  * This example use colored strings in a nested way (at line 14). It shows that colored is able to
@@ -9,8 +9,8 @@ use colored::*;
 
 fn main() {
     let world = "world".bold();
-    let hello_world = format!("Hello, {}!", world);
-    println!("{}", hello_world);
-    let hello_world = format!("Hello, {}!lalalala", world).red();
-    println!("{}", hello_world);
+    let hello_world = format!("Hello, {world}!");
+    println!("{hello_world}");
+    let hello_world = format!("Hello, {world}!lalalala").red();
+    println!("{hello_world}");
 }

@@ -1,6 +1,6 @@
 #![allow(unused_must_use)]
 extern crate colored;
-use colored::*;
+use colored::Colorize;
 
 #[cfg(not(windows))]
 fn main() {
