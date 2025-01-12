@@ -339,7 +339,8 @@ impl Style {
     /// assert_eq!(colored.style.contains(Styles::Italic), true);
     /// assert_eq!(colored.style.contains(Styles::Dimmed), false);
     /// ```
-    #[must_use] pub const fn contains(self, style: Styles) -> bool {
+    #[must_use]
+    pub const fn contains(self, style: Styles) -> bool {
         let s = style.to_u8();
         self.0 & s == s
     }
@@ -389,49 +390,57 @@ impl Style {
     }
 
     /// Makes this `Style` include Bold.
-    #[must_use] pub fn bold(mut self) -> Self {
+    #[must_use]
+    pub fn bold(mut self) -> Self {
         self.add(Styles::Bold);
         self
     }
 
     /// Makes this `Style` include Dimmed.
-    #[must_use] pub fn dimmed(mut self) -> Self {
+    #[must_use]
+    pub fn dimmed(mut self) -> Self {
         self.add(Styles::Dimmed);
         self
     }
 
     /// Makes this `Style` include Underline.
-    #[must_use] pub fn underline(mut self) -> Self {
+    #[must_use]
+    pub fn underline(mut self) -> Self {
         self.add(Styles::Underline);
         self
     }
 
     /// Makes this `Style` include Reversed.
-    #[must_use] pub fn reversed(mut self) -> Self {
+    #[must_use]
+    pub fn reversed(mut self) -> Self {
         self.add(Styles::Reversed);
         self
     }
 
     /// Makes this `Style` include Italic.
-    #[must_use] pub fn italic(mut self) -> Self {
+    #[must_use]
+    pub fn italic(mut self) -> Self {
         self.add(Styles::Italic);
         self
     }
 
     /// Makes this `Style` include Blink.
-    #[must_use] pub fn blink(mut self) -> Self {
+    #[must_use]
+    pub fn blink(mut self) -> Self {
         self.add(Styles::Blink);
         self
     }
 
     /// Makes this `Style` include Hidden.
-    #[must_use] pub fn hidden(mut self) -> Self {
+    #[must_use]
+    pub fn hidden(mut self) -> Self {
         self.add(Styles::Hidden);
         self
     }
 
     /// Makes this `Style` include Strikethrough.
-    #[must_use] pub fn strikethrough(mut self) -> Self {
+    #[must_use]
+    pub fn strikethrough(mut self) -> Self {
         self.add(Styles::Strikethrough);
         self
     }

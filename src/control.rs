@@ -26,6 +26,8 @@ use std::sync::LazyLock;
 /// control::set_virtual_terminal(true).unwrap();
 /// println!("{}", "bright cyan".bright_cyan());    // will print correctly
 /// ```
+/// # Errors
+/// This function will return `Ok(())` if the operation was successful.
 #[allow(clippy::result_unit_err)]
 #[cfg(windows)]
 pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
@@ -34,6 +36,7 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
         STD_OUTPUT_HANDLE,
     };
 
+    #[allow(unsafe_code)] // needed here
     unsafe {
         let handle = GetStdHandle(STD_OUTPUT_HANDLE);
         let mut original_mode = 0;

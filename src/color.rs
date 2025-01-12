@@ -28,9 +28,7 @@ pub enum Color {
 
 fn truecolor_support() -> bool {
     let truecolor = env::var("COLORTERM");
-    truecolor.map_or(false, |truecolor| {
-        truecolor == "truecolor" || truecolor == "24bit"
-    })
+    truecolor.is_ok_and(|truecolor| truecolor == "truecolor" || truecolor == "24bit")
 }
 
 #[allow(missing_docs)]
