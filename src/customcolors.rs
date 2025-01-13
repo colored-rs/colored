@@ -12,7 +12,8 @@ pub struct CustomColor {
 /// This only makes custom color creation easier.
 impl CustomColor {
     /// Create a new custom color
-    pub fn new(r: u8, g: u8, b: u8) -> Self {
+    #[must_use]
+    pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
 }

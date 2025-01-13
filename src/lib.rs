@@ -424,6 +424,7 @@ impl ColoredString {
     /// assert_eq!(cstr.fgcolor(), None);
     /// ```
     #[deprecated(note = "Deprecated due to the exposing of the fgcolor struct field.")]
+    #[must_use]
     pub fn fgcolor(&self) -> Option<Color> {
         self.fgcolor.as_ref().copied()
     }
@@ -438,6 +439,7 @@ impl ColoredString {
     /// assert_eq!(cstr.bgcolor(), None);
     /// ```
     #[deprecated(note = "Deprecated due to the exposing of the bgcolor struct field.")]
+    #[must_use]
     pub fn bgcolor(&self) -> Option<Color> {
         self.bgcolor.as_ref().copied()
     }
@@ -452,6 +454,7 @@ impl ColoredString {
     /// assert_eq!(colored.style().contains(Styles::Dimmed), false);
     /// ```
     #[deprecated(note = "Deprecated due to the exposing of the style struct field.")]
+    #[must_use]
     pub fn style(&self) -> style::Style {
         self.style
     }
@@ -482,6 +485,7 @@ impl ColoredString {
     /// let cstr = cstr.clear();
     /// assert_eq!(cstr.is_plain(), true);
     /// ```
+    #[must_use]
     pub fn is_plain(&self) -> bool {
         self.bgcolor.is_none() && self.fgcolor.is_none() && self.style == style::CLEAR
     }
@@ -497,16 +501,16 @@ impl ColoredString {
     }
 
     fn compute_style(&self) -> String {
-        if !ColoredString::has_colors() || self.is_plain() {
+        if !Self::has_colors() || self.is_plain() {
             return String::new();
         }
 
         let mut res = String::from("\x1B[");
-        let mut has_wrote = if self.style != style::CLEAR {
+        let mut has_wrote = if self.style == style::CLEAR {
+            false
+        } else {
             res.push_str(&self.style.to_str());
             true
-        } else {
-            false
         };
 
         if let Some(ref bgcolor) = self.bgcolor {
@@ -531,7 +535,7 @@ impl ColoredString {
     }
 
     fn escape_inner_reset_sequences(&self) -> Cow<str> {
-        if !ColoredString::has_colors() || self.is_plain() {
+        if !Self::has_colors() || self.is_plain() {
             return self.input.as_str().into();
         }
 
@@ -580,18 +584,18 @@ impl DerefMut for ColoredString {
 
 impl From<String> for ColoredString {
     fn from(s: String) -> Self {
-        ColoredString {
+        Self {
             input: s,
-            ..ColoredString::default()
+            ..Self::default()
         }
     }
 }
 
 impl<'a> From<&'a str> for ColoredString {
     fn from(s: &'a str) -> Self {
-        ColoredString {
+        Self {
             input: String::from(s),
-            ..ColoredString::default()
+            ..Self::default()
         }
     }
 }
@@ -607,9 +611,9 @@ impl Colorize for ColoredString {
     }
 
     fn clear(self) -> ColoredString {
-        ColoredString {
+        Self {
             input: self.input,
-            ..ColoredString::default()
+            ..Self::default()
         }
     }
     fn normal(self) -> ColoredString {
@@ -710,7 +714,7 @@ impl Colorize for &str {
 
 impl fmt::Display for ColoredString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if !ColoredString::has_colors() || self.is_plain() {
+        if !Self::has_colors() || self.is_plain() {
             return <String as fmt::Display>::fmt(&self.input, f);
         }
 
@@ -725,7 +729,7 @@ impl fmt::Display for ColoredString {
 }
 
 impl From<ColoredString> for Box<dyn Error> {
-    fn from(cs: ColoredString) -> Box<dyn Error> {
+    fn from(cs: ColoredString) -> Self {
         Box::from(error::ColoredStringError(cs))
     }
 }
@@ -743,7 +747,7 @@ mod tests {
         assert_eq!(
             format!("{:1.1}", "toto".blue()).len(),
             format!("{:1.1}", "1".blue()).len()
-        )
+        );
     }
 
     #[test]
@@ -910,7 +914,7 @@ mod tests {
         let blue = "\x1B[34m";
         let red = "\x1B[31m";
         let reset = "\x1B[0m";
-        let expected = format!("start {}hello world !{}{} end", red, reset, blue);
+        let expected = format!("start {red}hello world !{reset}{blue} end");
         assert_eq!(expected, output);
     }
 
@@ -919,10 +923,7 @@ mod tests {
     fn escape_reset_sequence_spec_should_replace_multiple_inner_reset_sequences_with_current_style()
     {
         let italic_str = String::from("yo").italic();
-        let input = format!(
-            "start 1:{} 2:{} 3:{} end",
-            italic_str, italic_str, italic_str
-        );
+        let input = format!("start 1:{italic_str} 2:{italic_str} 3:{italic_str} end");
         let style = input.blue();
 
         let output = style.escape_inner_reset_sequences();
@@ -930,11 +931,10 @@ mod tests {
         let italic = "\x1B[3m";
         let reset = "\x1B[0m";
         let expected = format!(
-            "start 1:{}yo{}{} 2:{}yo{}{} 3:{}yo{}{} end",
-            italic, reset, blue, italic, reset, blue, italic, reset, blue
+            "start 1:{italic}yo{reset}{blue} 2:{italic}yo{reset}{blue} 3:{italic}yo{reset}{blue} end"
         );
 
-        println!("first: {}\nsecond: {}", expected, output);
+        println!("first: {expected}\nsecond: {output}");
 
         assert_eq!(expected, output);
     }

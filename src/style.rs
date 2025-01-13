@@ -209,38 +209,38 @@ pub enum Styles {
 impl Styles {
     fn to_str<'a>(self) -> &'a str {
         match self {
-            Styles::Clear => "", // unreachable, but we don't want to panic
-            Styles::Bold => "1",
-            Styles::Dimmed => "2",
-            Styles::Italic => "3",
-            Styles::Underline => "4",
-            Styles::Blink => "5",
-            Styles::Reversed => "7",
-            Styles::Hidden => "8",
-            Styles::Strikethrough => "9",
+            Self::Clear => "", // unreachable, but we don't want to panic
+            Self::Bold => "1",
+            Self::Dimmed => "2",
+            Self::Italic => "3",
+            Self::Underline => "4",
+            Self::Blink => "5",
+            Self::Reversed => "7",
+            Self::Hidden => "8",
+            Self::Strikethrough => "9",
         }
     }
 
     fn to_u8(self) -> u8 {
         match self {
-            Styles::Clear => CLEARV,
-            Styles::Bold => BOLD,
-            Styles::Dimmed => DIMMED,
-            Styles::Italic => ITALIC,
-            Styles::Underline => UNDERLINE,
-            Styles::Blink => BLINK,
-            Styles::Reversed => REVERSED,
-            Styles::Hidden => HIDDEN,
-            Styles::Strikethrough => STRIKETHROUGH,
+            Self::Clear => CLEARV,
+            Self::Bold => BOLD,
+            Self::Dimmed => DIMMED,
+            Self::Italic => ITALIC,
+            Self::Underline => UNDERLINE,
+            Self::Blink => BLINK,
+            Self::Reversed => REVERSED,
+            Self::Hidden => HIDDEN,
+            Self::Strikethrough => STRIKETHROUGH,
         }
     }
 
-    fn from_u8(u: u8) -> Option<Vec<Styles>> {
+    fn from_u8(u: u8) -> Option<Vec<Self>> {
         if u == CLEARV {
             return None;
         }
 
-        let res: Vec<Styles> = STYLES
+        let res: Vec<Self> = STYLES
             .iter()
             .filter(|&(mask, _)| (0 != (u & mask)))
             .map(|&(_, value)| value)
@@ -253,10 +253,10 @@ impl Styles {
     }
 }
 
-impl BitAnd<Styles> for Styles {
+impl BitAnd<Self> for Styles {
     type Output = Style;
 
-    fn bitand(self, rhs: Styles) -> Self::Output {
+    fn bitand(self, rhs: Self) -> Self::Output {
         Style(self.to_u8() & rhs.to_u8())
     }
 }
@@ -273,10 +273,10 @@ impl BitAnd<Style> for Styles {
 
 auto_impl_ref_binop_trait!(impl BitAnd, bitand for Styles, Style);
 
-impl BitOr<Styles> for Styles {
+impl BitOr<Self> for Styles {
     type Output = Style;
 
-    fn bitor(self, rhs: Styles) -> Self::Output {
+    fn bitor(self, rhs: Self) -> Self::Output {
         Style(self.to_u8() | rhs.to_u8())
     }
 }
@@ -293,10 +293,10 @@ impl BitOr<Style> for Styles {
 
 auto_impl_ref_binop_trait!(impl BitOr, bitor for Styles, Style);
 
-impl BitXor<Styles> for Styles {
+impl BitXor<Self> for Styles {
     type Output = Style;
 
-    fn bitxor(self, rhs: Styles) -> Self::Output {
+    fn bitxor(self, rhs: Self) -> Self::Output {
         Style(self.to_u8() ^ rhs.to_u8())
     }
 }
@@ -339,6 +339,7 @@ impl Style {
     /// assert_eq!(colored.style.contains(Styles::Italic), true);
     /// assert_eq!(colored.style.contains(Styles::Dimmed), false);
     /// ```
+    #[must_use]
     pub fn contains(self, style: Styles) -> bool {
         let s = style.to_u8();
         self.0 & s == s
@@ -389,119 +390,127 @@ impl Style {
     }
 
     /// Makes this `Style` include Bold.
+    #[must_use]
     pub fn bold(mut self) -> Self {
         self.add(Styles::Bold);
         self
     }
 
     /// Makes this `Style` include Dimmed.
+    #[must_use]
     pub fn dimmed(mut self) -> Self {
         self.add(Styles::Dimmed);
         self
     }
 
     /// Makes this `Style` include Underline.
+    #[must_use]
     pub fn underline(mut self) -> Self {
         self.add(Styles::Underline);
         self
     }
 
     /// Makes this `Style` include Reversed.
+    #[must_use]
     pub fn reversed(mut self) -> Self {
         self.add(Styles::Reversed);
         self
     }
 
     /// Makes this `Style` include Italic.
+    #[must_use]
     pub fn italic(mut self) -> Self {
         self.add(Styles::Italic);
         self
     }
 
     /// Makes this `Style` include Blink.
+    #[must_use]
     pub fn blink(mut self) -> Self {
         self.add(Styles::Blink);
         self
     }
 
     /// Makes this `Style` include Hidden.
+    #[must_use]
     pub fn hidden(mut self) -> Self {
         self.add(Styles::Hidden);
         self
     }
 
     /// Makes this `Style` include Strikethrough.
+    #[must_use]
     pub fn strikethrough(mut self) -> Self {
         self.add(Styles::Strikethrough);
         self
     }
 }
 
-impl BitAnd<Style> for Style {
-    type Output = Style;
+impl BitAnd<Self> for Style {
+    type Output = Self;
 
-    fn bitand(self, rhs: Style) -> Self::Output {
-        Style(self.0 & rhs.0)
+    fn bitand(self, rhs: Self) -> Self::Output {
+        Self(self.0 & rhs.0)
     }
 }
 
 auto_impl_ref_binop_trait!(impl BitAnd, bitand for Style, Style);
 
 impl BitAnd<Styles> for Style {
-    type Output = Style;
+    type Output = Self;
 
     fn bitand(self, rhs: Styles) -> Self::Output {
-        Style(self.0 & rhs.to_u8())
+        Self(self.0 & rhs.to_u8())
     }
 }
 
 auto_impl_ref_binop_trait!(impl BitAnd, bitand for Style, Styles);
 
-impl BitOr<Style> for Style {
-    type Output = Style;
+impl BitOr<Self> for Style {
+    type Output = Self;
 
-    fn bitor(self, rhs: Style) -> Self::Output {
-        Style(self.0 | rhs.0)
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
     }
 }
 
 auto_impl_ref_binop_trait!(impl BitOr, bitor for Style, Style);
 
 impl BitOr<Styles> for Style {
-    type Output = Style;
+    type Output = Self;
 
     fn bitor(self, rhs: Styles) -> Self::Output {
-        Style(self.0 | rhs.to_u8())
+        Self(self.0 | rhs.to_u8())
     }
 }
 
 auto_impl_ref_binop_trait!(impl BitOr, bitor for Style, Styles);
 
-impl BitXor<Style> for Style {
-    type Output = Style;
+impl BitXor<Self> for Style {
+    type Output = Self;
 
-    fn bitxor(self, rhs: Style) -> Self::Output {
-        Style(self.0 ^ rhs.0)
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        Self(self.0 ^ rhs.0)
     }
 }
 
 auto_impl_ref_binop_trait!(impl BitXor, bitxor for Style, Style);
 
 impl BitXor<Styles> for Style {
-    type Output = Style;
+    type Output = Self;
 
     fn bitxor(self, rhs: Styles) -> Self::Output {
-        Style(self.0 ^ rhs.to_u8())
+        Self(self.0 ^ rhs.to_u8())
     }
 }
 
 auto_impl_ref_binop_trait!(impl BitXor, bitxor for Style, Styles);
 
 impl Not for Style {
-    type Output = Style;
+    type Output = Self;
 
     fn not(self) -> Self::Output {
-        Style(!self.0)
+        Self(!self.0)
     }
 }
 
@@ -533,20 +542,20 @@ impl Default for Style {
 
 impl From<Styles> for Style {
     fn from(value: Styles) -> Self {
-        Style(value.to_u8())
+        Self(value.to_u8())
     }
 }
 
 impl From<&Styles> for Style {
     fn from(value: &Styles) -> Self {
-        Style(value.to_u8())
+        Self(value.to_u8())
     }
 }
 
 impl FromIterator<Styles> for Style {
     fn from_iter<T: IntoIterator<Item = Styles>>(iter: T) -> Self {
-        let mut style = Style::default();
-        for styles in iter.into_iter() {
+        let mut style = Self::default();
+        for styles in iter {
             style.add(styles);
         }
         style
@@ -748,7 +757,7 @@ mod tests {
             }
         }
 
-        /// TTABLE = TRUTH_TABLE
+        /// TTABLE = `TRUTH_TABLE`
         const TTABLE: (u8, u8) = (0b0101, 0b0011);
 
         #[test]

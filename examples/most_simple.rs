@@ -1,6 +1,6 @@
 extern crate colored;
 
-use colored::*;
+use colored::Colorize;
 
 fn main() {
     // TADAA !
@@ -17,8 +17,8 @@ fn main() {
     s.push_str(&"why not ".red().to_string());
     s.push_str(&"push things ".blue().to_string());
     s.push_str(&"a little further ?".green().to_string());
-    println!("{}", s);
+    println!("{s}");
 
     let s = format!("{} {} {}", "this".red(), "is".blue(), "easier".green());
-    println!("{}", s);
+    println!("{s}");
 }
