@@ -133,7 +133,7 @@ impl Color {
         }
     }
 
-    const fn into_truecolor(self) -> Self {
+    fn into_truecolor(self) -> Self {
         match self {
             Black => TrueColor { r: 0, g: 0, b: 0 },
             Red => TrueColor { r: 205, g: 0, b: 0 },

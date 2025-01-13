@@ -46,3 +46,4 @@ wildcard_imports = { level = "allow", priority = 10 }
 
 # not necessary
 module_name_repetitions = { level = "allow", priority = 10 }
+missing_const_for_fn = { level = "allow", priority = 10 }

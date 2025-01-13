@@ -455,7 +455,7 @@ impl ColoredString {
     /// ```
     #[deprecated(note = "Deprecated due to the exposing of the style struct field.")]
     #[must_use]
-    pub const fn style(&self) -> style::Style {
+    pub fn style(&self) -> style::Style {
         self.style
     }
 
@@ -496,7 +496,7 @@ impl ColoredString {
     }
 
     #[cfg(feature = "no-color")]
-    const fn has_colors() -> bool {
+    fn has_colors() -> bool {
         false
     }
 

@@ -207,7 +207,7 @@ pub enum Styles {
 }
 
 impl Styles {
-    const fn to_str<'a>(self) -> &'a str {
+    fn to_str<'a>(self) -> &'a str {
         match self {
             Self::Clear => "", // unreachable, but we don't want to panic
             Self::Bold => "1",
@@ -221,7 +221,7 @@ impl Styles {
         }
     }
 
-    const fn to_u8(self) -> u8 {
+    fn to_u8(self) -> u8 {
         match self {
             Self::Clear => CLEARV,
             Self::Bold => BOLD,
@@ -340,7 +340,7 @@ impl Style {
     /// assert_eq!(colored.style.contains(Styles::Dimmed), false);
     /// ```
     #[must_use]
-    pub const fn contains(self, style: Styles) -> bool {
+    pub fn contains(self, style: Styles) -> bool {
         let s = style.to_u8();
         self.0 & s == s
     }
