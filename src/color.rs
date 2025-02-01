@@ -1,7 +1,7 @@
 use std::{borrow::Cow, cmp, env, str::FromStr};
 use Color::{
-    Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta, BrightRed,
-    BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
+    AnsiColor, Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta,
+    BrightRed, BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
 };
 /// The 8 standard colors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -24,6 +24,7 @@ pub enum Color {
     BrightCyan,
     BrightWhite,
     TrueColor { r: u8, g: u8, b: u8 },
+    AnsiColor(u8),
 }
 
 fn truecolor_support() -> bool {
@@ -56,6 +57,7 @@ impl Color {
                 self.closest_color_euclidean().to_fg_str()
             }
             Self::TrueColor { r, g, b } => format!("38;2;{r};{g};{b}").into(),
+            Self::AnsiColor(code) => format!("38;5;{code}").into(),
         }
     }
 
@@ -82,6 +84,7 @@ impl Color {
                 self.closest_color_euclidean().to_bg_str()
             }
             Self::TrueColor { r, g, b } => format!("48;2;{r};{g};{b}").into(),
+            Self::AnsiColor(code) => format!("48;5;{code}").into(),
         }
     }
 
@@ -192,6 +195,7 @@ impl Color {
                 b: 255,
             },
             TrueColor { r, g, b } => TrueColor { r, g, b },
+            AnsiColor(color) => AnsiColor(color),
         }
     }
 }
