@@ -1,8 +1,30 @@
-use std::{borrow::Cow, cmp, env, str::FromStr};
+use std::{borrow::Cow, cmp, str::FromStr, sync::OnceLock};
 use Color::{
     Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta, BrightRed,
     BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
 };
+
+static TRUECOLOR_SUPPORT: OnceLock<bool> = OnceLock::new();
+
+#[allow(missing_docs)]
+fn truecolor_support() -> bool {
+    *TRUECOLOR_SUPPORT.get_or_init(|| {
+        #[cfg(target_os = "windows")]
+        {
+            use windows_version::OsVersion;
+            // TrueColor support landed with Windows 10 build 14931,
+            // see https://devblogs.microsoft.com/commandline/24-bit-color-in-the-windows-console/
+            OsVersion::current() >= OsVersion::new(10, 0, 0, 14931)
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            use std::env;
+            let truecolor = env::var("COLORTERM");
+            truecolor.is_ok_and(|truecolor| truecolor == "truecolor" || truecolor == "24bit")
+        }
+    })
+}
+
 /// The 8 standard colors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(missing_docs)]
@@ -24,11 +46,6 @@ pub enum Color {
     BrightCyan,
     BrightWhite,
     TrueColor { r: u8, g: u8, b: u8 },
-}
-
-fn truecolor_support() -> bool {
-    let truecolor = env::var("COLORTERM");
-    truecolor.is_ok_and(|truecolor| truecolor == "truecolor" || truecolor == "24bit")
 }
 
 #[allow(missing_docs)]

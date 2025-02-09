@@ -20,6 +20,9 @@ no-color = []
 version = ">=0.48,<=0.59"
 features = ["Win32_Foundation", "Win32_System_Console"]
 
+[target.'cfg(windows)'.dependencies.windows-version]
+version = "=0.1.2"
+
 [dev-dependencies]
 ansi_term = "0.12"
 insta = "1"
