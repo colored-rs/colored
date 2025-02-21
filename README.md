@@ -122,11 +122,11 @@ For example, you can do this in your `Cargo.toml` to disable color in tests:
 ```toml
 [features]
 # this effectively enable the feature `no-color` of colored when testing with
-# `cargo test --feature dumb_terminal`
+# `cargo test --features dumb_terminal`
 dumb_terminal = ["colored/no-color"]
 ```
 
-You can use have even finer control by using the
+You can even have finer control by using the
 `colored::control::set_override` method.
 
 ## Todo
