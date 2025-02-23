@@ -1,6 +1,6 @@
 #![allow(unused_must_use)]
 extern crate colored;
-use colored::Colorize;
+use colored::Colorize as _;
 
 #[cfg(not(windows))]
 fn main() {
@@ -41,14 +41,16 @@ fn main() {
 }
 
 fn both() {
+    use colored::control::ShouldColorize;
+
     // this will be yellow if your environment allow it
     println!("{}", "some warning".yellow());
     // now , this will be always yellow
-    colored::control::set_override(true);
+    colored::control::set_should_colorize(ShouldColorize::Yes);
     println!("{}", "some warning".yellow());
     // now, this will be never yellow
-    colored::control::set_override(false);
+    colored::control::set_should_colorize(ShouldColorize::No);
     println!("{}", "some warning".yellow());
     // let the environment decide again
-    colored::control::unset_override();
+    colored::control::set_should_colorize(ShouldColorize::from_env());
 }

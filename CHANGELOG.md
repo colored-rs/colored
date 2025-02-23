@@ -1,4 +1,17 @@
 # Unreleased
+- **[BREAKING CHANGE]:** TrueColors will now fall back to 16 ANSI colors in unsupported terminals, whereas it previously fell back to 8 ANSI colors (excluding bright colors).
+- Change to `Colorize`:
+  - Add implementation of `ansi256color` `on_ansi256color`.
+- Implemented `ColorLevel`:
+  - `ColorLevel` has the following values: `None` `Ansi16` `Ansi256` `TrueColor`.
+  - Enhanced terminal color-support detection, with a particular focus on Windows Terminal.
+- Changes to `Color`:
+  - Implemented `Ansi256`.
+  - Implemented color fallbacks for `TrueColor` and `Ansi256`, enhancing flexibility displaying colors on unsupported terminals.
+- Changes to `ShouldColorize`:
+  - `ShouldColorize` has been rewritten as an enum with the following values: `No`, `Yes`, `YesWithAnsi16`, `YesWithAnsi256`, `YesWithTrueColor`.
+  - Implemented `ShouldColorize::from_env` to detect whether to colorize based on the environment.
+  - Implemented `set_should_colorize` and `get_should_colorize` for improved overrides.
 
 # 3.0.0
 - **[BREAKING CHANGE]:** Upgrade MSRV to 1.80 and remove the then unnecessary lazy_static dependency.

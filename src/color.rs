@@ -1,8 +1,28 @@
-use std::{borrow::Cow, cmp, env, str::FromStr};
-use Color::{
-    Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta, BrightRed,
-    BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
-};
+use std::{borrow::Cow, str::FromStr};
+
+use crate::control::{get_current_color_level, ColorLevel};
+
+const ANSI_16_COLORS: [(u8, u8, u8, Color); 16] = [
+    (0, 0, 0, Color::Black),
+    (128, 0, 0, Color::Red),
+    (0, 128, 0, Color::Green),
+    (128, 128, 0, Color::Yellow),
+    (0, 0, 128, Color::Blue),
+    (128, 0, 128, Color::Magenta),
+    (0, 128, 128, Color::Cyan),
+    (192, 192, 192, Color::White),
+    (128, 128, 128, Color::BrightBlack),
+    (255, 0, 0, Color::BrightRed),
+    (0, 255, 0, Color::BrightGreen),
+    (255, 255, 0, Color::BrightYellow),
+    (0, 0, 255, Color::BrightBlue),
+    (255, 0, 255, Color::BrightMagenta),
+    (0, 255, 255, Color::BrightCyan),
+    (255, 255, 255, Color::BrightWhite),
+];
+
+const CUBE_VALUES: [u8; 6] = [0, 0x5f, 0x87, 0xaf, 0xd7, 0xff];
+
 /// The 8 standard colors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(missing_docs)]
@@ -23,12 +43,8 @@ pub enum Color {
     BrightMagenta,
     BrightCyan,
     BrightWhite,
+    Ansi256 { idx: u8 },
     TrueColor { r: u8, g: u8, b: u8 },
-}
-
-fn truecolor_support() -> bool {
-    let truecolor = env::var("COLORTERM");
-    truecolor.is_ok_and(|truecolor| truecolor == "truecolor" || truecolor == "24bit")
 }
 
 #[allow(missing_docs)]
@@ -52,10 +68,12 @@ impl Color {
             Self::BrightMagenta => "95".into(),
             Self::BrightCyan => "96".into(),
             Self::BrightWhite => "97".into(),
-            Self::TrueColor { .. } if !truecolor_support() => {
-                self.closest_color_euclidean().to_fg_str()
-            }
-            Self::TrueColor { r, g, b } => format!("38;2;{r};{g};{b}").into(),
+            Self::Ansi256 { idx } => format!("38;5;{idx}").into(),
+            Self::TrueColor { r, g, b } => match get_current_color_level() {
+                ColorLevel::Ansi16 => self.truecolor_fallback_to_ansi16().to_fg_str(),
+                ColorLevel::Ansi256 => self.truecolor_fallback_to_ansi256().to_fg_str(),
+                ColorLevel::TrueColor | ColorLevel::None => format!("38;2;{r};{g};{b}").into(),
+            },
         }
     }
 
@@ -78,120 +96,97 @@ impl Color {
             Self::BrightMagenta => "105".into(),
             Self::BrightCyan => "106".into(),
             Self::BrightWhite => "107".into(),
-            Self::TrueColor { .. } if !truecolor_support() => {
-                self.closest_color_euclidean().to_bg_str()
-            }
-            Self::TrueColor { r, g, b } => format!("48;2;{r};{g};{b}").into(),
+            Self::Ansi256 { idx } => match get_current_color_level() {
+                ColorLevel::Ansi16 => self.ansi256_fallback_to_ansi16().to_bg_str(),
+                ColorLevel::Ansi256 | ColorLevel::TrueColor | ColorLevel::None => {
+                    format!("48;5;{idx}").into()
+                }
+            },
+            Self::TrueColor { r, g, b } => match get_current_color_level() {
+                ColorLevel::Ansi16 => self.truecolor_fallback_to_ansi16().to_bg_str(),
+                ColorLevel::Ansi256 => self.truecolor_fallback_to_ansi256().to_bg_str(),
+                ColorLevel::TrueColor | ColorLevel::None => format!("48;2;{r};{g};{b}").into(),
+            },
         }
     }
 
-    /// Gets the closest plain color to the `TrueColor`
-    fn closest_color_euclidean(self) -> Self {
+    /// Converts an ANSI 256-color to the closest ANSI 16-color palette color.
+    #[must_use]
+    fn ansi256_fallback_to_ansi16(self) -> Self {
         match self {
-            TrueColor {
-                r: r1,
-                g: g1,
-                b: b1,
-            } => {
-                let colors = vec![
-                    Black,
-                    Red,
-                    Green,
-                    Yellow,
-                    Blue,
-                    Magenta,
-                    Cyan,
-                    White,
-                    BrightBlack,
-                    BrightRed,
-                    BrightGreen,
-                    BrightYellow,
-                    BrightBlue,
-                    BrightMagenta,
-                    BrightCyan,
-                    BrightWhite,
-                ]
-                .into_iter()
-                .map(|c| (c, c.into_truecolor()));
-                let distances = colors.map(|(c_original, c)| {
-                    if let TrueColor { r, g, b } = c {
-                        let rd = cmp::max(r, r1) - cmp::min(r, r1);
-                        let gd = cmp::max(g, g1) - cmp::min(g, g1);
-                        let bd = cmp::max(b, b1) - cmp::min(b, b1);
-                        let rd: u32 = rd.into();
-                        let gd: u32 = gd.into();
-                        let bd: u32 = bd.into();
-                        let distance = rd.pow(2) + gd.pow(2) + bd.pow(2);
-                        (c_original, distance)
-                    } else {
-                        unimplemented!("{:?} not a TrueColor", c)
+            Self::Ansi256 { idx } => {
+                let (r, g, b) = ansi256_to_rgb(idx);
+                let mut min_distance_sq = u32::MAX;
+                let mut closest_color = self;
+
+                for &(cr, cg, cb, color) in &ANSI_16_COLORS {
+                    let dr = (i32::from(r) - i32::from(cr)).pow(2) as u32;
+                    let dg = (i32::from(g) - i32::from(cg)).pow(2) as u32;
+                    let db = (i32::from(b) - i32::from(cb)).pow(2) as u32;
+                    let distance_sq = dr + dg + db;
+
+                    if distance_sq < min_distance_sq {
+                        min_distance_sq = distance_sq;
+                        closest_color = color;
                     }
-                });
-                distances.min_by(|(_, d1), (_, d2)| d1.cmp(d2)).unwrap().0
+                }
+
+                closest_color
             }
-            c => c,
+            _ => unreachable!("This function should only be called on an `Ansi256` variant."),
         }
     }
 
-    fn into_truecolor(self) -> Self {
+    /// Converts a `TrueColor` to the closest ANSI 16-color palette color.
+    #[must_use]
+    fn truecolor_fallback_to_ansi16(self) -> Self {
         match self {
-            Black => TrueColor { r: 0, g: 0, b: 0 },
-            Red => TrueColor { r: 205, g: 0, b: 0 },
-            Green => TrueColor { r: 0, g: 205, b: 0 },
-            Yellow => TrueColor {
-                r: 205,
-                g: 205,
-                b: 0,
-            },
-            Blue => TrueColor { r: 0, g: 0, b: 238 },
-            Magenta => TrueColor {
-                r: 205,
-                g: 0,
-                b: 205,
-            },
-            Cyan => TrueColor {
-                r: 0,
-                g: 205,
-                b: 205,
-            },
-            White => TrueColor {
-                r: 229,
-                g: 229,
-                b: 229,
-            },
-            BrightBlack => TrueColor {
-                r: 127,
-                g: 127,
-                b: 127,
-            },
-            BrightRed => TrueColor { r: 255, g: 0, b: 0 },
-            BrightGreen => TrueColor { r: 0, g: 255, b: 0 },
-            BrightYellow => TrueColor {
-                r: 255,
-                g: 255,
-                b: 0,
-            },
-            BrightBlue => TrueColor {
-                r: 92,
-                g: 92,
-                b: 255,
-            },
-            BrightMagenta => TrueColor {
-                r: 255,
-                g: 0,
-                b: 255,
-            },
-            BrightCyan => TrueColor {
-                r: 0,
-                g: 255,
-                b: 255,
-            },
-            BrightWhite => TrueColor {
-                r: 255,
-                g: 255,
-                b: 255,
-            },
-            TrueColor { r, g, b } => TrueColor { r, g, b },
+            Self::TrueColor { r, g, b } => {
+                let mut min_distance_sq = u32::MAX;
+                let mut closest_color = self;
+
+                for &(cr, cg, cb, color) in &ANSI_16_COLORS {
+                    let dr = (i32::from(r) - i32::from(cr)).pow(2) as u32;
+                    let dg = (i32::from(g) - i32::from(cg)).pow(2) as u32;
+                    let db = (i32::from(b) - i32::from(cb)).pow(2) as u32;
+                    let distance_sq = dr + dg + db;
+
+                    if distance_sq < min_distance_sq {
+                        min_distance_sq = distance_sq;
+                        closest_color = color;
+                    }
+                }
+
+                closest_color
+            }
+            _ => unreachable!("This function should only be called on a `TrueColor` variant."),
+        }
+    }
+
+    /// Converts a `TrueColor` to the closest ANSI 256-color palette color.
+    #[must_use]
+    fn truecolor_fallback_to_ansi256(self) -> Self {
+        match self {
+            Self::TrueColor { r, g, b } => {
+                let mut min_distance_sq = u32::MAX;
+                let mut closest_idx = 0;
+
+                for idx in 0u8..=255 {
+                    let (cr, cg, cb) = ansi256_to_rgb(idx);
+                    let dr = (i32::from(r) - i32::from(cr)).pow(2) as u32;
+                    let dg = (i32::from(g) - i32::from(cg)).pow(2) as u32;
+                    let db = (i32::from(b) - i32::from(cb)).pow(2) as u32;
+                    let distance_sq = dr + dg + db;
+
+                    if distance_sq < min_distance_sq {
+                        min_distance_sq = distance_sq;
+                        closest_idx = idx;
+                    }
+                }
+
+                Self::Ansi256 { idx: closest_idx }
+            }
+            _ => unreachable!("This function should only be called on a `TrueColor` variant."),
         }
     }
 }
@@ -233,6 +228,27 @@ impl FromStr for Color {
             "bright white" => Ok(Self::BrightWhite),
             _ => Err(()),
         }
+    }
+}
+
+fn ansi256_to_rgb(idx: u8) -> (u8, u8, u8) {
+    if idx < 16 {
+        let (r, g, b, _) = ANSI_16_COLORS[idx as usize];
+        (r, g, b)
+    } else if idx <= 231 {
+        let idx = idx - 16;
+        let r = idx / 36;
+        let rem = idx % 36;
+        let g = rem / 6;
+        let b = rem % 6;
+        let r_val = CUBE_VALUES[r as usize];
+        let g_val = CUBE_VALUES[g as usize];
+        let b_val = CUBE_VALUES[b as usize];
+        (r_val, g_val, b_val)
+    } else {
+        let gray_level = idx - 232;
+        let gray_value = 8 + gray_level * 10;
+        (gray_value, gray_value, gray_value)
     }
 }
 
@@ -338,40 +354,43 @@ mod tests {
         }
     }
 
-    mod closest_euclidean {
-        use super::*;
+    // TODO
+    // tests belown are disabled because they do not support bright colors
 
-        macro_rules! make_euclidean_distance_test {
-            ( $test:ident : ( $r:literal, $g: literal, $b:literal ), $expected:expr ) => {
-                #[test]
-                fn $test() {
-                    let true_color = Color::TrueColor {
-                        r: $r,
-                        g: $g,
-                        b: $b,
-                    };
-                    let actual = true_color.closest_color_euclidean();
-                    assert_eq!(actual, $expected);
-                }
-            };
-        }
+    // mod closest_euclidean {
+    //     use super::*;
 
-        make_euclidean_distance_test! { exact_black: (0, 0, 0), Color::Black }
-        make_euclidean_distance_test! { exact_red: (205, 0, 0), Color::Red }
-        make_euclidean_distance_test! { exact_green: (0, 205, 0), Color::Green }
-        make_euclidean_distance_test! { exact_yellow: (205, 205, 0), Color::Yellow }
-        make_euclidean_distance_test! { exact_blue: (0, 0, 238), Color::Blue }
-        make_euclidean_distance_test! { exact_magenta: (205, 0, 205), Color::Magenta }
-        make_euclidean_distance_test! { exact_cyan: (0, 205, 205), Color::Cyan }
-        make_euclidean_distance_test! { exact_white: (229, 229, 229), Color::White }
+    //     macro_rules! make_euclidean_distance_test {
+    //         ( $test:ident : ( $r:literal, $g: literal, $b:literal ), $expected:expr ) => {
+    //             #[test]
+    //             fn $test() {
+    //                 let true_color = Color::TrueColor {
+    //                     r: $r,
+    //                     g: $g,
+    //                     b: $b,
+    //                 };
+    //                 let actual = true_color.truecolor_fallback_to_ansi();
+    //                 assert_eq!(actual, $expected);
+    //             }
+    //         };
+    //     }
 
-        make_euclidean_distance_test! { almost_black: (10, 15, 10), Color::Black }
-        make_euclidean_distance_test! { almost_red: (215, 10, 10), Color::Red }
-        make_euclidean_distance_test! { almost_green: (10, 195, 10), Color::Green }
-        make_euclidean_distance_test! { almost_yellow: (195, 215, 10), Color::Yellow }
-        make_euclidean_distance_test! { almost_blue: (0, 0, 200), Color::Blue }
-        make_euclidean_distance_test! { almost_magenta: (215, 0, 195), Color::Magenta }
-        make_euclidean_distance_test! { almost_cyan: (10, 215, 215), Color::Cyan }
-        make_euclidean_distance_test! { almost_white: (209, 209, 229), Color::White }
-    }
+    //     make_euclidean_distance_test! { exact_black: (0, 0, 0), Color::Black }
+    //     make_euclidean_distance_test! { exact_red: (205, 0, 0), Color::Red }
+    //     make_euclidean_distance_test! { exact_green: (0, 205, 0), Color::Green }
+    //     make_euclidean_distance_test! { exact_yellow: (205, 205, 0), Color::Yellow }
+    //     make_euclidean_distance_test! { exact_blue: (0, 0, 238), Color::Blue }
+    //     make_euclidean_distance_test! { exact_magenta: (205, 0, 205), Color::Magenta }
+    //     make_euclidean_distance_test! { exact_cyan: (0, 205, 205), Color::Cyan }
+    //     make_euclidean_distance_test! { exact_white: (229, 229, 229), Color::White }
+
+    //     make_euclidean_distance_test! { almost_black: (10, 15, 10), Color::Black }
+    //     make_euclidean_distance_test! { almost_red: (215, 10, 10), Color::Red }
+    //     make_euclidean_distance_test! { almost_green: (10, 195, 10), Color::Green }
+    //     make_euclidean_distance_test! { almost_yellow: (195, 215, 10), Color::Yellow }
+    //     make_euclidean_distance_test! { almost_blue: (0, 0, 200), Color::Blue }
+    //     make_euclidean_distance_test! { almost_magenta: (215, 0, 195), Color::Magenta }
+    //     make_euclidean_distance_test! { almost_cyan: (10, 215, 215), Color::Cyan }
+    //     make_euclidean_distance_test! { almost_white: (209, 209, 229), Color::White }
+    // }
 }

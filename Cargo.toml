@@ -16,9 +16,12 @@ rust-version = "1.80"
 no-color = []
 
 
-[target.'cfg(windows)'.dependencies.windows-sys]
-version = ">=0.48,<=0.59"
-features = ["Win32_Foundation", "Win32_System_Console"]
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = ">=0.48,<=0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_Console",
+] }
+windows-version = "0.1.2"
 
 [dev-dependencies]
 ansi_term = "0.12"
