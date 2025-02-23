@@ -112,7 +112,7 @@ impl Color {
 
     /// Converts an ANSI 256-color to the closest ANSI 16-color palette color.
     #[must_use]
-    pub fn ansi256_fallback_to_ansi16(self) -> Self {
+    fn ansi256_fallback_to_ansi16(self) -> Self {
         match self {
             Self::Ansi256 { idx } => {
                 let (r, g, b) = ansi256_to_rgb(idx);
@@ -133,13 +133,13 @@ impl Color {
 
                 closest_color
             }
-            _ => self,
+            _ => unreachable!("This function should only be called on an `Ansi256` variant."),
         }
     }
 
     /// Converts a `TrueColor` to the closest ANSI 16-color palette color.
     #[must_use]
-    pub fn truecolor_fallback_to_ansi16(self) -> Self {
+    fn truecolor_fallback_to_ansi16(self) -> Self {
         match self {
             Self::TrueColor { r, g, b } => {
                 let mut min_distance_sq = u32::MAX;
@@ -159,13 +159,13 @@ impl Color {
 
                 closest_color
             }
-            _ => self,
+            _ => unreachable!("This function should only be called on a `TrueColor` variant."),
         }
     }
 
     /// Converts a `TrueColor` to the closest ANSI 256-color palette color.
     #[must_use]
-    pub fn truecolor_fallback_to_ansi256(self) -> Self {
+    fn truecolor_fallback_to_ansi256(self) -> Self {
         match self {
             Self::TrueColor { r, g, b } => {
                 let mut min_distance_sq = u32::MAX;
@@ -186,7 +186,7 @@ impl Color {
 
                 Self::Ansi256 { idx: closest_idx }
             }
-            _ => self,
+            _ => unreachable!("This function should only be called on a `TrueColor` variant."),
         }
     }
 }

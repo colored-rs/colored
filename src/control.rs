@@ -134,7 +134,7 @@ impl ColorLevel {
         }
 
         // Detect Windows Terminal in Windows and WSL
-        if env::var("WT_SESSION").is_ok_and(|s| is_uuid(&s)) {
+        if env::var_os("WT_SESSION").is_some() {
             return Self::TrueColor;
         }
 
@@ -241,32 +241,7 @@ impl From<ShouldColorize> for ColorLevel {
     }
 }
 
-fn is_uuid(s: &str) -> bool {
-    let bytes = s.as_bytes();
-    bytes.len() == 36
-        && bytes[8] == b'-'
-        && bytes[13] == b'-'
-        && bytes[18] == b'-'
-        && bytes[23] == b'-'
-        && bytes[..8]
-            .iter()
-            .chain(&bytes[9..13])
-            .chain(&bytes[14..18])
-            .chain(&bytes[19..23])
-            .chain(&bytes[24..36])
-            .all(u8::is_ascii_hexdigit)
-}
-
 #[cfg(test)]
 mod test {
     // TODO
-
-    #[test]
-    fn is_uuid() {
-        use super::is_uuid;
-
-        assert_eq!(is_uuid("f9c7090f-a037-437c-8435-6a6a68007bd1"), true);
-        assert_eq!(is_uuid("f9c7090f-a037-437-c8435-6a6a68007bd1"), false);
-        assert_eq!(is_uuid("道生一，一生二，二生三，三生万物"), false);
-    }
 }
