@@ -231,8 +231,41 @@ impl FromStr for Color {
             "bright magenta" => Ok(Self::BrightMagenta),
             "bright cyan" => Ok(Self::BrightCyan),
             "bright white" => Ok(Self::BrightWhite),
+            s if s.starts_with('#') => parse_hex(s),
             _ => Err(()),
         }
+    }
+}
+
+#[inline(always)]
+fn hex_char(d: char) -> Result<u8, ()> {
+    match d {
+        '0'..='9' => Ok(d as u8 - 48),
+        'a'..='f' => Ok(d as u8 - 87),
+        'A'..='F' => Ok(d as u8 - 55),
+        _ => Err(()),
+    }
+}
+
+fn hex_pair(d1: char, d2: char) -> Result<u8, ()> {
+    Ok(hex_char(d1)? * 16 + hex_char(d2)?)
+}
+
+fn parse_hex(s: &str) -> Result<Color, ()> {
+    let chars: Vec<_> = s.chars().collect();
+
+    match chars.as_slice() {
+        &['#', r, g, b] => Ok(Color::TrueColor {
+            r: hex_pair(r, r)?,
+            g: hex_pair(g, g)?,
+            b: hex_pair(b, b)?,
+        }),
+        &['#', r1, r2, g1, g2, b1, b2] => Ok(Color::TrueColor {
+            r: hex_pair(r1, r2)?,
+            g: hex_pair(g1, g2)?,
+            b: hex_pair(b1, b2)?,
+        }),
+        _ => Err(()),
     }
 }
 
@@ -277,7 +310,14 @@ mod tests {
 
             invalid: "invalid" => Color::White,
             capitalized: "BLUE" => Color::Blue,
-            mixed_case: "bLuE" => Color::Blue
+            mixed_case: "bLuE" => Color::Blue,
+
+            hex3_lower: "#abc" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex3_upper: "#ABC" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex3_mixed: "#aBc" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex6_lower: "#abcdef" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex6_upper: "#ABCDEF" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 }
         );
     }
 
@@ -318,7 +358,14 @@ mod tests {
 
             invalid: "invalid" => Color::White,
             capitalized: "BLUE" => Color::Blue,
-            mixed_case: "bLuE" => Color::Blue
+            mixed_case: "bLuE" => Color::Blue,
+
+            hex3_lower: "#abc" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex3_upper: "#ABC" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex3_mixed: "#aBc" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex6_lower: "#abcdef" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex6_upper: "#ABCDEF" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 }
         );
     }
 
