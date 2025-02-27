@@ -317,7 +317,8 @@ mod tests {
             hex3_mixed: "#aBc" => Color::TrueColor { r: 170, g: 187, b: 204 },
             hex6_lower: "#abcdef" => Color::TrueColor { r: 171, g: 205, b: 239 },
             hex6_upper: "#ABCDEF" => Color::TrueColor { r: 171, g: 205, b: 239 },
-            hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 }
+            hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex_invalid: "#aa" => Color::White
         );
     }
 
@@ -365,7 +366,8 @@ mod tests {
             hex3_mixed: "#aBc" => Color::TrueColor { r: 170, g: 187, b: 204 },
             hex6_lower: "#abcdef" => Color::TrueColor { r: 171, g: 205, b: 239 },
             hex6_upper: "#ABCDEF" => Color::TrueColor { r: 171, g: 205, b: 239 },
-            hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 }
+            hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex_invalid: "#aa" => Color::White
         );
     }
 
