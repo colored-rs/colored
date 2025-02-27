@@ -237,7 +237,6 @@ impl FromStr for Color {
     }
 }
 
-#[inline(always)]
 fn hex_char(c: char) -> Option<u8> {
     match c {
         '0'..='9' => Some(c as u8 - 48),
@@ -272,7 +271,7 @@ fn parse_hex(s: &str) -> Option<Color> {
     let c5 = chars.next()?;
     let c6 = chars.next()?;
 
-    if chars.next() != None {
+    if chars.next().is_some() {
         return None;
     }
 
