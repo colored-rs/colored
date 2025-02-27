@@ -231,42 +231,56 @@ impl FromStr for Color {
             "bright magenta" => Ok(Self::BrightMagenta),
             "bright cyan" => Ok(Self::BrightCyan),
             "bright white" => Ok(Self::BrightWhite),
-            s if s.starts_with('#') => parse_hex(s),
+            s if s.starts_with('#') => parse_hex(s).ok_or(()),
             _ => Err(()),
         }
     }
 }
 
 #[inline(always)]
-fn hex_char(d: char) -> Result<u8, ()> {
-    match d {
-        '0'..='9' => Ok(d as u8 - 48),
-        'a'..='f' => Ok(d as u8 - 87),
-        'A'..='F' => Ok(d as u8 - 55),
-        _ => Err(()),
+fn hex_char(c: char) -> Option<u8> {
+    match c {
+        '0'..='9' => Some(c as u8 - 48),
+        'a'..='f' => Some(c as u8 - 87),
+        'A'..='F' => Some(c as u8 - 55),
+        _ => None,
     }
 }
 
-fn hex_pair(d1: char, d2: char) -> Result<u8, ()> {
-    Ok(hex_char(d1)? * 16 + hex_char(d2)?)
+fn hex_pair(c1: char, c2: char) -> Option<u8> {
+    Some(hex_char(c1)? * 16 + hex_char(c2)?)
 }
 
-fn parse_hex(s: &str) -> Result<Color, ()> {
-    let chars: Vec<_> = s.chars().collect();
+fn parse_hex(s: &str) -> Option<Color> {
+    let mut chars = s.chars();
 
-    match chars.as_slice() {
-        &['#', r, g, b] => Ok(Color::TrueColor {
-            r: hex_pair(r, r)?,
-            g: hex_pair(g, g)?,
-            b: hex_pair(b, b)?,
-        }),
-        &['#', r1, r2, g1, g2, b1, b2] => Ok(Color::TrueColor {
-            r: hex_pair(r1, r2)?,
-            g: hex_pair(g1, g2)?,
-            b: hex_pair(b1, b2)?,
-        }),
-        _ => Err(()),
+    if chars.next() != Some('#') {
+        return None;
     }
+
+    let c1 = chars.next()?;
+    let c2 = chars.next()?;
+    let c3 = chars.next()?;
+
+    let Some(c4) = chars.next() else {
+        return Some(Color::TrueColor {
+            r: hex_pair(c1, c1)?,
+            g: hex_pair(c2, c2)?,
+            b: hex_pair(c3, c3)?,
+        });
+    };
+    let c5 = chars.next()?;
+    let c6 = chars.next()?;
+
+    if chars.next() != None {
+        return None;
+    }
+
+    Some(Color::TrueColor {
+        r: hex_pair(c1, c2)?,
+        g: hex_pair(c3, c4)?,
+        b: hex_pair(c5, c6)?,
+    })
 }
 
 #[cfg(test)]
