@@ -237,49 +237,27 @@ impl FromStr for Color {
     }
 }
 
-fn hex_char(c: char) -> Option<u8> {
-    match c {
-        '0'..='9' => Some(c as u8 - 48),
-        'a'..='f' => Some(c as u8 - 87),
-        'A'..='F' => Some(c as u8 - 55),
-        _ => None,
-    }
-}
-
-fn hex_pair(c1: char, c2: char) -> Option<u8> {
-    Some(hex_char(c1)? * 16 + hex_char(c2)?)
-}
-
 fn parse_hex(s: &str) -> Option<Color> {
-    let mut chars = s.chars();
-
-    if chars.next() != Some('#') {
+    if s.get(0..1)? != "#" {
         return None;
     }
 
-    let c1 = chars.next()?;
-    let c2 = chars.next()?;
-    let c3 = chars.next()?;
-
-    let Some(c4) = chars.next() else {
-        return Some(Color::TrueColor {
-            r: hex_pair(c1, c1)?,
-            g: hex_pair(c2, c2)?,
-            b: hex_pair(c3, c3)?,
-        });
-    };
-    let c5 = chars.next()?;
-    let c6 = chars.next()?;
-
-    if chars.next().is_some() {
-        return None;
+    if s.len() == 7 {
+        let r = u8::from_str_radix(s.get(1..3)?, 16).ok()?;
+        let g = u8::from_str_radix(s.get(3..5)?, 16).ok()?;
+        let b = u8::from_str_radix(s.get(5..7)?, 16).ok()?;
+        Some(Color::TrueColor { r, g, b })
+    } else if s.len() == 4 {
+        let r = u8::from_str_radix(s.get(1..2)?, 16).ok()?;
+        let r = r | (r << 4);
+        let g = u8::from_str_radix(s.get(2..3)?, 16).ok()?;
+        let g = g | (g << 4);
+        let b = u8::from_str_radix(s.get(3..4)?, 16).ok()?;
+        let b = b | (b << 4);
+        Some(Color::TrueColor { r, g, b })
+    } else {
+        None
     }
-
-    Some(Color::TrueColor {
-        r: hex_pair(c1, c2)?,
-        g: hex_pair(c3, c4)?,
-        b: hex_pair(c5, c6)?,
-    })
 }
 
 #[cfg(test)]
@@ -331,7 +309,9 @@ mod tests {
             hex6_lower: "#abcdef" => Color::TrueColor { r: 171, g: 205, b: 239 },
             hex6_upper: "#ABCDEF" => Color::TrueColor { r: 171, g: 205, b: 239 },
             hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 },
-            hex_invalid: "#aa" => Color::White
+            hex_too_short: "#aa" => Color::White,
+            hex_too_long: "#aaabbbccc" => Color::White,
+            hex_invalid: "#abcxyz" => Color::White
         );
     }
 
@@ -380,7 +360,9 @@ mod tests {
             hex6_lower: "#abcdef" => Color::TrueColor { r: 171, g: 205, b: 239 },
             hex6_upper: "#ABCDEF" => Color::TrueColor { r: 171, g: 205, b: 239 },
             hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 },
-            hex_invalid: "#aa" => Color::White
+            hex_too_short: "#aa" => Color::White,
+            hex_too_long: "#aaabbbccc" => Color::White,
+            hex_invalid: "#abcxyz" => Color::White
         );
     }
 
