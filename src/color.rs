@@ -238,7 +238,7 @@ impl FromStr for Color {
 }
 
 fn parse_hex(s: &str) -> Option<Color> {
-    if s.get(0..1)? != "#" {
+    if s.get(..1)? != "#" {
         return None;
     }
 
