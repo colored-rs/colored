@@ -231,28 +231,24 @@ impl FromStr for Color {
             "bright magenta" => Ok(Self::BrightMagenta),
             "bright cyan" => Ok(Self::BrightCyan),
             "bright white" => Ok(Self::BrightWhite),
-            s if s.starts_with('#') => parse_hex(s).ok_or(()),
+            s if s.starts_with('#') => parse_hex(&s[1..]).ok_or(()),
             _ => Err(()),
         }
     }
 }
 
 fn parse_hex(s: &str) -> Option<Color> {
-    if s.get(..1)? != "#" {
-        return None;
-    }
-
-    if s.len() == 7 {
-        let r = u8::from_str_radix(s.get(1..3)?, 16).ok()?;
-        let g = u8::from_str_radix(s.get(3..5)?, 16).ok()?;
-        let b = u8::from_str_radix(s.get(5..7)?, 16).ok()?;
+    if s.len() == 6 {
+        let r = u8::from_str_radix(&s[0..2], 16).ok()?;
+        let g = u8::from_str_radix(&s[2..4], 16).ok()?;
+        let b = u8::from_str_radix(&s[4..6], 16).ok()?;
         Some(Color::TrueColor { r, g, b })
-    } else if s.len() == 4 {
-        let r = u8::from_str_radix(s.get(1..2)?, 16).ok()?;
+    } else if s.len() == 3 {
+        let r = u8::from_str_radix(&s[0..1], 16).ok()?;
         let r = r | (r << 4);
-        let g = u8::from_str_radix(s.get(2..3)?, 16).ok()?;
+        let g = u8::from_str_radix(&s[1..2], 16).ok()?;
         let g = g | (g << 4);
-        let b = u8::from_str_radix(s.get(3..4)?, 16).ok()?;
+        let b = u8::from_str_radix(&s[2..3], 16).ok()?;
         let b = b | (b << 4);
         Some(Color::TrueColor { r, g, b })
     } else {
