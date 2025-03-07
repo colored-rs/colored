@@ -226,6 +226,7 @@ impl FromStr for Color {
             "bright magenta" => Ok(Self::BrightMagenta),
             "bright cyan" => Ok(Self::BrightCyan),
             "bright white" => Ok(Self::BrightWhite),
+            s if s.starts_with('#') => parse_hex(&s[1..]).ok_or(()),
             _ => Err(()),
         }
     }
@@ -249,6 +250,25 @@ fn ansi256_to_rgb(idx: u8) -> (u8, u8, u8) {
         let gray_level = idx - 232;
         let gray_value = 8 + gray_level * 10;
         (gray_value, gray_value, gray_value)
+    }
+}
+
+fn parse_hex(s: &str) -> Option<Color> {
+    if s.len() == 6 {
+        let r = u8::from_str_radix(&s[0..2], 16).ok()?;
+        let g = u8::from_str_radix(&s[2..4], 16).ok()?;
+        let b = u8::from_str_radix(&s[4..6], 16).ok()?;
+        Some(Color::TrueColor { r, g, b })
+    } else if s.len() == 3 {
+        let r = u8::from_str_radix(&s[0..1], 16).ok()?;
+        let r = r | (r << 4);
+        let g = u8::from_str_radix(&s[1..2], 16).ok()?;
+        let g = g | (g << 4);
+        let b = u8::from_str_radix(&s[2..3], 16).ok()?;
+        let b = b | (b << 4);
+        Some(Color::TrueColor { r, g, b })
+    } else {
+        None
     }
 }
 
@@ -293,7 +313,17 @@ mod tests {
 
             invalid: "invalid" => Color::White,
             capitalized: "BLUE" => Color::Blue,
-            mixed_case: "bLuE" => Color::Blue
+            mixed_case: "bLuE" => Color::Blue,
+
+            hex3_lower: "#abc" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex3_upper: "#ABC" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex3_mixed: "#aBc" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex6_lower: "#abcdef" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex6_upper: "#ABCDEF" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex_too_short: "#aa" => Color::White,
+            hex_too_long: "#aaabbbccc" => Color::White,
+            hex_invalid: "#abcxyz" => Color::White
         );
     }
 
@@ -334,7 +364,17 @@ mod tests {
 
             invalid: "invalid" => Color::White,
             capitalized: "BLUE" => Color::Blue,
-            mixed_case: "bLuE" => Color::Blue
+            mixed_case: "bLuE" => Color::Blue,
+
+            hex3_lower: "#abc" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex3_upper: "#ABC" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex3_mixed: "#aBc" => Color::TrueColor { r: 170, g: 187, b: 204 },
+            hex6_lower: "#abcdef" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex6_upper: "#ABCDEF" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 },
+            hex_too_short: "#aa" => Color::White,
+            hex_too_long: "#aaabbbccc" => Color::White,
+            hex_invalid: "#abcxyz" => Color::White
         );
     }
 
