@@ -501,8 +501,6 @@ impl ColoredString {
         false
     }
 
-
-
     fn escape_inner_reset_sequences(&self) -> Cow<str> {
         if !Self::has_colors() || self.is_plain() {
             return self.input.as_str().into();
@@ -821,7 +819,10 @@ mod tests {
     fn compute_style_simple_fg_blue() {
         let blue = "\x1B[34m";
 
-        assert_eq!(blue, ColoredStringDisplayHelper::new(&"".blue()).to_string());
+        assert_eq!(
+            blue,
+            ColoredStringDisplayHelper::new(&"".blue()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -829,7 +830,10 @@ mod tests {
     fn compute_style_simple_bg_blue() {
         let on_blue = "\x1B[44m";
 
-        assert_eq!(on_blue, ColoredStringDisplayHelper::new(&"".on_blue()).to_string());
+        assert_eq!(
+            on_blue,
+            ColoredStringDisplayHelper::new(&"".on_blue()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -837,7 +841,10 @@ mod tests {
     fn compute_style_blue_on_blue() {
         let blue_on_blue = "\x1B[44;34m";
 
-        assert_eq!(blue_on_blue, ColoredStringDisplayHelper::new(&"".blue().on_blue()).to_string());
+        assert_eq!(
+            blue_on_blue,
+            ColoredStringDisplayHelper::new(&"".blue().on_blue()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -845,7 +852,10 @@ mod tests {
     fn compute_style_simple_fg_bright_blue() {
         let blue = "\x1B[94m";
 
-        assert_eq!(blue, ColoredStringDisplayHelper::new(&"".bright_blue()).to_string());
+        assert_eq!(
+            blue,
+            ColoredStringDisplayHelper::new(&"".bright_blue()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -853,7 +863,10 @@ mod tests {
     fn compute_style_simple_bg_bright_blue() {
         let on_blue = "\x1B[104m";
 
-        assert_eq!(on_blue, ColoredStringDisplayHelper::new(&"".on_bright_blue()).to_string());
+        assert_eq!(
+            on_blue,
+            ColoredStringDisplayHelper::new(&"".on_bright_blue()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -872,7 +885,10 @@ mod tests {
     fn compute_style_simple_bold() {
         let bold = "\x1B[1m";
 
-        assert_eq!(bold, ColoredStringDisplayHelper::new(&"".bold()).to_string());
+        assert_eq!(
+            bold,
+            ColoredStringDisplayHelper::new(&"".bold()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -880,7 +896,10 @@ mod tests {
     fn compute_style_blue_bold() {
         let blue_bold = "\x1B[1;34m";
 
-        assert_eq!(blue_bold, ColoredStringDisplayHelper::new(&"".blue().bold()).to_string());
+        assert_eq!(
+            blue_bold,
+            ColoredStringDisplayHelper::new(&"".blue().bold()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
