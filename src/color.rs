@@ -33,6 +33,32 @@ fn truecolor_support() -> bool {
 
 #[allow(missing_docs)]
 impl Color {
+    pub(crate) fn to_fg_fmt_with_len(self, f : &mut core::fmt::Formatter) -> Result<usize, core::fmt::Error> {
+        match self {
+            Self::Black =>      {f.write_str("30")?; Ok(2)},
+            Self::Red =>        {f.write_str("31")?; Ok(2)},
+            Self::Green =>      {f.write_str("32")?; Ok(2)},
+        Self::Yellow =>         {f.write_str("33")?; Ok(2)},
+            Self::Blue =>       {f.write_str("34")?; Ok(2)},
+            Self::Magenta =>    {f.write_str("35")?; Ok(2)},
+            Self::Cyan =>       {f.write_str("36")?; Ok(2)},
+            Self::White =>      {f.write_str("37")?; Ok(2)},
+        Self::BrightBlack =>    {f.write_str("90")?; Ok(2)},
+            Self::BrightRed =>  {f.write_str("91")?; Ok(2)},
+        Self::BrightGreen =>    {f.write_str("92")?; Ok(2)},
+        Self::BrightYellow =>   {f.write_str("93")?; Ok(2)},
+        Self::BrightBlue =>     {f.write_str("94")?; Ok(2)},
+        Self::BrightMagenta =>  {f.write_str("95")?; Ok(2)},
+            Self::BrightCyan => {f.write_str("96")?; Ok(2)},
+        Self::BrightWhite =>    {f.write_str("97")?; Ok(2)},
+            Self::TrueColor { .. } if !truecolor_support() => {
+                self.closest_color_euclidean().to_fg_fmt_with_len(f)
+            }
+            Self::TrueColor { r, g, b } => {write!(f, "38;2;{r};{g};{b}")?; Ok(7 + u8_len(r)+ u8_len(g) + u8_len(b))},
+        }
+    }
+
+
     #[must_use]
     pub fn to_fg_str(&self) -> Cow<'static, str> {
         match *self {
@@ -58,6 +84,32 @@ impl Color {
             Self::TrueColor { r, g, b } => format!("38;2;{r};{g};{b}").into(),
         }
     }
+
+    pub(crate) fn to_bg_fmt_with_len(self, f : &mut core::fmt::Formatter) -> Result<usize, core::fmt::Error> {
+        match self {
+            Self::Black =>      {f.write_str("40")?; Ok(2)},
+            Self::Red =>        {f.write_str("41")?; Ok(2)},
+            Self::Green =>      {f.write_str("42")?; Ok(2)},
+        Self::Yellow =>         {f.write_str("43")?; Ok(2)},
+            Self::Blue =>       {f.write_str("44")?; Ok(2)},
+            Self::Magenta =>    {f.write_str("45")?; Ok(2)},
+            Self::Cyan =>       {f.write_str("46")?; Ok(2)},
+            Self::White =>      {f.write_str("47")?; Ok(2)},
+        Self::BrightBlack =>    {f.write_str("100")?; Ok(3)},
+            Self::BrightRed =>  {f.write_str("101")?; Ok(3)},
+        Self::BrightGreen =>    {f.write_str("102")?; Ok(3)},
+        Self::BrightYellow =>   {f.write_str("103")?; Ok(3)},
+        Self::BrightBlue =>     {f.write_str("104")?; Ok(3)},
+        Self::BrightMagenta =>  {f.write_str("105")?; Ok(3)},
+            Self::BrightCyan => {f.write_str("106")?; Ok(3)},
+        Self::BrightWhite =>    {f.write_str("107")?; Ok(3)},
+            Self::TrueColor { .. } if !truecolor_support() => {
+                self.closest_color_euclidean().to_bg_fmt_with_len(f)
+            }
+            Self::TrueColor { r, g, b } => {write!(f, "48;2;{r};{g};{b}")?; Ok(7 + u8_len(r)+ u8_len(g) + u8_len(b))},
+        }
+    }
+
 
     #[must_use]
     pub fn to_bg_str(&self) -> Cow<'static, str> {
@@ -193,6 +245,14 @@ impl Color {
             },
             TrueColor { r, g, b } => TrueColor { r, g, b },
         }
+    }
+}
+
+fn u8_len(num : u8) -> usize {
+    match num {
+        0..10 => 1,
+        10..100 => 2,
+        100.. => 3,
     }
 }
 

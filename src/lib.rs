@@ -46,7 +46,6 @@ pub use color::*;
 
 use core::fmt::{Display, Write};
 use std::{
-    borrow::Cow,
     error::Error,
     fmt,
     ops::{Deref, DerefMut},
@@ -500,6 +499,7 @@ impl ColoredString {
     fn has_colors() -> bool {
         false
     }
+
 }
 
 #[derive(Debug)]
@@ -511,14 +511,13 @@ impl<'a> EscapeInnerResetSequencesHelper<'a> {
     fn new(inner: &'a ColoredString) -> Self {
         Self { inner }
     }
-}
 
-impl Display for EscapeInnerResetSequencesHelper<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt_with_len(&self, f: &mut fmt::Formatter<'_>) -> Result<usize, fmt::Error> {
         const RESET: &str = "\x1B[0m";
-
+        let mut len = self.inner.len();
         if !ColoredString::has_colors() || self.inner.is_plain() {
-            return f.write_str(self.inner);
+            f.write_str(self.inner)?;
+            return Ok(len);
         }
         let mut matches = self
             .inner
@@ -526,7 +525,8 @@ impl Display for EscapeInnerResetSequencesHelper<'_> {
             .map(|(idx, _)| idx + RESET.len())
             .peekable();
         if matches.peek().is_none() {
-            return f.write_str(self.inner);
+            f.write_str(self.inner)?;
+            return Ok(len);
         }
         let mut start = 0;
         for offset in matches {
@@ -534,11 +534,17 @@ impl Display for EscapeInnerResetSequencesHelper<'_> {
 
             f.write_str(&self.inner.input[start..offset])?;
             start = offset;
-            ComputeStyleHelper::new(self.inner).fmt(f)?;
+            len += ComputeStyleHelper::new(self.inner).fmt_with_len(f)?;
         }
         f.write_str(&self.inner.input[start..])?;
 
-        Ok(())
+        Ok(len)
+    }
+}
+
+impl Display for EscapeInnerResetSequencesHelper<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.fmt_with_len(f).map(|_| ())
     }
 }
 
@@ -551,14 +557,14 @@ impl<'a> ComputeStyleHelper<'a> {
     fn new(inner: &'a ColoredString) -> Self {
         Self { inner }
     }
-}
 
-impl Display for ComputeStyleHelper<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt_with_len(&self, f: &mut fmt::Formatter<'_>)-> Result<usize, fmt::Error> { 
+        let mut len = 0;
         if !ColoredString::has_colors() || self.inner.is_plain() {
-            return Ok(());
+            return Ok(len);
         }
         f.write_str("\x1B[")?;
+        len += 5;
         let mut has_wrote = if self.inner.style == style::CLEAR {
             false
         } else {
@@ -568,22 +574,30 @@ impl Display for ComputeStyleHelper<'_> {
 
         if let Some(ref bgcolor) = self.inner.bgcolor {
             if has_wrote {
+                len += 1;
                 f.write_char(';')?;
             }
-            f.write_str(&bgcolor.to_bg_str())?;
+            len += bgcolor.to_bg_fmt_with_len(f)?;
             has_wrote = true;
         }
 
         if let Some(ref fgcolor) = self.inner.fgcolor {
             if has_wrote {
+                len += 1;
                 f.write_char(';')?;
             }
-
-            f.write_str(&fgcolor.to_fg_str())?;
+            len += fgcolor.to_fg_fmt_with_len(f)?;
         }
 
         f.write_char('m')?;
-        Ok(())
+        len += 1;
+        Ok(len)
+    }
+}
+
+impl Display for ComputeStyleHelper<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.fmt_with_len(f).map(|_| ())
     }
 }
 
@@ -730,17 +744,47 @@ impl Colorize for &str {
     }
 }
 
-impl fmt::Display for ColoredString {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if !Self::has_colors() || self.is_plain() {
-            return <String as fmt::Display>::fmt(&self.input, f);
+struct ColoredStringDisplay<'a>(&'a ColoredString);
+
+impl Display for ColoredStringDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if !ColoredString::has_colors() || self.0.is_plain() {
+            return <String as fmt::Display>::fmt(&self.0.input, f);
         }
 
+        //let mut written = 0;
+        
         // XXX: see tests. Useful when nesting colored strings
-        ComputeStyleHelper::new(self).fmt(f)?;
-        EscapeInnerResetSequencesHelper::new(self).fmt(f)?;
+        ComputeStyleHelper::new(self.0).fmt(f)?;
+        //written += ComputeStyleHelper::new(self.0).fmt_with_len(f)?;
+        EscapeInnerResetSequencesHelper::new(self.0).fmt(f)?;
+        //written +=EscapeInnerResetSequencesHelper::new(self.0).fmt_with_len(f)?;
         f.write_str("\x1B[0m")?;
+        //written += 7;
+
+        // FIXME
+        // Do padding
+        //if let Some(width) = dbg!(f.width()) {
+        //    let to_pad = dbg!(width.saturating_sub(written));
+        //    let c = f.fill();
+        //    for _ in 0..to_pad {
+        //        f.write_char(c)?;
+        //    }
+        //}
+
         Ok(())
+    }
+}
+
+
+impl fmt::Display for ColoredString {
+    #[allow(clippy::to_string_in_format_args)]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+       if f.width().is_some() || f.precision().is_some() || f.align().is_some() {
+            f.pad(&ColoredStringDisplay(self).to_string())
+       } else {
+        ColoredStringDisplay(self).fmt(f)
+       }
     }
 }
 
