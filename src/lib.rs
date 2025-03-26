@@ -500,50 +500,60 @@ impl ColoredString {
     fn has_colors() -> bool {
         false
     }
-
-    fn escape_inner_reset_sequences(&self) -> Cow<str> {
-        if !Self::has_colors() || self.is_plain() {
-            return self.input.as_str().into();
-        }
-
-        // TODO: BoyScoutRule
-        let reset = "\x1B[0m";
-        let style = ColoredStringDisplayHelper::new(self).to_string();
-        let matches: Vec<usize> = self
-            .input
-            .match_indices(reset)
-            .map(|(idx, _)| idx)
-            .collect();
-        if matches.is_empty() {
-            return self.input.as_str().into();
-        }
-
-        let mut input = self.input.clone();
-        input.reserve(matches.len() * style.len());
-
-        for (idx_in_matches, offset) in matches.into_iter().enumerate() {
-            // shift the offset to the end of the reset sequence
-            let offset = offset + reset.len() + idx_in_matches * style.len();
-
-            input.insert_str(offset, &style);
-        }
-
-        input.into()
-    }
 }
 
 #[derive(Debug)]
-struct ColoredStringDisplayHelper<'a> {
+struct EscapeInnerResetSequencesHelper<'a> {
     inner: &'a ColoredString,
 }
 
-impl<'a> ColoredStringDisplayHelper<'a> {
+impl<'a> EscapeInnerResetSequencesHelper<'a> {
     fn new(inner: &'a ColoredString) -> Self {
         Self { inner }
     }
 }
 
-impl Display for ColoredStringDisplayHelper<'_> {
+impl Display for EscapeInnerResetSequencesHelper<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        const RESET: &str = "\x1B[0m";
+
+        if !ColoredString::has_colors() || self.inner.is_plain() {
+            return f.write_str(self.inner);
+        }
+        let mut matches = self
+            .inner
+            .match_indices(RESET)
+            .map(|(idx, _)| idx + RESET.len())
+            .peekable();
+        if matches.peek().is_none() {
+            return f.write_str(self.inner);
+        }
+        let mut start = 0;
+        for offset in matches {
+            // shift the offset to the end of the reset sequence
+
+            f.write_str(&self.inner.input[start..offset])?;
+            start = offset;
+            ComputeStyleHelper::new(self.inner).fmt(f)?;
+        }
+        f.write_str(&self.inner.input[start..])?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+struct ComputeStyleHelper<'a> {
+    inner: &'a ColoredString,
+}
+
+impl<'a> ComputeStyleHelper<'a> {
+    fn new(inner: &'a ColoredString) -> Self {
+        Self { inner }
+    }
+}
+
+impl Display for ComputeStyleHelper<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if !ColoredString::has_colors() || self.inner.is_plain() {
             return Ok(());
@@ -727,9 +737,8 @@ impl fmt::Display for ColoredString {
         }
 
         // XXX: see tests. Useful when nesting colored strings
-        let escaped_input = self.escape_inner_reset_sequences();
-        ColoredStringDisplayHelper::new(self).fmt(f)?;
-        escaped_input.fmt(f)?;
+        ComputeStyleHelper::new(self).fmt(f)?;
+        EscapeInnerResetSequencesHelper::new(self).fmt(f)?;
         f.write_str("\x1B[0m")?;
         Ok(())
     }
@@ -807,7 +816,7 @@ mod tests {
 
     #[test]
     fn compute_style_empty_string() {
-        assert_eq!("", ColoredStringDisplayHelper::new(&"".clear()).to_string());
+        assert_eq!("", ComputeStyleHelper::new(&"".clear()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -815,10 +824,7 @@ mod tests {
     fn compute_style_simple_fg_blue() {
         let blue = "\x1B[34m";
 
-        assert_eq!(
-            blue,
-            ColoredStringDisplayHelper::new(&"".blue()).to_string()
-        );
+        assert_eq!(blue, ComputeStyleHelper::new(&"".blue()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -826,10 +832,7 @@ mod tests {
     fn compute_style_simple_bg_blue() {
         let on_blue = "\x1B[44m";
 
-        assert_eq!(
-            on_blue,
-            ColoredStringDisplayHelper::new(&"".on_blue()).to_string()
-        );
+        assert_eq!(on_blue, ComputeStyleHelper::new(&"".on_blue()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -839,7 +842,7 @@ mod tests {
 
         assert_eq!(
             blue_on_blue,
-            ColoredStringDisplayHelper::new(&"".blue().on_blue()).to_string()
+            ComputeStyleHelper::new(&"".blue().on_blue()).to_string()
         );
     }
 
@@ -848,10 +851,7 @@ mod tests {
     fn compute_style_simple_fg_bright_blue() {
         let blue = "\x1B[94m";
 
-        assert_eq!(
-            blue,
-            ColoredStringDisplayHelper::new(&"".bright_blue()).to_string()
-        );
+        assert_eq!(blue, ComputeStyleHelper::new(&"".bright_blue()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -861,7 +861,7 @@ mod tests {
 
         assert_eq!(
             on_blue,
-            ColoredStringDisplayHelper::new(&"".on_bright_blue()).to_string()
+            ComputeStyleHelper::new(&"".on_bright_blue()).to_string()
         );
     }
 
@@ -872,7 +872,7 @@ mod tests {
 
         assert_eq!(
             blue_on_blue,
-            ColoredStringDisplayHelper::new(&"".bright_blue().on_bright_blue()).to_string()
+            ComputeStyleHelper::new(&"".bright_blue().on_bright_blue()).to_string()
         );
     }
 
@@ -881,10 +881,7 @@ mod tests {
     fn compute_style_simple_bold() {
         let bold = "\x1B[1m";
 
-        assert_eq!(
-            bold,
-            ColoredStringDisplayHelper::new(&"".bold()).to_string()
-        );
+        assert_eq!(bold, ComputeStyleHelper::new(&"".bold()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -894,7 +891,7 @@ mod tests {
 
         assert_eq!(
             blue_bold,
-            ColoredStringDisplayHelper::new(&"".blue().bold()).to_string()
+            ComputeStyleHelper::new(&"".blue().bold()).to_string()
         );
     }
 
@@ -905,7 +902,7 @@ mod tests {
 
         assert_eq!(
             blue_bold_on_blue,
-            ColoredStringDisplayHelper::new(&"".blue().bold().on_blue()).to_string()
+            ComputeStyleHelper::new(&"".blue().bold().on_blue()).to_string()
         );
     }
 
@@ -914,7 +911,7 @@ mod tests {
         let style = ColoredString::default();
         let expected = String::new();
 
-        let output = style.escape_inner_reset_sequences();
+        let output = EscapeInnerResetSequencesHelper::new(&style).to_string();
 
         assert_eq!(expected, output);
     }
@@ -927,7 +924,7 @@ mod tests {
         };
 
         let expected = String::from("hello world !");
-        let output = style.escape_inner_reset_sequences();
+        let output = EscapeInnerResetSequencesHelper::new(&style).to_string();
 
         assert_eq!(expected, output);
     }
@@ -938,7 +935,7 @@ mod tests {
         let input = format!("start {} end", String::from("hello world !").red());
         let style = input.blue();
 
-        let output = style.escape_inner_reset_sequences();
+        let output = EscapeInnerResetSequencesHelper::new(&style).to_string();
         let blue = "\x1B[34m";
         let red = "\x1B[31m";
         let reset = "\x1B[0m";
@@ -954,7 +951,7 @@ mod tests {
         let input = format!("start 1:{italic_str} 2:{italic_str} 3:{italic_str} end");
         let style = input.blue();
 
-        let output = style.escape_inner_reset_sequences();
+        let output = EscapeInnerResetSequencesHelper::new(&style).to_string();
         let blue = "\x1B[34m";
         let italic = "\x1B[3m";
         let reset = "\x1B[0m";
