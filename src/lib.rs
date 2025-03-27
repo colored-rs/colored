@@ -830,7 +830,7 @@ mod tests {
     ///
     /// Formatting *must* respect padding
     ///
-    /// The added normal str in the input for comparison to rust-std
+    /// The added normal str in the input is for comparison to rust-std
     mod formmating {
         use super::*;
 
