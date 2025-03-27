@@ -1,4 +1,4 @@
-use std::{borrow::Cow, cmp, env, str::FromStr};
+use std::{borrow::Cow, env, str::FromStr};
 use Color::{
     Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta, BrightRed,
     BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
@@ -148,13 +148,10 @@ impl Color {
                 .map(|c| (c, c.into_truecolor()));
                 let distances = colors.map(|(c_original, c)| {
                     if let TrueColor { r, g, b } = c {
-                        let rd = cmp::max(r, r1) - cmp::min(r, r1);
-                        let gd = cmp::max(g, g1) - cmp::min(g, g1);
-                        let bd = cmp::max(b, b1) - cmp::min(b, b1);
-                        let rd: u32 = rd.into();
-                        let gd: u32 = gd.into();
-                        let bd: u32 = bd.into();
-                        let distance = rd.pow(2) + gd.pow(2) + bd.pow(2);
+                        fn distance(a: u8, b: u8) -> u32 {
+                            u32::from(a.abs_diff(b)).pow(2)
+                        }
+                        let distance = distance(r, r1) + distance(g, g1) + distance(b, b1);
                         (c_original, distance)
                     } else {
                         unimplemented!("{:?} not a TrueColor", c)
