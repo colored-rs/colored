@@ -831,8 +831,11 @@ mod tests {
     use std::{error::Error, fmt::Write};
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn formatting() {
         // respect the formatting. Escape sequence add some padding so >= 40
+
+        // Only padding
         assert_eq!(
             format!("{:40}", "".blue())
                 .chars()
@@ -847,6 +850,8 @@ mod tests {
                 .count(),
             0
         );
+
+        // Padding with precision
         assert_eq!(
             format!("{:1.2}", "CS".blue())
                 .chars()
@@ -861,6 +866,7 @@ mod tests {
                 .count(),
             2
         );
+
         assert_eq!(
             format!("{:1.1}", "CS".blue())
                 .chars()
@@ -875,6 +881,35 @@ mod tests {
                 .count(),
             0
         );
+        assert_eq!(
+            format!("{:1.1}", "CS".blue())
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            0
+        );
+
+        assert_eq!(
+            format!("{:2.1}", "CS".blue())
+                .chars()
+                .filter(|c| *c == 'C')
+                .count(),
+            1
+        );
+        assert_eq!(
+            format!("{:2.1}", "CS".blue())
+                .chars()
+                .filter(|c| *c == 'S')
+                .count(),
+            0
+        );
+        assert_eq!(
+            format!("{:2.1}", "CS".blue())
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            1
+        );
 
         // both should be truncated to 1 char before coloring
         assert_eq!(
@@ -887,6 +922,105 @@ mod tests {
         let crab = format!("{:40.1}", "🦀🦀🦀🦀🦀🦀🦀🦀".blue());
         assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 1);
         assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 39);
+        assert!(crab.len() >= 40);
+        let crab = format!("{:40.2}", "🦀🦀🦀🦀🦀🦀🦀🦀".blue());
+        assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 2);
+        assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 38);
+        assert!(crab.len() >= 40);
+
+        // Check equality to std string
+
+        // Only padding
+        assert_eq!(
+            format!("{:40}", "")
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            40
+        );
+        assert_eq!(
+            format!("{:2}", "CS")
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            0
+        );
+
+        // Padding with precision
+        assert_eq!(
+            format!("{:1.2}", "CS")
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            0
+        );
+        assert_eq!(
+            format!("{:1.2}", "CS")
+                .chars()
+                .filter(|c| *c == 'C' || *c == 'S')
+                .count(),
+            2
+        );
+
+        assert_eq!(
+            format!("{:1.1}", "CS")
+                .chars()
+                .filter(|c| *c == 'C')
+                .count(),
+            1
+        );
+        assert_eq!(
+            format!("{:1.1}", "CS")
+                .chars()
+                .filter(|c| *c == 'S')
+                .count(),
+            0
+        );
+        assert_eq!(
+            format!("{:1.1}", "CS")
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            0
+        );
+
+        assert_eq!(
+            format!("{:2.1}", "CS")
+                .chars()
+                .filter(|c| *c == 'C')
+                .count(),
+            1
+        );
+        assert_eq!(
+            format!("{:2.1}", "CS")
+                .chars()
+                .filter(|c| *c == 'S')
+                .count(),
+            0
+        );
+        assert_eq!(
+            format!("{:2.1}", "CS")
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            1
+        );
+
+        // both should be truncated to 1 char before coloring
+        assert_eq!(
+            format!("{:1.1}", "toto".blue()).len(),
+            format!("{:1.1}", "1".blue()).len()
+        );
+
+        // Check handling of utf-8 characters
+        assert_ne!('🦀'.len_utf8(), 1);
+        let crab = format!("{:40.1}", "🦀🦀🦀🦀🦀🦀🦀🦀");
+        assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 1);
+        assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 39);
+        assert!(crab.len() >= 40);
+        let crab = format!("{:40.2}", "🦀🦀🦀🦀🦀🦀🦀🦀");
+        assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 2);
+        assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 38);
         assert!(crab.len() >= 40);
     }
 
