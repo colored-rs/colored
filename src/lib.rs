@@ -520,9 +520,12 @@ impl<'a> EscapeInnerResetSequencesHelper<'a> {
             is_plain: color.is_plain(),
         }
     }
+}
 
-    fn private_fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+impl Display for EscapeInnerResetSequencesHelper<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         const RESET: &str = "\x1B[0m";
+
         if !ColoredString::has_colors() || self.is_plain {
             return f.write_str(self.input);
         }
@@ -540,17 +543,11 @@ impl<'a> EscapeInnerResetSequencesHelper<'a> {
 
             f.write_str(&self.input[start..offset])?;
             start = offset;
-            ComputeStyleHelper::from(self).private_fmt(f)?;
+            ComputeStyleHelper::from(self).fmt(f)?;
         }
         f.write_str(&self.input[start..])?;
 
         Ok(())
-    }
-}
-
-impl Display for EscapeInnerResetSequencesHelper<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.private_fmt(f)
     }
 }
 
@@ -588,8 +585,10 @@ impl ComputeStyleHelper {
             is_plain: color.is_plain(),
         }
     }
+}
 
-    fn private_fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+impl Display for ComputeStyleHelper {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if !ColoredString::has_colors() || self.is_plain {
             return Ok(());
         }
@@ -618,12 +617,6 @@ impl ComputeStyleHelper {
 
         f.write_char('m')?;
         Ok(())
-    }
-}
-
-impl Display for ComputeStyleHelper {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.private_fmt(f)
     }
 }
 
