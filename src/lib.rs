@@ -537,14 +537,17 @@ impl Display for EscapeInnerResetSequencesHelper<'_> {
         if matches.peek().is_none() {
             return f.write_str(self.input);
         }
+
         let mut start = 0;
         for offset in matches {
-            // shift the offset to the end of the reset sequence
-
+            // Write the text up to the end reset sequence
             f.write_str(&self.input[start..offset])?;
+            // Remember where the next text starts
             start = offset;
+            // Write style
             ComputeStyleHelper::from(self).fmt(f)?;
         }
+        // Write rest
         f.write_str(&self.input[start..])?;
 
         Ok(())
