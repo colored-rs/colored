@@ -288,28 +288,29 @@ fn parse_hex(s: &str) -> Option<Color> {
 
 #[cfg(test)]
 mod tests {
-    use core::fmt::Display;
 
     pub use super::*;
 
-    struct FmtFgWrapper(Color);
-
-    impl Display for FmtFgWrapper {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.0.to_fg_fmt(f)
-        }
-    }
-    struct FmtBgWrapper(Color);
-
-    impl Display for FmtBgWrapper {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.0.to_bg_fmt(f)
-        }
-    }
-
     #[test]
     fn fmt_and_to_str_same() {
+        use core::fmt::Display;
         use Color::*;
+
+        // Helper structs to call the method
+        struct FmtFgWrapper(Color);
+        impl Display for FmtFgWrapper {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                self.0.to_fg_fmt(f)
+            }
+        }
+        struct FmtBgWrapper(Color);
+        impl Display for FmtBgWrapper {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                self.0.to_bg_fmt(f)
+            }
+        }
+
+        // Actual test
         let colors = &[
             Black,
             Red,
