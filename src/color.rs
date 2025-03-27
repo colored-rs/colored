@@ -126,7 +126,7 @@ impl Color {
                 g: g1,
                 b: b1,
             } => {
-                let colors = vec![
+                let colors = [
                     Black,
                     Red,
                     Green,
