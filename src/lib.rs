@@ -47,7 +47,7 @@ pub use color::*;
 use core::fmt::{Display, Write};
 use std::{
     error::Error,
-    fmt,
+    fmt::{self},
     ops::{Deref, DerefMut},
 };
 
@@ -501,32 +501,48 @@ impl ColoredString {
     }
 }
 
-#[derive(Debug)]
-struct EscapeInnerResetSequencesHelper<'a>(&'a ColoredString);
+#[derive(Debug, Clone, Copy)]
+struct EscapeInnerResetSequencesHelper<'a> {
+    input: &'a str,
+    fgcolor: Option<Color>,
+    bgcolor: Option<Color>,
+    style: style::Style,
+    is_plain: bool,
+}
 
-impl EscapeInnerResetSequencesHelper<'_> {
+impl<'a> EscapeInnerResetSequencesHelper<'a> {
+    fn new(input: &'a str, color: &ColoredString) -> Self {
+        Self {
+            input,
+            fgcolor: color.fgcolor,
+            bgcolor: color.bgcolor,
+            style: color.style,
+            is_plain: color.is_plain(),
+        }
+    }
+
     fn private_fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         const RESET: &str = "\x1B[0m";
-        if !ColoredString::has_colors() || self.0.is_plain() {
-            return f.write_str(self.0);
+        if !ColoredString::has_colors() || self.is_plain {
+            return f.write_str(self.input);
         }
         let mut matches = self
-            .0
+            .input
             .match_indices(RESET)
             .map(|(idx, _)| idx + RESET.len())
             .peekable();
         if matches.peek().is_none() {
-            return f.write_str(self.0);
+            return f.write_str(self.input);
         }
         let mut start = 0;
         for offset in matches {
             // shift the offset to the end of the reset sequence
 
-            f.write_str(&self.0.input[start..offset])?;
+            f.write_str(&self.input[start..offset])?;
             start = offset;
-            ComputeStyleHelper(self.0).private_fmt(f)?;
+            ComputeStyleHelper::from(self).private_fmt(f)?;
         }
-        f.write_str(&self.0.input[start..])?;
+        f.write_str(&self.input[start..])?;
 
         Ok(())
     }
@@ -538,23 +554,54 @@ impl Display for EscapeInnerResetSequencesHelper<'_> {
     }
 }
 
-#[derive(Debug)]
-struct ComputeStyleHelper<'a>(&'a ColoredString);
+#[derive(Debug, Clone, Copy)]
+struct ComputeStyleHelper {
+    fgcolor: Option<Color>,
+    bgcolor: Option<Color>,
+    style: style::Style,
+    is_plain: bool,
+}
 
-impl ComputeStyleHelper<'_> {
+impl From<&ColoredString> for ComputeStyleHelper {
+    fn from(value: &ColoredString) -> Self {
+        Self::new(value)
+    }
+}
+
+impl From<&EscapeInnerResetSequencesHelper<'_>> for ComputeStyleHelper {
+    fn from(value: &EscapeInnerResetSequencesHelper) -> Self {
+        Self {
+            fgcolor: value.fgcolor,
+            bgcolor: value.bgcolor,
+            style: value.style,
+            is_plain: value.is_plain,
+        }
+    }
+}
+
+impl ComputeStyleHelper {
+    fn new(color: &ColoredString) -> Self {
+        Self {
+            fgcolor: color.fgcolor,
+            bgcolor: color.bgcolor,
+            style: color.style,
+            is_plain: color.is_plain(),
+        }
+    }
+
     fn private_fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        if !ColoredString::has_colors() || self.0.is_plain() {
+        if !ColoredString::has_colors() || self.is_plain {
             return Ok(());
         }
         f.write_str("\x1B[")?;
-        let mut has_wrote = if self.0.style == style::CLEAR {
+        let mut has_wrote = if self.style == style::CLEAR {
             false
         } else {
-            f.write_str(&self.0.style.to_str())?;
+            f.write_str(&self.style.to_str())?;
             true
         };
 
-        if let Some(ref bgcolor) = self.0.bgcolor {
+        if let Some(ref bgcolor) = self.bgcolor {
             if has_wrote {
                 f.write_char(';')?;
             }
@@ -562,7 +609,7 @@ impl ComputeStyleHelper<'_> {
             has_wrote = true;
         }
 
-        if let Some(ref fgcolor) = self.0.fgcolor {
+        if let Some(ref fgcolor) = self.fgcolor {
             if has_wrote {
                 f.write_char(';')?;
             }
@@ -574,7 +621,7 @@ impl ComputeStyleHelper<'_> {
     }
 }
 
-impl Display for ComputeStyleHelper<'_> {
+impl Display for ComputeStyleHelper {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.private_fmt(f)
     }
@@ -723,32 +770,53 @@ impl Colorize for &str {
     }
 }
 
-struct ColoredStringDisplay<'a>(&'a ColoredString);
-
-impl Display for ColoredStringDisplay<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if !ColoredString::has_colors() || self.0.is_plain() {
-            return <String as fmt::Display>::fmt(&self.0.input, f);
-        }
-
-        // XXX: see tests. Useful when nesting colored strings
-        ComputeStyleHelper(self.0).fmt(f)?;
-        EscapeInnerResetSequencesHelper(self.0).fmt(f)?;
-        f.write_str("\x1B[0m")?;
-
-        Ok(())
-    }
-}
-
 impl fmt::Display for ColoredString {
     #[allow(clippy::to_string_in_format_args)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // FIXME, deal with padding and do not allocate for this
-        if f.width().is_some() || f.precision().is_some() || f.align().is_some() {
-            f.pad(&ColoredStringDisplay(self).to_string())
-        } else {
-            ColoredStringDisplay(self).fmt(f)
+        if !Self::has_colors() || self.is_plain() {
+            return <String as fmt::Display>::fmt(&self.input, f);
         }
+
+        let mut input = &*self.input;
+        let mut padding = 0;
+
+        // Calculate padding and input
+        if let Some(precision) = f.precision() {
+            let mut iter = input.char_indices();
+
+            // FIXME
+            // feature(iter_advance_by) is not stable
+            // CharIndeces::offset is MSRV 1.82.0
+            // the std impl uses this methods in it is a lot nicer.
+            let mut count = 0;
+            let mut offset = 0;
+            for _ in 0..precision {
+                if let Some((i, c)) = iter.next() {
+                    offset = i + c.len_utf8();
+                    count += 1;
+                }
+            }
+
+            input = &input[..offset];
+            if let Some(width) = f.width() {
+                padding = width.saturating_sub(count);
+            }
+        } else if let Some(width) = f.width() {
+            padding = width.saturating_sub(self.chars().take(width).count());
+        }
+
+        // Do the actual formatting
+        // XXX: see tests. Useful when nesting colored strings
+        ComputeStyleHelper::from(self).fmt(f)?;
+        EscapeInnerResetSequencesHelper::new(input, self).fmt(f)?;
+        f.write_str("\x1B[0m")?;
+
+        // Add padding
+        for _ in 0..padding {
+            f.write_char(f.fill())?;
+        }
+
+        Ok(())
     }
 }
 
@@ -824,7 +892,7 @@ mod tests {
 
     #[test]
     fn compute_style_empty_string() {
-        assert_eq!("", ComputeStyleHelper(&"".clear()).to_string());
+        assert_eq!("", ComputeStyleHelper::from(&"".clear()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -832,7 +900,7 @@ mod tests {
     fn compute_style_simple_fg_blue() {
         let blue = "\x1B[34m";
 
-        assert_eq!(blue, ComputeStyleHelper(&"".blue()).to_string());
+        assert_eq!(blue, ComputeStyleHelper::from(&"".blue()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -840,7 +908,7 @@ mod tests {
     fn compute_style_simple_bg_blue() {
         let on_blue = "\x1B[44m";
 
-        assert_eq!(on_blue, ComputeStyleHelper(&"".on_blue()).to_string());
+        assert_eq!(on_blue, ComputeStyleHelper::from(&"".on_blue()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -850,7 +918,7 @@ mod tests {
 
         assert_eq!(
             blue_on_blue,
-            ComputeStyleHelper(&"".blue().on_blue()).to_string()
+            ComputeStyleHelper::from(&"".blue().on_blue()).to_string()
         );
     }
 
@@ -859,7 +927,10 @@ mod tests {
     fn compute_style_simple_fg_bright_blue() {
         let blue = "\x1B[94m";
 
-        assert_eq!(blue, ComputeStyleHelper(&"".bright_blue()).to_string());
+        assert_eq!(
+            blue,
+            ComputeStyleHelper::from(&"".bright_blue()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -869,7 +940,7 @@ mod tests {
 
         assert_eq!(
             on_blue,
-            ComputeStyleHelper(&"".on_bright_blue()).to_string()
+            ComputeStyleHelper::from(&"".on_bright_blue()).to_string()
         );
     }
 
@@ -880,7 +951,7 @@ mod tests {
 
         assert_eq!(
             blue_on_blue,
-            ComputeStyleHelper(&"".bright_blue().on_bright_blue()).to_string()
+            ComputeStyleHelper::from(&"".bright_blue().on_bright_blue()).to_string()
         );
     }
 
@@ -889,7 +960,7 @@ mod tests {
     fn compute_style_simple_bold() {
         let bold = "\x1B[1m";
 
-        assert_eq!(bold, ComputeStyleHelper(&"".bold()).to_string());
+        assert_eq!(bold, ComputeStyleHelper::from(&"".bold()).to_string());
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -897,7 +968,10 @@ mod tests {
     fn compute_style_blue_bold() {
         let blue_bold = "\x1B[1;34m";
 
-        assert_eq!(blue_bold, ComputeStyleHelper(&"".blue().bold()).to_string());
+        assert_eq!(
+            blue_bold,
+            ComputeStyleHelper::from(&"".blue().bold()).to_string()
+        );
     }
 
     #[cfg_attr(feature = "no-color", ignore)]
@@ -907,7 +981,7 @@ mod tests {
 
         assert_eq!(
             blue_bold_on_blue,
-            ComputeStyleHelper(&"".blue().bold().on_blue()).to_string()
+            ComputeStyleHelper::from(&"".blue().bold().on_blue()).to_string()
         );
     }
 
@@ -916,7 +990,7 @@ mod tests {
         let style = ColoredString::default();
         let expected = String::new();
 
-        let output = EscapeInnerResetSequencesHelper(&style).to_string();
+        let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
 
         assert_eq!(expected, output);
     }
@@ -929,7 +1003,7 @@ mod tests {
         };
 
         let expected = String::from("hello world !");
-        let output = EscapeInnerResetSequencesHelper(&style).to_string();
+        let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
 
         assert_eq!(expected, output);
     }
@@ -940,7 +1014,7 @@ mod tests {
         let input = format!("start {} end", String::from("hello world !").red());
         let style = input.blue();
 
-        let output = EscapeInnerResetSequencesHelper(&style).to_string();
+        let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
         let blue = "\x1B[34m";
         let red = "\x1B[31m";
         let reset = "\x1B[0m";
@@ -956,7 +1030,7 @@ mod tests {
         let input = format!("start 1:{italic_str} 2:{italic_str} 3:{italic_str} end");
         let style = input.blue();
 
-        let output = EscapeInnerResetSequencesHelper(&style).to_string();
+        let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
         let blue = "\x1B[34m";
         let italic = "\x1B[3m";
         let reset = "\x1B[0m";
