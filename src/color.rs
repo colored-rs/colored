@@ -160,7 +160,7 @@ impl Color {
                         unimplemented!("{:?} not a TrueColor", c)
                     }
                 });
-                distances.min_by(|(_, d1), (_, d2)| d1.cmp(d2)).unwrap().0
+                distances.min_by_key(|(_, distance)| *distance).unwrap().0
             }
             c => c,
         }
