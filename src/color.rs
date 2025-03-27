@@ -33,109 +33,88 @@ fn truecolor_support() -> bool {
 
 #[allow(missing_docs)]
 impl Color {
-    pub(crate) fn to_fg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+    const fn to_fg_static_str(self) -> Result<&'static str, (u8, u8, u8)> {
         match self {
-            Self::Black => f.write_str("30"),
-            Self::Red => f.write_str("31"),
-            Self::Green => f.write_str("32"),
-            Self::Yellow => f.write_str("33"),
-            Self::Blue => f.write_str("34"),
-            Self::Magenta => f.write_str("35"),
-            Self::Cyan => f.write_str("36"),
-            Self::White => f.write_str("37"),
-            Self::BrightBlack => f.write_str("90"),
-            Self::BrightRed => f.write_str("91"),
-            Self::BrightGreen => f.write_str("92"),
-            Self::BrightYellow => f.write_str("93"),
-            Self::BrightBlue => f.write_str("94"),
-            Self::BrightMagenta => f.write_str("95"),
-            Self::BrightCyan => f.write_str("96"),
-            Self::BrightWhite => f.write_str("97"),
-            Self::TrueColor { .. } if !truecolor_support() => {
-                self.closest_color_euclidean().to_fg_fmt(f)
-            }
-            Self::TrueColor { r, g, b } => {
-                write!(f, "38;2;{r};{g};{b}")
-            }
+            Self::Black => Ok("30"),
+            Self::Red => Ok("31"),
+            Self::Green => Ok("32"),
+            Self::Yellow => Ok("33"),
+            Self::Blue => Ok("34"),
+            Self::Magenta => Ok("35"),
+            Self::Cyan => Ok("36"),
+            Self::White => Ok("37"),
+            Self::BrightBlack => Ok("90"),
+            Self::BrightRed => Ok("91"),
+            Self::BrightGreen => Ok("92"),
+            Self::BrightYellow => Ok("93"),
+            Self::BrightBlue => Ok("94"),
+            Self::BrightMagenta => Ok("95"),
+            Self::BrightCyan => Ok("96"),
+            Self::BrightWhite => Ok("97"),
+            Self::TrueColor { r, g, b } => Err((r, g, b)),
+        }
+    }
+
+    pub(crate) fn to_fg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+        match self.to_fg_static_str() {
+            Ok(s) => f.write_str(s),
+            Err((r, g, b)) if !truecolor_support() => Self::TrueColor { r, g, b }
+                .closest_color_euclidean()
+                .to_fg_fmt(f),
+            Err((r, g, b)) => write!(f, "38;2;{r};{g};{b}"),
         }
     }
 
     #[must_use]
     pub fn to_fg_str(&self) -> Cow<'static, str> {
-        match *self {
-            Self::Black => "30".into(),
-            Self::Red => "31".into(),
-            Self::Green => "32".into(),
-            Self::Yellow => "33".into(),
-            Self::Blue => "34".into(),
-            Self::Magenta => "35".into(),
-            Self::Cyan => "36".into(),
-            Self::White => "37".into(),
-            Self::BrightBlack => "90".into(),
-            Self::BrightRed => "91".into(),
-            Self::BrightGreen => "92".into(),
-            Self::BrightYellow => "93".into(),
-            Self::BrightBlue => "94".into(),
-            Self::BrightMagenta => "95".into(),
-            Self::BrightCyan => "96".into(),
-            Self::BrightWhite => "97".into(),
-            Self::TrueColor { .. } if !truecolor_support() => {
-                self.closest_color_euclidean().to_fg_str()
-            }
-            Self::TrueColor { r, g, b } => format!("38;2;{r};{g};{b}").into(),
+        match self.to_fg_static_str() {
+            Ok(s) => s.into(),
+            Err((r, g, b)) if !truecolor_support() => Self::TrueColor { r, g, b }
+                .closest_color_euclidean()
+                .to_fg_str(),
+            Err((r, g, b)) => format!("38;2;{r};{g};{b}").into(),
+        }
+    }
+    const fn to_bg_static_str(self) -> Result<&'static str, (u8, u8, u8)> {
+        match self {
+            Self::Black => Ok("40"),
+            Self::Red => Ok("41"),
+            Self::Green => Ok("42"),
+            Self::Yellow => Ok("43"),
+            Self::Blue => Ok("44"),
+            Self::Magenta => Ok("45"),
+            Self::Cyan => Ok("46"),
+            Self::White => Ok("47"),
+            Self::BrightBlack => Ok("100"),
+            Self::BrightRed => Ok("101"),
+            Self::BrightGreen => Ok("102"),
+            Self::BrightYellow => Ok("103"),
+            Self::BrightBlue => Ok("104"),
+            Self::BrightMagenta => Ok("105"),
+            Self::BrightCyan => Ok("106"),
+            Self::BrightWhite => Ok("107"),
+            Self::TrueColor { r, g, b } => Err((r, g, b)),
         }
     }
 
     pub(crate) fn to_bg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
-        match self {
-            Self::Black => f.write_str("40"),
-            Self::Red => f.write_str("41"),
-            Self::Green => f.write_str("42"),
-            Self::Yellow => f.write_str("43"),
-            Self::Blue => f.write_str("44"),
-            Self::Magenta => f.write_str("45"),
-            Self::Cyan => f.write_str("46"),
-            Self::White => f.write_str("47"),
-            Self::BrightBlack => f.write_str("100"),
-            Self::BrightRed => f.write_str("101"),
-            Self::BrightGreen => f.write_str("102"),
-            Self::BrightYellow => f.write_str("103"),
-            Self::BrightBlue => f.write_str("104"),
-            Self::BrightMagenta => f.write_str("105"),
-            Self::BrightCyan => f.write_str("106"),
-            Self::BrightWhite => f.write_str("107"),
-            Self::TrueColor { .. } if !truecolor_support() => {
-                self.closest_color_euclidean().to_bg_fmt(f)
-            }
-            Self::TrueColor { r, g, b } => {
-                write!(f, "48;2;{r};{g};{b}")
-            }
+        match self.to_bg_static_str() {
+            Ok(s) => f.write_str(s),
+            Err((r, g, b)) if !truecolor_support() => Self::TrueColor { r, g, b }
+                .closest_color_euclidean()
+                .to_fg_fmt(f),
+            Err((r, g, b)) => write!(f, "48;2;{r};{g};{b}"),
         }
     }
 
     #[must_use]
     pub fn to_bg_str(&self) -> Cow<'static, str> {
-        match *self {
-            Self::Black => "40".into(),
-            Self::Red => "41".into(),
-            Self::Green => "42".into(),
-            Self::Yellow => "43".into(),
-            Self::Blue => "44".into(),
-            Self::Magenta => "45".into(),
-            Self::Cyan => "46".into(),
-            Self::White => "47".into(),
-            Self::BrightBlack => "100".into(),
-            Self::BrightRed => "101".into(),
-            Self::BrightGreen => "102".into(),
-            Self::BrightYellow => "103".into(),
-            Self::BrightBlue => "104".into(),
-            Self::BrightMagenta => "105".into(),
-            Self::BrightCyan => "106".into(),
-            Self::BrightWhite => "107".into(),
-            Self::TrueColor { .. } if !truecolor_support() => {
-                self.closest_color_euclidean().to_bg_str()
-            }
-            Self::TrueColor { r, g, b } => format!("48;2;{r};{g};{b}").into(),
+        match self.to_bg_static_str() {
+            Ok(s) => s.into(),
+            Err((r, g, b)) if !truecolor_support() => Self::TrueColor { r, g, b }
+                .closest_color_euclidean()
+                .to_fg_str(),
+            Err((r, g, b)) => format!("48;2;{r};{g};{b}").into(),
         }
     }
 
