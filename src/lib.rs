@@ -826,198 +826,315 @@ mod tests {
     use super::*;
     use std::{error::Error, fmt::Write};
 
+    /// Test the formatting
+    ///
+    /// Formatting *must* respect padding
+    ///
+    /// The added normal str in the input for comparison to rust-std
+    mod formmating {
+        use super::*;
+
+        #[test]
+        fn empty_padding() {
+            let inputs: &[&dyn Display] = &[&"".custom_color((126, 194, 218)), &"".blue(), &""];
+
+            for input in inputs {
+                assert_eq!(
+                    format!("{input:40}")
+                        .chars()
+                        .filter(|c| c.is_whitespace())
+                        .count(),
+                    40
+                );
+            }
+        }
+        #[test]
+        fn no_padding() {
+            let inputs: &[&dyn Display] = &[&"".custom_color((126, 194, 218)), &"".blue(), &""];
+            for input in inputs {
+                assert_eq!(
+                    format!("{input}")
+                        .chars()
+                        .filter(|c| c.is_whitespace())
+                        .count(),
+                    0
+                );
+            }
+        }
+
+        #[test]
+        fn not_enough_for_padding() {
+            let inputs: &[&dyn Display] =
+                &[&"🦀🦀".custom_color((126, 194, 218)), &"CS".blue(), &"CS"];
+            for input in inputs {
+                assert_eq!(
+                    format!("{input:0}")
+                        .chars()
+                        .filter(|c| c.is_whitespace())
+                        .count(),
+                    0
+                );
+            }
+            for input in inputs {
+                assert_eq!(
+                    format!("{input:1}")
+                        .chars()
+                        .filter(|c| c.is_whitespace())
+                        .count(),
+                    0
+                );
+            }
+            for input in inputs {
+                assert_eq!(
+                    format!("{input:2}")
+                        .chars()
+                        .filter(|c| c.is_whitespace())
+                        .count(),
+                    0
+                );
+            }
+        }
+
+        #[test]
+        fn padding_with_input() {
+            let inputs: &[&dyn Display] =
+                &[&"🦀🦀".custom_color((126, 194, 218)), &"CS".blue(), &"CS"];
+            for input in inputs {
+                assert_eq!(
+                    format!("{input:3}")
+                        .chars()
+                        .filter(|c| c.is_whitespace())
+                        .count(),
+                    1
+                );
+                assert!(format!("{input:3}").contains(&input.to_string()));
+
+                assert_eq!(
+                    format!("{input:4}")
+                        .chars()
+                        .filter(|c| c.is_whitespace())
+                        .count(),
+                    2
+                );
+                assert!(format!("{input:4}").contains(&input.to_string()));
+            }
+        }
+    }
+
     #[test]
-    #[allow(clippy::cognitive_complexity)]
-    fn formatting() {
-        // respect the formatting. Escape sequence add some padding so >= 40
+    fn precision_less() {
+        let inputs: &[&dyn Display] = &[
+            &"🦀🦀".custom_color((126, 194, 218)),
+            &"CC".blue(),
+            &"CC",
+            &"ColoredString".blue(),
+        ];
+        for input in inputs {
+            assert_eq!(
+                format!("{input:.1}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                1,
+                "input: {input}"
+            );
+            assert!(!format!("{input:.1}").contains(&input.to_string()));
+        }
+    }
 
-        // Only padding
-        assert_eq!(
-            format!("{:40}", "".blue())
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            40
-        );
-        assert_eq!(
-            format!("{:2}", "CS".blue())
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            0
-        );
+    #[test]
+    fn precision_eq() {
+        let inputs: &[&dyn Display] = &[&"🦀🦀".custom_color((126, 194, 218)), &"CC".blue(), &"CC"];
+        for input in inputs {
+            assert_eq!(
+                format!("{input:.2}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                2,
+                "input: {input}"
+            );
+            assert!(format!("{input:.2}").contains(&input.to_string()));
+        }
+    }
 
-        // Padding with precision
-        assert_eq!(
-            format!("{:1.2}", "CS".blue())
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            0
-        );
-        assert_eq!(
-            format!("{:1.2}", "CS".blue())
-                .chars()
-                .filter(|c| *c == 'C' || *c == 'S')
-                .count(),
-            2
-        );
+    #[test]
+    fn precision_more() {
+        let inputs: &[&dyn Display] = &[&"🦀🦀".custom_color((126, 194, 218)), &"CC".blue(), &"CC"];
+        for input in inputs {
+            assert_eq!(
+                format!("{input:.100}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                2,
+                "input: {input}"
+            );
+            assert!(format!("{input:.100}").contains(&input.to_string()));
+        }
+    }
 
-        assert_eq!(
-            format!("{:1.1}", "CS".blue())
-                .chars()
-                .filter(|c| *c == 'C')
-                .count(),
-            1
-        );
-        assert_eq!(
-            format!("{:1.1}", "CS".blue())
-                .chars()
-                .filter(|c| *c == 'S')
-                .count(),
-            0
-        );
-        assert_eq!(
-            format!("{:1.1}", "CS".blue())
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            0
-        );
+    #[test]
+    fn precision_padding() {
+        let inputs: &[&dyn Display] = &[&"🦀🦀".custom_color((126, 194, 218)), &"CC".blue(), &"CC"];
+        for input in inputs {
+            // precision less, padding more
+            assert_eq!(
+                format!("{input:40.1}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                1,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:40.1}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                39,
+                "input: {input}"
+            );
+            // precision less, padding less_or_equal
+            assert_eq!(
+                format!("{input:1.1}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                1,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:1.1}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                0,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:0.1}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                1,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:0.1}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                0,
+                "input: {input}"
+            );
+            assert!(format!("{input:.100}").contains(&input.to_string()));
+            // precision eq, padding more
+            assert_eq!(
+                format!("{input:40.2}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                2,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:40.2}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                38,
+                "input: {input}"
+            );
+            // precision eq, padding less_or_equal
+            assert_eq!(
+                format!("{input:1.2}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                2,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:1.2}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                0,
+                "input: {input}"
+            );
+            assert!(format!("{input:1.2}").contains(&input.to_string()));
+            assert_eq!(
+                format!("{input:0.2}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                2,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:0.2}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                0,
+                "input: {input}"
+            );
+            assert!(format!("{input:0.2}").contains(&input.to_string()));
 
-        assert_eq!(
-            format!("{:2.1}", "CS".blue())
-                .chars()
-                .filter(|c| *c == 'C')
-                .count(),
-            1
-        );
-        assert_eq!(
-            format!("{:2.1}", "CS".blue())
-                .chars()
-                .filter(|c| *c == 'S')
-                .count(),
-            0
-        );
-        assert_eq!(
-            format!("{:2.1}", "CS".blue())
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            1
-        );
-
-        // both should be truncated to 1 char before coloring
-        assert_eq!(
-            format!("{:1.1}", "toto".blue()).len(),
-            format!("{:1.1}", "1".blue()).len()
-        );
-
-        // Check handling of utf-8 characters
-        assert_ne!('🦀'.len_utf8(), 1);
-        let crab = format!("{:40.1}", "🦀🦀🦀🦀🦀🦀🦀🦀".blue());
-        assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 1);
-        assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 39);
-        assert!(crab.len() >= 40);
-        let crab = format!("{:40.2}", "🦀🦀🦀🦀🦀🦀🦀🦀".blue());
-        assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 2);
-        assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 38);
-        assert!(crab.len() >= 40);
-
-        // Check equality to std string
-
-        // Only padding
-        assert_eq!(
-            format!("{:40}", "")
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            40
-        );
-        assert_eq!(
-            format!("{:2}", "CS")
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            0
-        );
-
-        // Padding with precision
-        assert_eq!(
-            format!("{:1.2}", "CS")
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            0
-        );
-        assert_eq!(
-            format!("{:1.2}", "CS")
-                .chars()
-                .filter(|c| *c == 'C' || *c == 'S')
-                .count(),
-            2
-        );
-
-        assert_eq!(
-            format!("{:1.1}", "CS")
-                .chars()
-                .filter(|c| *c == 'C')
-                .count(),
-            1
-        );
-        assert_eq!(
-            format!("{:1.1}", "CS")
-                .chars()
-                .filter(|c| *c == 'S')
-                .count(),
-            0
-        );
-        assert_eq!(
-            format!("{:1.1}", "CS")
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            0
-        );
-
-        assert_eq!(
-            format!("{:2.1}", "CS")
-                .chars()
-                .filter(|c| *c == 'C')
-                .count(),
-            1
-        );
-        assert_eq!(
-            format!("{:2.1}", "CS")
-                .chars()
-                .filter(|c| *c == 'S')
-                .count(),
-            0
-        );
-        assert_eq!(
-            format!("{:2.1}", "CS")
-                .chars()
-                .filter(|c| c.is_whitespace())
-                .count(),
-            1
-        );
-
-        // both should be truncated to 1 char before coloring
-        assert_eq!(
-            format!("{:1.1}", "toto".blue()).len(),
-            format!("{:1.1}", "1".blue()).len()
-        );
-
-        // Check handling of utf-8 characters
-        assert_ne!('🦀'.len_utf8(), 1);
-        let crab = format!("{:40.1}", "🦀🦀🦀🦀🦀🦀🦀🦀");
-        assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 1);
-        assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 39);
-        assert!(crab.len() >= 40);
-        let crab = format!("{:40.2}", "🦀🦀🦀🦀🦀🦀🦀🦀");
-        assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 2);
-        assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 38);
-        assert!(crab.len() >= 40);
+            // precision more, padding more
+            assert_eq!(
+                format!("{input:40.4}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                2,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:40.4}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                38,
+                "input: {input}"
+            );
+            // precision eq, padding less_or_equal
+            assert_eq!(
+                format!("{input:1.4}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                2,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:1.4}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                0,
+                "input: {input}"
+            );
+            assert!(format!("{input:1.4}").contains(&input.to_string()));
+            assert_eq!(
+                format!("{input:0.4}")
+                    .chars()
+                    .filter(|c| *c == '🦀' || *c == 'C')
+                    .count(),
+                2,
+                "input: {input}"
+            );
+            assert_eq!(
+                format!("{input:0.4}")
+                    .chars()
+                    .filter(|c| c.is_whitespace())
+                    .count(),
+                0,
+                "input: {input}"
+            );
+            assert!(format!("{input:0.4}").contains(&input.to_string()));
+        }
     }
 
     #[test]
