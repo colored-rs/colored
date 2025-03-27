@@ -771,7 +771,6 @@ impl Colorize for &str {
 }
 
 impl fmt::Display for ColoredString {
-    #[allow(clippy::to_string_in_format_args)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if !Self::has_colors() || self.is_plain() {
             return <String as fmt::Display>::fmt(&self.input, f);
@@ -834,12 +833,61 @@ mod tests {
     #[test]
     fn formatting() {
         // respect the formatting. Escape sequence add some padding so >= 40
-        assert!(format!("{:40}", "".blue()).len() >= 40);
+        assert_eq!(
+            format!("{:40}", "".blue())
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            40
+        );
+        assert_eq!(
+            format!("{:2}", "CS".blue())
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            0
+        );
+        assert_eq!(
+            format!("{:1.2}", "CS".blue())
+                .chars()
+                .filter(|c| c.is_whitespace())
+                .count(),
+            0
+        );
+        assert_eq!(
+            format!("{:1.2}", "CS".blue())
+                .chars()
+                .filter(|c| *c == 'C' || *c == 'S')
+                .count(),
+            2
+        );
+        assert_eq!(
+            format!("{:1.1}", "CS".blue())
+                .chars()
+                .filter(|c| *c == 'C')
+                .count(),
+            1
+        );
+        assert_eq!(
+            format!("{:1.1}", "CS".blue())
+                .chars()
+                .filter(|c| *c == 'S')
+                .count(),
+            0
+        );
+
         // both should be truncated to 1 char before coloring
         assert_eq!(
             format!("{:1.1}", "toto".blue()).len(),
             format!("{:1.1}", "1".blue()).len()
         );
+
+        // Check handling of utf-8 characters
+        assert_ne!('🦀'.len_utf8(), 1);
+        let crab = format!("{:40.1}", "🦀🦀🦀🦀🦀🦀🦀🦀".blue());
+        assert_eq!(crab.chars().filter(|c| *c == '🦀').count(), 1);
+        assert_eq!(crab.chars().filter(|c| c.is_whitespace()).count(), 39);
+        assert!(crab.len() >= 40);
     }
 
     #[test]
