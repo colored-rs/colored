@@ -288,7 +288,81 @@ fn parse_hex(s: &str) -> Option<Color> {
 
 #[cfg(test)]
 mod tests {
+    use core::fmt::Display;
+
     pub use super::*;
+
+    struct FmtFgWrapper(Color);
+
+    impl Display for FmtFgWrapper {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.to_fg_fmt(f)
+        }
+    }
+    struct FmtBgWrapper(Color);
+
+    impl Display for FmtBgWrapper {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.to_bg_fmt(f)
+        }
+    }
+
+    #[test]
+    fn fmt_and_to_str_same() {
+        use Color::*;
+        let colors = &[
+            Black,
+            Red,
+            Green,
+            Yellow,
+            Blue,
+            Magenta,
+            Cyan,
+            White,
+            BrightBlack,
+            BrightRed,
+            BrightGreen,
+            BrightYellow,
+            BrightBlue,
+            BrightMagenta,
+            BrightCyan,
+            BrightWhite,
+            TrueColor { r: 0, g: 0, b: 0 },
+            TrueColor {
+                r: 255,
+                g: 255,
+                b: 255,
+            },
+            TrueColor {
+                r: 126,
+                g: 127,
+                b: 128,
+            },
+            TrueColor { r: 255, g: 0, b: 0 },
+            TrueColor {
+                r: 255,
+                g: 255,
+                b: 0,
+            },
+            TrueColor { r: 0, g: 255, b: 0 },
+            TrueColor {
+                r: 0,
+                g: 255,
+                b: 255,
+            },
+            TrueColor { r: 0, g: 0, b: 255 },
+            TrueColor {
+                r: 255,
+                g: 0,
+                b: 255,
+            },
+        ];
+
+        for color in colors {
+            assert_eq!(color.to_fg_str(), FmtFgWrapper(*color).to_string());
+            assert_eq!(color.to_bg_str(), FmtBgWrapper(*color).to_string());
+        }
+    }
 
     mod from_str {
         pub use super::*;
