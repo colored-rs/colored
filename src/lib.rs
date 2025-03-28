@@ -1188,177 +1188,353 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn compute_style_empty_string() {
-        assert_eq!("", ComputeStyleHelper::from(&"".clear()).to_string());
+    mod compute_style {
+        use crate::{ColoredString, Colorize, ComputeStyleHelper};
+
+        /// Into is not dyn compatible
+        trait IntoCS {
+            fn into(&self) -> ColoredString;
+        }
+        impl IntoCS for &str {
+            fn into(&self) -> ColoredString {
+                ColoredString::from(*self)
+            }
+        }
+        impl IntoCS for ColoredString {
+            fn into(&self) -> ColoredString {
+                self.clone()
+            }
+        }
+
+        /// Helper to use a Colorize function on str or `ColoredString`
+        type ColorMapper = &'static dyn Fn(&dyn IntoCS) -> ColoredString;
+        macro_rules! helper_color {
+            ($f:ident, $r:expr) => {
+                (&(|i| Colorize::$f(i.into())), $r)
+            };
+        }
+        /// Helper to use a truecolor method of Colorize on str or `ColoredString`
+        macro_rules! helper_truecolor {
+            ($f:ident, $r:expr, $g:expr,$b:expr,$res:expr) => {
+                (
+                    &(|i| Colorize::$f(i.into(), $r, $g, $b)),
+                    concat!(
+                        $res,
+                        stringify!($r),
+                        ";",
+                        stringify!($g),
+                        ";",
+                        stringify!($b)
+                    ),
+                )
+            };
+        }
+        /// The input of a `ColoredString`
+        const INPUTS: &[&str; 5] = &["🦀🦀", "CS", "CC", "ColoredString", "🦀ColoredString🦀CC"];
+        /// All background function mappings to their expected result
+        const BG_MAPPINGS: &[(ColorMapper, &str)] = &[
+            helper_color!(on_black, "40"),
+            helper_color!(on_red, "41"),
+            helper_color!(on_green, "42"),
+            helper_color!(on_yellow, "43"),
+            helper_color!(on_blue, "44"),
+            helper_color!(on_magenta, "45"),
+            helper_color!(on_cyan, "46"),
+            helper_color!(on_white, "47"),
+            helper_color!(on_bright_black, "100"),
+            helper_color!(on_bright_red, "101"),
+            helper_color!(on_bright_green, "102"),
+            helper_color!(on_bright_yellow, "103"),
+            helper_color!(on_bright_blue, "104"),
+            helper_color!(on_bright_magenta, "105"),
+            helper_color!(on_bright_cyan, "106"),
+            helper_color!(on_bright_white, "107"),
+            helper_truecolor!(on_truecolor, 0, 0, 0, "48;2;"),
+            helper_truecolor!(on_truecolor, 128, 0, 0, "48;2;"),
+            helper_truecolor!(on_truecolor, 0, 128, 0, "48;2;"),
+            helper_truecolor!(on_truecolor, 0, 0, 128, "48;2;"),
+            helper_truecolor!(on_truecolor, 128, 127, 0, "48;2;"),
+            helper_truecolor!(on_truecolor, 128, 0, 127, "48;2;"),
+            helper_truecolor!(on_truecolor, 0, 128, 127, "48;2;"),
+            helper_truecolor!(on_truecolor, 126, 128, 127, "48;2;"),
+        ];
+        /// All foreground function mappings to their expected result
+        const FG_MAPPINGS: &[(ColorMapper, &str)] = &[
+            helper_color!(black, "30"),
+            helper_color!(red, "31"),
+            helper_color!(green, "32"),
+            helper_color!(yellow, "33"),
+            helper_color!(blue, "34"),
+            helper_color!(magenta, "35"),
+            helper_color!(cyan, "36"),
+            helper_color!(white, "37"),
+            helper_color!(bright_black, "90"),
+            helper_color!(bright_red, "91"),
+            helper_color!(bright_green, "92"),
+            helper_color!(bright_yellow, "93"),
+            helper_color!(bright_blue, "94"),
+            helper_color!(bright_magenta, "95"),
+            helper_color!(bright_cyan, "96"),
+            helper_color!(bright_white, "97"),
+            helper_truecolor!(truecolor, 0, 0, 0, "38;2;"),
+            helper_truecolor!(truecolor, 128, 0, 0, "38;2;"),
+            helper_truecolor!(truecolor, 0, 128, 0, "38;2;"),
+            helper_truecolor!(truecolor, 0, 0, 128, "38;2;"),
+            helper_truecolor!(truecolor, 128, 127, 0, "38;2;"),
+            helper_truecolor!(truecolor, 128, 0, 127, "38;2;"),
+            helper_truecolor!(truecolor, 0, 128, 127, "38;2;"),
+            helper_truecolor!(truecolor, 126, 128, 127, "38;2;"),
+        ];
+
+        const STYLE_MAPPINGS: &[(ColorMapper, &str)] = &[
+            helper_color!(bold, "1"),
+            helper_color!(dimmed, "2"),
+            helper_color!(italic, "3"),
+            helper_color!(underline, "4"),
+            helper_color!(blink, "5"),
+            helper_color!(reversed, "7"),
+            helper_color!(hidden, "8"),
+            helper_color!(strikethrough, "9"),
+        ];
+
+        #[test]
+        /// Check for clear
+        fn clear() {
+            for input in INPUTS {
+                assert_eq!(&format!("{}", input.clear()), input);
+            }
+        }
+
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        /// Check for only a set foreground color
+        fn simple_fg() {
+            for input in INPUTS {
+                for (fun, res) in FG_MAPPINGS {
+                    assert_eq!(
+                        format!("{}", ComputeStyleHelper::new(&fun(input))),
+                        format!("\x1B[{res}m"),
+                        "Input: '{input}'"
+                    );
+                }
+            }
+        }
+
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        /// Check for only a set background color
+        fn simple_bg() {
+            for input in INPUTS {
+                for (fun, res) in BG_MAPPINGS {
+                    assert_eq!(
+                        format!("{}", ComputeStyleHelper::new(&fun(input))),
+                        format!("\x1B[{res}m"),
+                        "Input: '{input}'"
+                    );
+                }
+            }
+        }
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        /// Check for only a set background AND foreground color
+        fn fg_and_bg() {
+            for input in INPUTS {
+                for (fg_fun, fg_res) in FG_MAPPINGS {
+                    for (bg_fun, bg_res) in BG_MAPPINGS {
+                        let tmp = bg_fun(input);
+                        assert_eq!(
+                            format!("{}", ComputeStyleHelper::new(&fg_fun(&tmp))),
+                            format!("\x1B[{bg_res};{fg_res}m"),
+                            "Input: '{input}'"
+                        );
+                    }
+                }
+            }
+        }
+
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        fn simple_style() {
+            for input in INPUTS {
+                for (fun, res) in STYLE_MAPPINGS {
+                    assert_eq!(
+                        format!("{}", ComputeStyleHelper::new(&fun(input))),
+                        format!("\x1B[{res}m"),
+                        "Input: '{input}'"
+                    );
+                }
+            }
+        }
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        #[ignore = "Not yet implemented"]
+        fn multiple_style() {
+            todo!()
+        }
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        fn style_fg() {
+            for input in INPUTS {
+                for (fg_fun, fg_res) in FG_MAPPINGS {
+                    for (style_fun, style_res) in STYLE_MAPPINGS {
+                        let tmp = style_fun(input);
+                        assert_eq!(
+                            format!("{}", ComputeStyleHelper::new(&fg_fun(&tmp))),
+                            format!("\x1B[{style_res};{fg_res}m"),
+                            "Input: '{input}'"
+                        );
+                    }
+                }
+            }
+        }
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        fn style_bg() {
+            for input in INPUTS {
+                for (bg_fun, bg_res) in BG_MAPPINGS {
+                    for (style_fun, style_res) in STYLE_MAPPINGS {
+                        let tmp = style_fun(input);
+                        assert_eq!(
+                            format!("{}", ComputeStyleHelper::new(&bg_fun(&tmp))),
+                            format!("\x1B[{style_res};{bg_res}m"),
+                            "Input: '{input}'"
+                        );
+                    }
+                }
+            }
+        }
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        fn style_fg_bg() {
+            for input in INPUTS {
+                for (fg_fun, fg_res) in FG_MAPPINGS {
+                    for (bg_fun, bg_res) in BG_MAPPINGS {
+                        for (style_fun, style_res) in STYLE_MAPPINGS {
+                            let tmp = style_fun(input);
+                            let tmp = fg_fun(&tmp);
+                            assert_eq!(
+                                format!("{}", ComputeStyleHelper::new(&bg_fun(&tmp))),
+                                format!("\x1B[{style_res};{bg_res};{fg_res}m"),
+                                "Input: '{input}'"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        #[ignore = "Not yet implemented"]
+        fn multiple_style_fg() {
+            todo!()
+        }
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        #[ignore = "Not yet implemented"]
+        fn multiple_style_bg() {
+            todo!()
+        }
+        #[test]
+        #[cfg_attr(feature = "no-color", ignore)]
+        #[ignore = "Not yet implemented"]
+        fn multiple_style_fg_bg() {
+            todo!()
+        }
     }
 
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_fg_blue() {
-        let blue = "\x1B[34m";
+    mod escape_rest {
+        use crate::{ColoredString, Colorize, EscapeInnerResetSequencesHelper};
 
-        assert_eq!(blue, ComputeStyleHelper::from(&"".blue()).to_string());
-    }
+        #[test]
+        fn do_nothing_on_empty_strings() {
+            let style = ColoredString::default();
+            let expected = String::new();
 
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_bg_blue() {
-        let on_blue = "\x1B[44m";
+            let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
 
-        assert_eq!(on_blue, ComputeStyleHelper::from(&"".on_blue()).to_string());
-    }
+            assert_eq!(expected, output);
+        }
 
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_blue_on_blue() {
-        let blue_on_blue = "\x1B[44;34m";
+        #[test]
+        fn do_nothing_on_string_with_no_reset() {
+            let style = ColoredString {
+                input: String::from("hello world !"),
+                ..ColoredString::default()
+            };
 
-        assert_eq!(
-            blue_on_blue,
-            ComputeStyleHelper::from(&"".blue().on_blue()).to_string()
-        );
-    }
+            let expected = String::from("hello world !");
+            let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
 
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_fg_bright_blue() {
-        let blue = "\x1B[94m";
+            assert_eq!(expected, output);
+        }
 
-        assert_eq!(
-            blue,
-            ComputeStyleHelper::from(&"".bright_blue()).to_string()
-        );
-    }
+        #[cfg_attr(feature = "no-color", ignore)]
+        #[test]
+        fn replace_inner_reset_sequence_with_current_style() {
+            let input = format!("start {} end", String::from("hello world !").red());
+            let style = input.blue();
 
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_bg_bright_blue() {
-        let on_blue = "\x1B[104m";
+            let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
+            let blue = "\x1B[34m";
+            let red = "\x1B[31m";
+            let reset = "\x1B[0m";
+            let expected = format!("start {red}hello world !{reset}{blue} end");
+            assert_eq!(expected, output);
+        }
 
-        assert_eq!(
-            on_blue,
-            ComputeStyleHelper::from(&"".on_bright_blue()).to_string()
-        );
-    }
+        #[cfg_attr(feature = "no-color", ignore)]
+        #[test]
+        fn replace_multiple_inner_reset_sequences_with_current_style() {
+            let italic_str = String::from("yo").italic();
+            let input = format!("start 1:{italic_str} 2:{italic_str} 3:{italic_str} end");
+            let style = input.blue();
 
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_bright_blue_on_bright_blue() {
-        let blue_on_blue = "\x1B[104;94m";
+            let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
+            let blue = "\x1B[34m";
+            let italic = "\x1B[3m";
+            let reset = "\x1B[0m";
+            let expected = format!(
+                    "start 1:{italic}yo{reset}{blue} 2:{italic}yo{reset}{blue} 3:{italic}yo{reset}{blue} end"
+                );
 
-        assert_eq!(
-            blue_on_blue,
-            ComputeStyleHelper::from(&"".bright_blue().on_bright_blue()).to_string()
-        );
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_bold() {
-        let bold = "\x1B[1m";
-
-        assert_eq!(bold, ComputeStyleHelper::from(&"".bold()).to_string());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_blue_bold() {
-        let blue_bold = "\x1B[1;34m";
-
-        assert_eq!(
-            blue_bold,
-            ComputeStyleHelper::from(&"".blue().bold()).to_string()
-        );
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_blue_bold_on_blue() {
-        let blue_bold_on_blue = "\x1B[1;44;34m";
-
-        assert_eq!(
-            blue_bold_on_blue,
-            ComputeStyleHelper::from(&"".blue().bold().on_blue()).to_string()
-        );
-    }
-
-    #[test]
-    fn escape_reset_sequence_spec_should_do_nothing_on_empty_strings() {
-        let style = ColoredString::default();
-        let expected = String::new();
-
-        let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
-
-        assert_eq!(expected, output);
-    }
-
-    #[test]
-    fn escape_reset_sequence_spec_should_do_nothing_on_string_with_no_reset() {
-        let style = ColoredString {
-            input: String::from("hello world !"),
-            ..ColoredString::default()
-        };
-
-        let expected = String::from("hello world !");
-        let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
-
-        assert_eq!(expected, output);
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn escape_reset_sequence_spec_should_replace_inner_reset_sequence_with_current_style() {
-        let input = format!("start {} end", String::from("hello world !").red());
-        let style = input.blue();
-
-        let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
-        let blue = "\x1B[34m";
-        let red = "\x1B[31m";
-        let reset = "\x1B[0m";
-        let expected = format!("start {red}hello world !{reset}{blue} end");
-        assert_eq!(expected, output);
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn escape_reset_sequence_spec_should_replace_multiple_inner_reset_sequences_with_current_style()
-    {
-        let italic_str = String::from("yo").italic();
-        let input = format!("start 1:{italic_str} 2:{italic_str} 3:{italic_str} end");
-        let style = input.blue();
-
-        let output = EscapeInnerResetSequencesHelper::new(&style, &style).to_string();
-        let blue = "\x1B[34m";
-        let italic = "\x1B[3m";
-        let reset = "\x1B[0m";
-        let expected = format!(
-            "start 1:{italic}yo{reset}{blue} 2:{italic}yo{reset}{blue} 3:{italic}yo{reset}{blue} end"
-        );
-
-        println!("first: {expected}\nsecond: {output}");
-
-        assert_eq!(expected, output);
+            assert_eq!(expected, output, "first: {expected}\nsecond: {output}");
+        }
     }
 
     #[test]
     fn color_fn() {
-        assert_eq!("blue".blue(), "blue".color("blue"));
-    }
+        macro_rules! helper {
+            ($f:ident) => {
+                ("blue".$f(), "blue".color(stringify!($f)))
+            };
+        }
+        macro_rules! helper_bright {
+            ($f:ident, $e:expr) => {
+                ("blue".$f(), "blue".color(concat!("bright ", $e)))
+            };
+        }
+        let mappings = &[
+            helper!(black),
+            helper!(red),
+            helper!(green),
+            helper!(yellow),
+            helper!(blue),
+            helper!(magenta),
+            helper!(cyan),
+            helper!(white),
+            helper_bright!(bright_black, "black"),
+            helper_bright!(bright_red, "red"),
+            helper_bright!(bright_green, "green"),
+            helper_bright!(bright_yellow, "yellow"),
+            helper_bright!(bright_blue, "blue"),
+            helper_bright!(bright_magenta, "magenta"),
+            helper_bright!(bright_cyan, "cyan"),
+            helper_bright!(bright_white, "white"),
+        ];
 
-    #[test]
-    fn on_color_fn() {
-        assert_eq!("blue".on_blue(), "blue".on_color("blue"));
-    }
-
-    #[test]
-    fn bright_color_fn() {
-        assert_eq!("blue".bright_blue(), "blue".color("bright blue"));
-    }
-
-    #[test]
-    fn on_bright_color_fn() {
-        assert_eq!("blue".on_bright_blue(), "blue".on_color("bright blue"));
+        for (l, r) in mappings {
+            assert_eq!(l, r);
+        }
     }
 
     #[test]
