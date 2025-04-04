@@ -23,8 +23,8 @@ pub enum Color {
     BrightMagenta,
     BrightCyan,
     BrightWhite,
-    TrueColor { r: u8, g: u8, b: u8 },
     AnsiColor(u8),
+    TrueColor { r: u8, g: u8, b: u8 },
 }
 
 fn truecolor_support() -> bool {
@@ -56,8 +56,8 @@ impl Color {
             Self::TrueColor { .. } if !truecolor_support() => {
                 self.closest_color_euclidean().to_fg_str()
             }
-            Self::TrueColor { r, g, b } => format!("38;2;{r};{g};{b}").into(),
             Self::AnsiColor(code) => format!("38;5;{code}").into(),
+            Self::TrueColor { r, g, b } => format!("38;2;{r};{g};{b}").into(),
         }
     }
 
@@ -80,11 +80,11 @@ impl Color {
             Self::BrightMagenta => "105".into(),
             Self::BrightCyan => "106".into(),
             Self::BrightWhite => "107".into(),
+            Self::AnsiColor(code) => format!("48;5;{code}").into(),
             Self::TrueColor { .. } if !truecolor_support() => {
                 self.closest_color_euclidean().to_bg_str()
             }
             Self::TrueColor { r, g, b } => format!("48;2;{r};{g};{b}").into(),
-            Self::AnsiColor(code) => format!("48;5;{code}").into(),
         }
     }
 
@@ -194,8 +194,8 @@ impl Color {
                 g: 255,
                 b: 255,
             },
-            TrueColor { r, g, b } => TrueColor { r, g, b },
             AnsiColor(color) => AnsiColor(color),
+            TrueColor { r, g, b } => TrueColor { r, g, b },
         }
     }
 }
