@@ -1,4 +1,5 @@
 # Unreleased
+- Added methods `ansi_color` and `on_ansi_color` to `Colorize`.
 
 # 3.0.0
 - **[BREAKING CHANGE]:** Upgrade MSRV to 1.80 and remove the then unnecessary lazy_static dependency.

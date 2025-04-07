@@ -1,7 +1,7 @@
 use std::{borrow::Cow, env, str::FromStr};
 use Color::{
-    Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta, BrightRed,
-    BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
+    AnsiColor, Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta,
+    BrightRed, BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
 };
 /// The 8 standard colors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -23,6 +23,7 @@ pub enum Color {
     BrightMagenta,
     BrightCyan,
     BrightWhite,
+    AnsiColor(u8),
     TrueColor { r: u8, g: u8, b: u8 },
 }
 
@@ -31,9 +32,20 @@ fn truecolor_support() -> bool {
     truecolor.is_ok_and(|truecolor| truecolor == "truecolor" || truecolor == "24bit")
 }
 
+/// A color that cannot be converted to a [`&'static str`](str)
+enum NotStaticColor {
+    AnsiColor(u8),
+    TrueColor { r: u8, g: u8, b: u8 },
+}
+
 #[allow(missing_docs)]
 impl Color {
-    const fn to_fg_static_str(self) -> Result<&'static str, (u8, u8, u8)> {
+    /// Converts the foreground [`Color`] into a [`&'static str`](str)
+    ///
+    /// # Errors
+    ///
+    /// If the color is a `TrueColor` or `AnsiColor`, it will return [`NotStaticColor`] as an Error
+    const fn to_fg_static_str(self) -> Result<&'static str, NotStaticColor> {
         match self {
             Self::Black => Ok("30"),
             Self::Red => Ok("31"),
@@ -51,17 +63,21 @@ impl Color {
             Self::BrightMagenta => Ok("95"),
             Self::BrightCyan => Ok("96"),
             Self::BrightWhite => Ok("97"),
-            Self::TrueColor { r, g, b } => Err((r, g, b)),
+            Self::TrueColor { r, g, b } => Err(NotStaticColor::TrueColor { r, g, b }),
+            Self::AnsiColor(code) => Err(NotStaticColor::AnsiColor(code)),
         }
     }
 
     pub(crate) fn to_fg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
         match self.to_fg_static_str() {
             Ok(s) => f.write_str(s),
-            Err((r, g, b)) if !truecolor_support() => Self::TrueColor { r, g, b }
-                .closest_color_euclidean()
-                .to_fg_fmt(f),
-            Err((r, g, b)) => write!(f, "38;2;{r};{g};{b}"),
+            Err(NotStaticColor::TrueColor { r, g, b }) if !truecolor_support() => {
+                Self::TrueColor { r, g, b }
+                    .closest_color_euclidean()
+                    .to_fg_fmt(f)
+            }
+            Err(NotStaticColor::TrueColor { r, g, b }) => write!(f, "38;2;{r};{g};{b}"),
+            Err(NotStaticColor::AnsiColor(code)) => write!(f, "38;5;{code}"),
         }
     }
 
@@ -69,13 +85,22 @@ impl Color {
     pub fn to_fg_str(&self) -> Cow<'static, str> {
         match self.to_fg_static_str() {
             Ok(s) => s.into(),
-            Err((r, g, b)) if !truecolor_support() => Self::TrueColor { r, g, b }
-                .closest_color_euclidean()
-                .to_fg_str(),
-            Err((r, g, b)) => format!("38;2;{r};{g};{b}").into(),
+            Err(NotStaticColor::TrueColor { r, g, b }) if !truecolor_support() => {
+                Self::TrueColor { r, g, b }
+                    .closest_color_euclidean()
+                    .to_fg_str()
+            }
+            Err(NotStaticColor::TrueColor { r, g, b }) => format!("38;2;{r};{g};{b}").into(),
+            Err(NotStaticColor::AnsiColor(code)) => format!("38;5;{code}").into(),
         }
     }
-    const fn to_bg_static_str(self) -> Result<&'static str, (u8, u8, u8)> {
+
+    /// Converts the background [`Color`] into a [`&'static str`](str)
+    ///
+    /// # Errors
+    ///
+    /// If the color is a `TrueColor` or `AnsiColor`, it will return [`NotStaticColor`] as an Error
+    const fn to_bg_static_str(self) -> Result<&'static str, NotStaticColor> {
         match self {
             Self::Black => Ok("40"),
             Self::Red => Ok("41"),
@@ -93,17 +118,21 @@ impl Color {
             Self::BrightMagenta => Ok("105"),
             Self::BrightCyan => Ok("106"),
             Self::BrightWhite => Ok("107"),
-            Self::TrueColor { r, g, b } => Err((r, g, b)),
+            Self::TrueColor { r, g, b } => Err(NotStaticColor::TrueColor { r, g, b }),
+            Self::AnsiColor(code) => Err(NotStaticColor::AnsiColor(code)),
         }
     }
 
     pub(crate) fn to_bg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
         match self.to_bg_static_str() {
             Ok(s) => f.write_str(s),
-            Err((r, g, b)) if !truecolor_support() => Self::TrueColor { r, g, b }
-                .closest_color_euclidean()
-                .to_fg_fmt(f),
-            Err((r, g, b)) => write!(f, "48;2;{r};{g};{b}"),
+            Err(NotStaticColor::TrueColor { r, g, b }) if !truecolor_support() => {
+                Self::TrueColor { r, g, b }
+                    .closest_color_euclidean()
+                    .to_fg_fmt(f)
+            }
+            Err(NotStaticColor::TrueColor { r, g, b }) => write!(f, "48;2;{r};{g};{b}"),
+            Err(NotStaticColor::AnsiColor(code)) => write!(f, "48;5;{code}"),
         }
     }
 
@@ -111,10 +140,13 @@ impl Color {
     pub fn to_bg_str(&self) -> Cow<'static, str> {
         match self.to_bg_static_str() {
             Ok(s) => s.into(),
-            Err((r, g, b)) if !truecolor_support() => Self::TrueColor { r, g, b }
-                .closest_color_euclidean()
-                .to_fg_str(),
-            Err((r, g, b)) => format!("48;2;{r};{g};{b}").into(),
+            Err(NotStaticColor::TrueColor { r, g, b }) if !truecolor_support() => {
+                Self::TrueColor { r, g, b }
+                    .closest_color_euclidean()
+                    .to_bg_str()
+            }
+            Err(NotStaticColor::TrueColor { r, g, b }) => format!("48;2;{r};{g};{b}").into(),
+            Err(NotStaticColor::AnsiColor(code)) => format!("48;5;{code}").into(),
         }
     }
 
@@ -221,6 +253,7 @@ impl Color {
                 g: 255,
                 b: 255,
             },
+            AnsiColor(color) => AnsiColor(color),
             TrueColor { r, g, b } => TrueColor { r, g, b },
         }
     }
@@ -293,8 +326,8 @@ mod tests {
 
     #[test]
     fn fmt_and_to_str_same() {
-        use itertools::Itertools;
         use core::fmt::Display;
+        use itertools::Itertools;
         use Color::*;
 
         // Helper structs to call the method

@@ -268,6 +268,13 @@ pub trait Colorize {
             b: color.b,
         })
     }
+    fn ansi_color<T>(self, color: T) -> ColoredString
+    where
+        Self: Sized,
+        T: Into<u8>,
+    {
+        self.color(Color::AnsiColor(color.into()))
+    }
     fn color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Background Colors
     fn on_black(self) -> ColoredString
@@ -396,6 +403,13 @@ pub trait Colorize {
             g: color.g,
             b: color.b,
         })
+    }
+    fn on_ansi_color<T>(self, color: T) -> ColoredString
+    where
+        Self: Sized,
+        T: Into<u8>,
+    {
+        self.on_color(Color::AnsiColor(color.into()))
     }
     fn on_color<S: Into<Color>>(self, color: S) -> ColoredString;
     // Styles
