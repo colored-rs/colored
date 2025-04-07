@@ -327,6 +327,7 @@ impl Style {
     pub(crate) fn private_fmt(self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut styles = Styles::from_u8(self.0);
 
+        // We need to write the first style without a semicolon
         if let Some(style) = styles.next() {
             style.private_fmt(f)?;
         } else {

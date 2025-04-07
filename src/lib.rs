@@ -782,6 +782,7 @@ impl Colorize for &str {
 
 impl fmt::Display for ColoredString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // No color to format
         if !Self::has_colors() || self.is_plain() {
             return <String as fmt::Display>::fmt(&self.input, f);
         }
@@ -806,11 +807,15 @@ impl fmt::Display for ColoredString {
                 }
             }
 
+            // Short our input to the precision
             input = &input[..offset];
+
+            // Calculate remaining padding in respect to characters and not bytes
             if let Some(width) = f.width() {
                 padding = width.saturating_sub(count);
             }
         } else if let Some(width) = f.width() {
+            // Calculate padding in respect to characters and not bytes
             padding = width.saturating_sub(self.chars().take(width).count());
         }
 
@@ -849,6 +854,7 @@ mod tests {
         use super::*;
 
         #[test]
+        /// Insert padding on empty string
         fn empty_padding() {
             let inputs: &[&dyn Display] = &[&"".custom_color((126, 194, 218)), &"".blue(), &""];
 
@@ -863,6 +869,7 @@ mod tests {
             }
         }
         #[test]
+        /// Should do not any padding
         fn no_padding() {
             let inputs: &[&dyn Display] = &[&"".custom_color((126, 194, 218)), &"".blue(), &""];
             for input in inputs {
@@ -877,6 +884,7 @@ mod tests {
         }
 
         #[test]
+        /// Should do not any padding because it is less or equal the chars
         fn not_enough_for_padding() {
             let inputs: &[&dyn Display] =
                 &[&"🦀🦀".custom_color((126, 194, 218)), &"CS".blue(), &"CS"];
@@ -910,6 +918,7 @@ mod tests {
         }
 
         #[test]
+        /// Should do padding whie having input
         fn padding_with_input() {
             let inputs: &[&dyn Display] =
                 &[&"🦀🦀".custom_color((126, 194, 218)), &"CS".blue(), &"CS"];
@@ -935,6 +944,7 @@ mod tests {
         }
 
         #[test]
+        /// Precision should shorten the input
         fn precision_less() {
             let inputs: &[&dyn Display] = &[
                 &"🦀🦀".custom_color((126, 194, 218)),
@@ -956,6 +966,7 @@ mod tests {
         }
 
         #[test]
+        /// Presision should not shorten the input
         fn precision_eq() {
             let inputs: &[&dyn Display] =
                 &[&"🦀🦀".custom_color((126, 194, 218)), &"CC".blue(), &"CC"];
@@ -973,6 +984,7 @@ mod tests {
         }
 
         #[test]
+        /// Presision should not shorten the input
         fn precision_more() {
             let inputs: &[&dyn Display] =
                 &[&"🦀🦀".custom_color((126, 194, 218)), &"CC".blue(), &"CC"];
@@ -990,6 +1002,7 @@ mod tests {
         }
 
         #[test]
+        /// Testing padding and precision together
         fn precision_padding() {
             let inputs: &[&dyn Display] =
                 &[&"🦀🦀".custom_color((126, 194, 218)), &"CC".blue(), &"CC"];

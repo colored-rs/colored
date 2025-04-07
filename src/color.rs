@@ -68,6 +68,7 @@ impl Color {
         }
     }
 
+    /// Write [`to_fg_str`](Self::to_fg_str) to the given [`Formatter`](core::fmt::Formatter) without allocating
     pub(crate) fn to_fg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
         match self.to_fg_static_str() {
             Ok(s) => f.write_str(s),
@@ -123,6 +124,7 @@ impl Color {
         }
     }
 
+    /// Write [`to_bg_str`](Self::to_fg_str) to the given [`Formatter`](core::fmt::Formatter) without allocating
     pub(crate) fn to_bg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
         match self.to_bg_static_str() {
             Ok(s) => f.write_str(s),
@@ -325,12 +327,13 @@ mod tests {
     pub use super::*;
 
     #[test]
+    /// Test that `fmt` and `to_str` are the same
     fn fmt_and_to_str_same() {
         use core::fmt::Display;
         use itertools::Itertools;
         use Color::*;
 
-        // Helper structs to call the method
+        /// Helper structs to call the method
         struct FmtFgWrapper(Color);
         impl Display for FmtFgWrapper {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -382,7 +385,8 @@ mod tests {
                     g: rgb[1],
                     b: rgb[2],
                 }),
-        );
+        )
+        .chain((0..4).map(Color::AnsiColor));
 
         for color in colors {
             assert_eq!(color.to_fg_str(), FmtFgWrapper(color).to_string());
