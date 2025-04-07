@@ -293,6 +293,7 @@ mod tests {
 
     #[test]
     fn fmt_and_to_str_same() {
+        use itertools::Itertools;
         use core::fmt::Display;
         use Color::*;
 
@@ -311,7 +312,8 @@ mod tests {
         }
 
         // Actual test
-        let colors = &[
+
+        let colors = [
             Black,
             Red,
             Green,
@@ -328,40 +330,30 @@ mod tests {
             BrightMagenta,
             BrightCyan,
             BrightWhite,
-            TrueColor { r: 0, g: 0, b: 0 },
-            TrueColor {
-                r: 255,
-                g: 255,
-                b: 255,
-            },
-            TrueColor {
-                r: 126,
-                g: 127,
-                b: 128,
-            },
-            TrueColor { r: 255, g: 0, b: 0 },
-            TrueColor {
-                r: 255,
-                g: 255,
-                b: 0,
-            },
-            TrueColor { r: 0, g: 255, b: 0 },
-            TrueColor {
-                r: 0,
-                g: 255,
-                b: 255,
-            },
-            TrueColor { r: 0, g: 0, b: 255 },
-            TrueColor {
-                r: 255,
-                g: 0,
-                b: 255,
-            },
-        ];
+        ]
+        .into_iter()
+        .chain(
+            // Iterator over TrueColors
+            // r g b
+            // 0 0 0
+            // 0 0 1
+            // 0 0 2
+            // 0 0 3
+            // 0 1 0
+            // ..
+            // 3 3 3
+            (0..4)
+                .combinations_with_replacement(3)
+                .map(|rgb| Color::TrueColor {
+                    r: rgb[0],
+                    g: rgb[1],
+                    b: rgb[2],
+                }),
+        );
 
         for color in colors {
-            assert_eq!(color.to_fg_str(), FmtFgWrapper(*color).to_string());
-            assert_eq!(color.to_bg_str(), FmtBgWrapper(*color).to_string());
+            assert_eq!(color.to_fg_str(), FmtFgWrapper(color).to_string());
+            assert_eq!(color.to_bg_str(), FmtBgWrapper(color).to_string());
         }
     }
 

@@ -599,7 +599,7 @@ impl Display for ComputeStyleHelper {
         let mut has_wrote = if self.style == style::CLEAR {
             false
         } else {
-            f.write_str(&self.style.to_str())?;
+            self.style.private_fmt(f)?;
             true
         };
 
