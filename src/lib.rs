@@ -548,7 +548,7 @@ impl ColoredString {
         res
     }
 
-    fn escape_inner_reset_sequences(&self) -> Cow<str> {
+    fn escape_inner_reset_sequences(&self) -> Cow<'_, str> {
         if !Self::has_colors() || self.is_plain() {
             return self.input.as_str().into();
         }
