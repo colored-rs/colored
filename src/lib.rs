@@ -35,6 +35,7 @@ extern crate rspec;
 mod color;
 pub mod control;
 mod error;
+mod format;
 mod style;
 
 pub use self::customcolors::CustomColor;
@@ -45,9 +46,7 @@ pub mod customcolors;
 pub use color::*;
 
 use std::{
-    borrow::Cow,
     error::Error,
-    fmt,
     ops::{Deref, DerefMut},
 };
 
@@ -513,74 +512,6 @@ impl ColoredString {
     fn has_colors() -> bool {
         false
     }
-
-    fn compute_style(&self) -> String {
-        if !Self::has_colors() || self.is_plain() {
-            return String::new();
-        }
-
-        let mut res = String::from("\x1B[");
-        let mut has_wrote = if self.style == style::CLEAR {
-            false
-        } else {
-            res.push_str(&self.style.to_str());
-            true
-        };
-
-        if let Some(ref bgcolor) = self.bgcolor {
-            if has_wrote {
-                res.push(';');
-            }
-
-            res.push_str(&bgcolor.to_bg_str());
-            has_wrote = true;
-        }
-
-        if let Some(ref fgcolor) = self.fgcolor {
-            if has_wrote {
-                res.push(';');
-            }
-
-            res.push_str(&fgcolor.to_fg_str());
-        }
-
-        res.push('m');
-        res
-    }
-
-    fn escape_inner_reset_sequences(&self) -> Cow<'_, str> {
-        if !Self::has_colors() || self.is_plain() {
-            return self.input.as_str().into();
-        }
-
-        // TODO: BoyScoutRule
-        let reset = "\x1B[0m";
-        let style = self.compute_style();
-        let matches: Vec<usize> = self
-            .input
-            .match_indices(reset)
-            .map(|(idx, _)| idx)
-            .collect();
-        if matches.is_empty() {
-            return self.input.as_str().into();
-        }
-
-        let mut input = self.input.clone();
-        input.reserve(matches.len() * style.len());
-
-        for (idx_in_matches, offset) in matches.into_iter().enumerate() {
-            // shift the offset to the end of the reset sequence and take in account
-            // the number of matches we have escaped (which shift the index to insert)
-            let mut offset = offset + reset.len() + idx_in_matches * style.len();
-
-            for cchar in style.chars() {
-                input.insert(offset, cchar);
-                offset += 1;
-            }
-        }
-
-        input.into()
-    }
 }
 
 impl Deref for ColoredString {
@@ -726,22 +657,6 @@ impl Colorize for &str {
     }
 }
 
-impl fmt::Display for ColoredString {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if !Self::has_colors() || self.is_plain() {
-            return <String as fmt::Display>::fmt(&self.input, f);
-        }
-
-        // XXX: see tests. Useful when nesting colored strings
-        let escaped_input = self.escape_inner_reset_sequences();
-
-        f.write_str(&self.compute_style())?;
-        escaped_input.fmt(f)?;
-        f.write_str("\x1B[0m")?;
-        Ok(())
-    }
-}
-
 impl From<ColoredString> for Box<dyn Error> {
     fn from(cs: ColoredString) -> Self {
         Box::from(error::ColoredStringError(cs))
@@ -752,17 +667,6 @@ impl From<ColoredString> for Box<dyn Error> {
 mod tests {
     use super::*;
     use std::{error::Error, fmt::Write};
-
-    #[test]
-    fn formatting() {
-        // respect the formatting. Escape sequence add some padding so >= 40
-        assert!(format!("{:40}", "".blue()).len() >= 40);
-        // both should be truncated to 1 char before coloring
-        assert_eq!(
-            format!("{:1.1}", "toto".blue()).len(),
-            format!("{:1.1}", "1".blue()).len()
-        );
-    }
 
     #[test]
     fn it_works() -> Result<(), Box<dyn Error>> {
@@ -813,164 +717,39 @@ mod tests {
     }
 
     #[test]
-    fn compute_style_empty_string() {
-        assert_eq!("", "".clear().compute_style());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_fg_blue() {
-        let blue = "\x1B[34m";
-
-        assert_eq!(blue, "".blue().compute_style());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_bg_blue() {
-        let on_blue = "\x1B[44m";
-
-        assert_eq!(on_blue, "".on_blue().compute_style());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_blue_on_blue() {
-        let blue_on_blue = "\x1B[44;34m";
-
-        assert_eq!(blue_on_blue, "".blue().on_blue().compute_style());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_fg_bright_blue() {
-        let blue = "\x1B[94m";
-
-        assert_eq!(blue, "".bright_blue().compute_style());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_bg_bright_blue() {
-        let on_blue = "\x1B[104m";
-
-        assert_eq!(on_blue, "".on_bright_blue().compute_style());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_bright_blue_on_bright_blue() {
-        let blue_on_blue = "\x1B[104;94m";
-
-        assert_eq!(
-            blue_on_blue,
-            "".bright_blue().on_bright_blue().compute_style()
-        );
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_simple_bold() {
-        let bold = "\x1B[1m";
-
-        assert_eq!(bold, "".bold().compute_style());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_blue_bold() {
-        let blue_bold = "\x1B[1;34m";
-
-        assert_eq!(blue_bold, "".blue().bold().compute_style());
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn compute_style_blue_bold_on_blue() {
-        let blue_bold_on_blue = "\x1B[1;44;34m";
-
-        assert_eq!(
-            blue_bold_on_blue,
-            "".blue().bold().on_blue().compute_style()
-        );
-    }
-
-    #[test]
-    fn escape_reset_sequence_spec_should_do_nothing_on_empty_strings() {
-        let style = ColoredString::default();
-        let expected = String::new();
-
-        let output = style.escape_inner_reset_sequences();
-
-        assert_eq!(expected, output);
-    }
-
-    #[test]
-    fn escape_reset_sequence_spec_should_do_nothing_on_string_with_no_reset() {
-        let style = ColoredString {
-            input: String::from("hello world !"),
-            ..ColoredString::default()
-        };
-
-        let expected = String::from("hello world !");
-        let output = style.escape_inner_reset_sequences();
-
-        assert_eq!(expected, output);
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn escape_reset_sequence_spec_should_replace_inner_reset_sequence_with_current_style() {
-        let input = format!("start {} end", String::from("hello world !").red());
-        let style = input.blue();
-
-        let output = style.escape_inner_reset_sequences();
-        let blue = "\x1B[34m";
-        let red = "\x1B[31m";
-        let reset = "\x1B[0m";
-        let expected = format!("start {red}hello world !{reset}{blue} end");
-        assert_eq!(expected, output);
-    }
-
-    #[cfg_attr(feature = "no-color", ignore)]
-    #[test]
-    fn escape_reset_sequence_spec_should_replace_multiple_inner_reset_sequences_with_current_style()
-    {
-        let italic_str = String::from("yo").italic();
-        let input = format!("start 1:{italic_str} 2:{italic_str} 3:{italic_str} end");
-        let style = input.blue();
-
-        let output = style.escape_inner_reset_sequences();
-        let blue = "\x1B[34m";
-        let italic = "\x1B[3m";
-        let reset = "\x1B[0m";
-        let expected = format!(
-            "start 1:{italic}yo{reset}{blue} 2:{italic}yo{reset}{blue} 3:{italic}yo{reset}{blue} end"
-        );
-
-        println!("first: {expected}\nsecond: {output}");
-
-        assert_eq!(expected, output);
-    }
-
-    #[test]
     fn color_fn() {
-        assert_eq!("blue".blue(), "blue".color("blue"));
-    }
+        macro_rules! helper {
+            ($f:ident) => {
+                ("blue".$f(), "blue".color(stringify!($f)))
+            };
+        }
+        macro_rules! helper_bright {
+            ($f:ident, $e:expr) => {
+                ("blue".$f(), "blue".color(concat!("bright ", $e)))
+            };
+        }
+        let mappings = &[
+            helper!(black),
+            helper!(red),
+            helper!(green),
+            helper!(yellow),
+            helper!(blue),
+            helper!(magenta),
+            helper!(cyan),
+            helper!(white),
+            helper_bright!(bright_black, "black"),
+            helper_bright!(bright_red, "red"),
+            helper_bright!(bright_green, "green"),
+            helper_bright!(bright_yellow, "yellow"),
+            helper_bright!(bright_blue, "blue"),
+            helper_bright!(bright_magenta, "magenta"),
+            helper_bright!(bright_cyan, "cyan"),
+            helper_bright!(bright_white, "white"),
+        ];
 
-    #[test]
-    fn on_color_fn() {
-        assert_eq!("blue".on_blue(), "blue".on_color("blue"));
-    }
-
-    #[test]
-    fn bright_color_fn() {
-        assert_eq!("blue".bright_blue(), "blue".color("bright blue"));
-    }
-
-    #[test]
-    fn on_bright_color_fn() {
-        assert_eq!("blue".on_bright_blue(), "blue".on_color("bright blue"));
+        for (l, r) in mappings {
+            assert_eq!(l, r);
+        }
     }
 
     #[test]
