@@ -1,4 +1,5 @@
-use std::{borrow::Cow, env, str::FromStr};
+use core::{cmp, fmt::Write};
+use std::{borrow::Cow, convert::Into, env, str::FromStr};
 use Color::{
     AnsiColor, Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta,
     BrightRed, BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
@@ -32,12 +33,6 @@ fn truecolor_support() -> bool {
     truecolor.is_ok_and(|truecolor| truecolor == "truecolor" || truecolor == "24bit")
 }
 
-/// A color that cannot be converted to a [`&'static str`](str)
-enum NotStaticColor {
-    AnsiColor(u8),
-    TrueColor { r: u8, g: u8, b: u8 },
-}
-
 #[allow(missing_docs)]
 impl Color {
     /// Converts the foreground [`Color`] into a [`&'static str`](str)
@@ -45,55 +40,57 @@ impl Color {
     /// # Errors
     ///
     /// If the color is a `TrueColor` or `AnsiColor`, it will return [`NotStaticColor`] as an Error
-    const fn to_fg_static_str(self) -> Result<&'static str, NotStaticColor> {
+    const fn to_fg_static_str(self) -> Option<&'static str> {
         match self {
-            Self::Black => Ok("30"),
-            Self::Red => Ok("31"),
-            Self::Green => Ok("32"),
-            Self::Yellow => Ok("33"),
-            Self::Blue => Ok("34"),
-            Self::Magenta => Ok("35"),
-            Self::Cyan => Ok("36"),
-            Self::White => Ok("37"),
-            Self::BrightBlack => Ok("90"),
-            Self::BrightRed => Ok("91"),
-            Self::BrightGreen => Ok("92"),
-            Self::BrightYellow => Ok("93"),
-            Self::BrightBlue => Ok("94"),
-            Self::BrightMagenta => Ok("95"),
-            Self::BrightCyan => Ok("96"),
-            Self::BrightWhite => Ok("97"),
-            Self::TrueColor { r, g, b } => Err(NotStaticColor::TrueColor { r, g, b }),
-            Self::AnsiColor(code) => Err(NotStaticColor::AnsiColor(code)),
+            Self::Black => Some("30"),
+            Self::Red => Some("31"),
+            Self::Green => Some("32"),
+            Self::Yellow => Some("33"),
+            Self::Blue => Some("34"),
+            Self::Magenta => Some("35"),
+            Self::Cyan => Some("36"),
+            Self::White => Some("37"),
+            Self::BrightBlack => Some("90"),
+            Self::BrightRed => Some("91"),
+            Self::BrightGreen => Some("92"),
+            Self::BrightYellow => Some("93"),
+            Self::BrightBlue => Some("94"),
+            Self::BrightMagenta => Some("95"),
+            Self::BrightCyan => Some("96"),
+            Self::BrightWhite => Some("97"),
+            Self::TrueColor { .. } | Self::AnsiColor(..) => None,
         }
     }
 
     /// Write [`to_fg_str`](Self::to_fg_str) to the given [`Formatter`](core::fmt::Formatter) without allocating
-    pub(crate) fn to_fg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+    pub(crate) fn to_fg_write(self, f: &mut dyn core::fmt::Write) -> Result<(), core::fmt::Error> {
         match self.to_fg_static_str() {
-            Ok(s) => f.write_str(s),
-            Err(NotStaticColor::TrueColor { r, g, b }) if !truecolor_support() => {
-                Self::TrueColor { r, g, b }
+            Some(s) => f.write_str(s),
+            None => match self {
+                Black | Red | Green | Yellow | Blue | Magenta | Cyan | White | BrightBlack
+                | BrightRed | BrightGreen | BrightYellow | BrightBlue | BrightMagenta
+                | BrightCyan | BrightWhite => unreachable!(),
+                AnsiColor(code) => write!(f, "38;5;{code}"),
+                TrueColor { r, g, b } if !truecolor_support() => Self::TrueColor { r, g, b }
                     .closest_color_euclidean()
-                    .to_fg_fmt(f)
-            }
-            Err(NotStaticColor::TrueColor { r, g, b }) => write!(f, "38;2;{r};{g};{b}"),
-            Err(NotStaticColor::AnsiColor(code)) => write!(f, "38;5;{code}"),
+                    .to_fg_write(f),
+                TrueColor { r, g, b } => write!(f, "38;2;{r};{g};{b}"),
+            },
         }
     }
 
     #[must_use]
     pub fn to_fg_str(&self) -> Cow<'static, str> {
-        match self.to_fg_static_str() {
-            Ok(s) => s.into(),
-            Err(NotStaticColor::TrueColor { r, g, b }) if !truecolor_support() => {
-                Self::TrueColor { r, g, b }
-                    .closest_color_euclidean()
-                    .to_fg_str()
-            }
-            Err(NotStaticColor::TrueColor { r, g, b }) => format!("38;2;{r};{g};{b}").into(),
-            Err(NotStaticColor::AnsiColor(code)) => format!("38;5;{code}").into(),
-        }
+        self.to_fg_static_str().map_or_else(
+            || {
+                // Not static, we can use the default formatter
+                let mut buf = String::new();
+                // We write into a String, we do not expect an error.
+                let _ = self.to_fg_write(&mut buf);
+                buf.into()
+            },
+            Into::into,
+        )
     }
 
     /// Converts the background [`Color`] into a [`&'static str`](str)
@@ -101,55 +98,57 @@ impl Color {
     /// # Errors
     ///
     /// If the color is a `TrueColor` or `AnsiColor`, it will return [`NotStaticColor`] as an Error
-    const fn to_bg_static_str(self) -> Result<&'static str, NotStaticColor> {
+    const fn to_bg_static_str(self) -> Option<&'static str> {
         match self {
-            Self::Black => Ok("40"),
-            Self::Red => Ok("41"),
-            Self::Green => Ok("42"),
-            Self::Yellow => Ok("43"),
-            Self::Blue => Ok("44"),
-            Self::Magenta => Ok("45"),
-            Self::Cyan => Ok("46"),
-            Self::White => Ok("47"),
-            Self::BrightBlack => Ok("100"),
-            Self::BrightRed => Ok("101"),
-            Self::BrightGreen => Ok("102"),
-            Self::BrightYellow => Ok("103"),
-            Self::BrightBlue => Ok("104"),
-            Self::BrightMagenta => Ok("105"),
-            Self::BrightCyan => Ok("106"),
-            Self::BrightWhite => Ok("107"),
-            Self::TrueColor { r, g, b } => Err(NotStaticColor::TrueColor { r, g, b }),
-            Self::AnsiColor(code) => Err(NotStaticColor::AnsiColor(code)),
+            Self::Black => Some("40"),
+            Self::Red => Some("41"),
+            Self::Green => Some("42"),
+            Self::Yellow => Some("43"),
+            Self::Blue => Some("44"),
+            Self::Magenta => Some("45"),
+            Self::Cyan => Some("46"),
+            Self::White => Some("47"),
+            Self::BrightBlack => Some("100"),
+            Self::BrightRed => Some("101"),
+            Self::BrightGreen => Some("102"),
+            Self::BrightYellow => Some("103"),
+            Self::BrightBlue => Some("104"),
+            Self::BrightMagenta => Some("105"),
+            Self::BrightCyan => Some("106"),
+            Self::BrightWhite => Some("107"),
+            Self::TrueColor { .. } | Self::AnsiColor(..) => None,
         }
     }
 
     /// Write [`to_bg_str`](Self::to_fg_str) to the given [`Formatter`](core::fmt::Formatter) without allocating
-    pub(crate) fn to_bg_fmt(self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+    pub(crate) fn to_bg_write(self, f: &mut dyn Write) -> Result<(), core::fmt::Error> {
         match self.to_bg_static_str() {
-            Ok(s) => f.write_str(s),
-            Err(NotStaticColor::TrueColor { r, g, b }) if !truecolor_support() => {
-                Self::TrueColor { r, g, b }
+            Some(s) => f.write_str(s),
+            None => match self {
+                Black | Red | Green | Yellow | Blue | Magenta | Cyan | White | BrightBlack
+                | BrightRed | BrightGreen | BrightYellow | BrightBlue | BrightMagenta
+                | BrightCyan | BrightWhite => unreachable!(),
+                AnsiColor(code) => write!(f, "48;5;{code}"),
+                TrueColor { r, g, b } if !truecolor_support() => Self::TrueColor { r, g, b }
                     .closest_color_euclidean()
-                    .to_fg_fmt(f)
-            }
-            Err(NotStaticColor::TrueColor { r, g, b }) => write!(f, "48;2;{r};{g};{b}"),
-            Err(NotStaticColor::AnsiColor(code)) => write!(f, "48;5;{code}"),
+                    .to_fg_write(f),
+                TrueColor { r, g, b } => write!(f, "48;2;{r};{g};{b}"),
+            },
         }
     }
 
     #[must_use]
     pub fn to_bg_str(&self) -> Cow<'static, str> {
-        match self.to_bg_static_str() {
-            Ok(s) => s.into(),
-            Err(NotStaticColor::TrueColor { r, g, b }) if !truecolor_support() => {
-                Self::TrueColor { r, g, b }
-                    .closest_color_euclidean()
-                    .to_bg_str()
-            }
-            Err(NotStaticColor::TrueColor { r, g, b }) => format!("48;2;{r};{g};{b}").into(),
-            Err(NotStaticColor::AnsiColor(code)) => format!("48;5;{code}").into(),
-        }
+        self.to_bg_static_str().map_or_else(
+            || {
+                // Not static, we can use the default formatter
+                let mut buf = String::new();
+                // Writing into a String should be always valid.
+                let _ = self.to_bg_write(&mut buf);
+                buf.into()
+            },
+            Into::into,
+        )
     }
 
     /// Gets the closest plain color to the `TrueColor`
@@ -182,16 +181,19 @@ impl Color {
                 .map(|c| (c, c.into_truecolor()));
                 let distances = colors.map(|(c_original, c)| {
                     if let TrueColor { r, g, b } = c {
-                        fn distance(a: u8, b: u8) -> u32 {
-                            u32::from(a.abs_diff(b)).pow(2)
-                        }
-                        let distance = distance(r, r1) + distance(g, g1) + distance(b, b1);
+                        let rd = cmp::max(r, r1) - cmp::min(r, r1);
+                        let gd = cmp::max(g, g1) - cmp::min(g, g1);
+                        let bd = cmp::max(b, b1) - cmp::min(b, b1);
+                        let rd: u32 = rd.into();
+                        let gd: u32 = gd.into();
+                        let bd: u32 = bd.into();
+                        let distance = rd.pow(2) + gd.pow(2) + bd.pow(2);
                         (c_original, distance)
                     } else {
                         unimplemented!("{:?} not a TrueColor", c)
                     }
                 });
-                distances.min_by_key(|(_, distance)| *distance).unwrap().0
+                distances.min_by(|(_, d1), (_, d2)| d1.cmp(d2)).unwrap().0
             }
             c => c,
         }
@@ -337,13 +339,13 @@ mod tests {
         struct FmtFgWrapper(Color);
         impl Display for FmtFgWrapper {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                self.0.to_fg_fmt(f)
+                self.0.to_fg_write(f)
             }
         }
         struct FmtBgWrapper(Color);
         impl Display for FmtBgWrapper {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                self.0.to_bg_fmt(f)
+                self.0.to_bg_write(f)
             }
         }
 

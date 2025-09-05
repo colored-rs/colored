@@ -1,7 +1,4 @@
-use core::{
-    fmt::Write,
-    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
-};
+use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
 
 macro_rules! auto_impl_ref_binop_trait {
     (impl $trait_name:ident, $method:ident for $t:ty, $u:ty) => {
@@ -210,8 +207,7 @@ pub enum Styles {
 }
 
 impl Styles {
-    fn private_fmt(self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use core::fmt::Write;
+    fn private_fmt(self, f: &mut dyn core::fmt::Write) -> std::fmt::Result {
         match self {
             Self::Clear => Ok(()), // unreachable, but we don't want to panic
             Self::Bold => f.write_char('1'),
@@ -242,7 +238,7 @@ impl Styles {
     fn from_u8(u: u8) -> impl Iterator<Item = Self> + Clone {
         STYLES
             .iter()
-            .filter(move |&(mask, _)| (0 != (u & mask)))
+            .filter(move |&(mask, _)| 0 != (u & mask))
             .map(|&(_, value)| value)
     }
 }
@@ -324,7 +320,7 @@ impl Not for &Styles {
 }
 
 impl Style {
-    pub(crate) fn private_fmt(self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    pub(crate) fn private_write(self, f: &mut dyn core::fmt::Write) -> std::fmt::Result {
         let mut styles = Styles::from_u8(self.0);
 
         // We need to write the first style without a semicolon
@@ -571,7 +567,7 @@ mod tests {
 
     impl core::fmt::Display for StyleHelper {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.0.private_fmt(f)
+            self.0.private_write(f)
         }
     }
     pub struct StylesHelper<'a>(&'a Styles);
