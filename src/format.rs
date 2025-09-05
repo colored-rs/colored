@@ -116,41 +116,44 @@ fn write_padding(f: &mut std::fmt::Formatter<'_>, padding: usize) -> Result<(), 
     Ok(())
 }
 
-    /// Calculates how long the input should be with the specified precision and how much padding is needed.
-    fn calculate_precision_and_padding<'a>(colored_string : &'a str, f: &std::fmt::Formatter<'_>) -> (&'a str, usize)  {
-        let mut input = colored_string;
-        let mut padding = 0;
+/// Calculates how long the input should be with the specified precision and how much padding is needed.
+fn calculate_precision_and_padding<'a>(
+    colored_string: &'a str,
+    f: &std::fmt::Formatter<'_>,
+) -> (&'a str, usize) {
+    let mut input = colored_string;
+    let mut padding = 0;
 
-        // Calculate padding and input
-        if let Some(precision) = f.precision() {
-            let mut iter = input.char_indices();
+    // Calculate padding and input
+    if let Some(precision) = f.precision() {
+        let mut iter = input.char_indices();
 
-            // FIXME
-            // feature(iter_advance_by) is not stable
-            // CharIndices::offset is MSRV 1.82.0
-            // the std impl uses this methods in it is a lot nicer.
-            let mut count = 0;
-            let mut offset = 0;
-            for _ in 0..precision {
-                if let Some((i, c)) = iter.next() {
-                    offset = i + c.len_utf8();
-                    count += 1;
-                }
+        // FIXME
+        // feature(iter_advance_by) is not stable
+        // CharIndices::offset is MSRV 1.82.0
+        // the std impl uses this methods in it is a lot nicer.
+        let mut count = 0;
+        let mut offset = 0;
+        for _ in 0..precision {
+            if let Some((i, c)) = iter.next() {
+                offset = i + c.len_utf8();
+                count += 1;
             }
-
-            // Short our input to the precision
-            input = &input[..offset];
-
-            // Calculate remaining padding in respect to characters and not bytes
-            if let Some(width) = f.width() {
-                padding = width.saturating_sub(count);
-            }
-        } else if let Some(width) = f.width() {
-            // Calculate padding in respect to characters and not bytes
-            padding = width.saturating_sub(colored_string.chars().take(width).count());
         }
-        (input, padding)
+
+        // Short our input to the precision
+        input = &input[..offset];
+
+        // Calculate remaining padding in respect to characters and not bytes
+        if let Some(width) = f.width() {
+            padding = width.saturating_sub(count);
+        }
+    } else if let Some(width) = f.width() {
+        // Calculate padding in respect to characters and not bytes
+        padding = width.saturating_sub(colored_string.chars().take(width).count());
     }
+    (input, padding)
+}
 
 /// Test the formatting
 ///
