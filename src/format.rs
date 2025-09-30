@@ -9,7 +9,7 @@ fn escape_inner_reset_sequences(
     bgcolor: Option<Color>,
     style: style::Style,
     is_plain: bool,
-    writer: &mut dyn Write,
+    writer: &mut impl Write,
 ) -> std::fmt::Result {
     const RESET: &str = "\x1B[0m";
 
@@ -48,7 +48,7 @@ fn compute_style(
     bgcolor: Option<Color>,
     style: style::Style,
     is_plain: bool,
-    writer: &mut dyn Write,
+    writer: &mut impl Write,
 ) -> std::fmt::Result {
     if !ColoredString::has_colors() || is_plain {
         return Ok(());

@@ -63,7 +63,7 @@ impl Color {
     }
 
     /// Write [`to_fg_str`](Self::to_fg_str) to the given [`Formatter`](core::fmt::Formatter) without allocating
-    pub(crate) fn to_fg_write(self, f: &mut dyn core::fmt::Write) -> Result<(), core::fmt::Error> {
+    pub(crate) fn to_fg_write(self, f: &mut impl core::fmt::Write) -> Result<(), core::fmt::Error> {
         match self.to_fg_static_str() {
             Some(s) => f.write_str(s),
             None => match self {
@@ -121,7 +121,7 @@ impl Color {
     }
 
     /// Write [`to_bg_str`](Self::to_fg_str) to the given [`Formatter`](core::fmt::Formatter) without allocating
-    pub(crate) fn to_bg_write(self, f: &mut dyn Write) -> Result<(), core::fmt::Error> {
+    pub(crate) fn to_bg_write(self, f: &mut impl Write) -> Result<(), core::fmt::Error> {
         match self.to_bg_static_str() {
             Some(s) => f.write_str(s),
             None => match self {
