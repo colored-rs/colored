@@ -23,6 +23,7 @@ features = ["Win32_Foundation", "Win32_System_Console"]
 [dev-dependencies]
 ansiterm = "0.12"
 insta = "1"
+itertools = "0.14.0"
 rspec = "1"
 
 [lints.rust]

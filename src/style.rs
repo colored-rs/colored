@@ -207,21 +207,21 @@ pub enum Styles {
 }
 
 impl Styles {
-    fn to_str<'a>(self) -> &'a str {
+    fn private_fmt(self, f: &mut dyn core::fmt::Write) -> std::fmt::Result {
         match self {
-            Self::Clear => "", // unreachable, but we don't want to panic
-            Self::Bold => "1",
-            Self::Dimmed => "2",
-            Self::Italic => "3",
-            Self::Underline => "4",
-            Self::Blink => "5",
-            Self::Reversed => "7",
-            Self::Hidden => "8",
-            Self::Strikethrough => "9",
+            Self::Clear => Ok(()), // unreachable, but we don't want to panic
+            Self::Bold => f.write_char('1'),
+            Self::Dimmed => f.write_char('2'),
+            Self::Italic => f.write_char('3'),
+            Self::Underline => f.write_char('4'),
+            Self::Blink => f.write_char('5'),
+            Self::Reversed => f.write_char('7'),
+            Self::Hidden => f.write_char('8'),
+            Self::Strikethrough => f.write_char('9'),
         }
     }
 
-    fn to_u8(self) -> u8 {
+    fn to_u8_mask(self) -> u8 {
         match self {
             Self::Clear => CLEARV,
             Self::Bold => BOLD,
@@ -235,21 +235,11 @@ impl Styles {
         }
     }
 
-    fn from_u8(u: u8) -> Option<Vec<Self>> {
-        if u == CLEARV {
-            return None;
-        }
-
-        let res: Vec<Self> = STYLES
+    fn from_u8(u: u8) -> impl Iterator<Item = Self> + Clone {
+        STYLES
             .iter()
-            .filter(|&(mask, _)| (0 != (u & mask)))
+            .filter(move |&(mask, _)| 0 != (u & mask))
             .map(|&(_, value)| value)
-            .collect();
-        if res.is_empty() {
-            None
-        } else {
-            Some(res)
-        }
     }
 }
 
@@ -257,7 +247,7 @@ impl BitAnd<Self> for Styles {
     type Output = Style;
 
     fn bitand(self, rhs: Self) -> Self::Output {
-        Style(self.to_u8() & rhs.to_u8())
+        Style(self.to_u8_mask() & rhs.to_u8_mask())
     }
 }
 
@@ -267,7 +257,7 @@ impl BitAnd<Style> for Styles {
     type Output = Style;
 
     fn bitand(self, rhs: Style) -> Self::Output {
-        Style(self.to_u8() & rhs.0)
+        Style(self.to_u8_mask() & rhs.0)
     }
 }
 
@@ -277,7 +267,7 @@ impl BitOr<Self> for Styles {
     type Output = Style;
 
     fn bitor(self, rhs: Self) -> Self::Output {
-        Style(self.to_u8() | rhs.to_u8())
+        Style(self.to_u8_mask() | rhs.to_u8_mask())
     }
 }
 
@@ -287,7 +277,7 @@ impl BitOr<Style> for Styles {
     type Output = Style;
 
     fn bitor(self, rhs: Style) -> Self::Output {
-        Style(self.to_u8() | rhs.0)
+        Style(self.to_u8_mask() | rhs.0)
     }
 }
 
@@ -297,7 +287,7 @@ impl BitXor<Self> for Styles {
     type Output = Style;
 
     fn bitxor(self, rhs: Self) -> Self::Output {
-        Style(self.to_u8() ^ rhs.to_u8())
+        Style(self.to_u8_mask() ^ rhs.to_u8_mask())
     }
 }
 
@@ -307,7 +297,7 @@ impl BitXor<Style> for Styles {
     type Output = Style;
 
     fn bitxor(self, rhs: Style) -> Self::Output {
-        Style(self.to_u8() ^ rhs.0)
+        Style(self.to_u8_mask() ^ rhs.0)
     }
 }
 
@@ -317,7 +307,7 @@ impl Not for Styles {
     type Output = Style;
 
     fn not(self) -> Self::Output {
-        Style(!self.to_u8())
+        Style(!self.to_u8_mask())
     }
 }
 
@@ -325,11 +315,27 @@ impl Not for &Styles {
     type Output = Style;
 
     fn not(self) -> Self::Output {
-        Style(!self.to_u8())
+        Style(!self.to_u8_mask())
     }
 }
 
 impl Style {
+    pub(crate) fn private_write(self, f: &mut dyn core::fmt::Write) -> std::fmt::Result {
+        let mut styles = Styles::from_u8(self.0);
+
+        // We need to write the first style without a semicolon
+        if let Some(style) = styles.next() {
+            style.private_fmt(f)?;
+        } else {
+            return Ok(());
+        }
+
+        for style in styles {
+            f.write_char(';')?;
+            style.private_fmt(f)?;
+        }
+        Ok(())
+    }
     /// Check if the current style has one of [`Styles`](Styles) switched on.
     ///
     /// ```rust
@@ -341,17 +347,8 @@ impl Style {
     /// ```
     #[must_use]
     pub fn contains(self, style: Styles) -> bool {
-        let s = style.to_u8();
+        let s = style.to_u8_mask();
         self.0 & s == s
-    }
-
-    pub(crate) fn to_str(self) -> String {
-        let styles = Styles::from_u8(self.0).unwrap_or_default();
-        styles
-            .iter()
-            .map(|s| s.to_str())
-            .collect::<Vec<&str>>()
-            .join(";")
     }
 
     /// Adds the `two` style switch to this Style.
@@ -369,7 +366,7 @@ impl Style {
     /// assert_eq!(cstr2.fgcolor, Some(Color::Blue));
     /// ```
     pub fn add(&mut self, two: Styles) {
-        self.0 |= two.to_u8();
+        self.0 |= two.to_u8_mask();
     }
 
     /// Turns off a style switch.
@@ -386,7 +383,7 @@ impl Style {
     /// assert_eq!(cstr2.fgcolor, Some(Color::Blue));
     /// ```
     pub fn remove(&mut self, two: Styles) {
-        self.0 &= !two.to_u8();
+        self.0 &= !two.to_u8_mask();
     }
 
     /// Makes this `Style` include Bold.
@@ -460,7 +457,7 @@ impl BitAnd<Styles> for Style {
     type Output = Self;
 
     fn bitand(self, rhs: Styles) -> Self::Output {
-        Self(self.0 & rhs.to_u8())
+        Self(self.0 & rhs.to_u8_mask())
     }
 }
 
@@ -480,7 +477,7 @@ impl BitOr<Styles> for Style {
     type Output = Self;
 
     fn bitor(self, rhs: Styles) -> Self::Output {
-        Self(self.0 | rhs.to_u8())
+        Self(self.0 | rhs.to_u8_mask())
     }
 }
 
@@ -500,7 +497,7 @@ impl BitXor<Styles> for Style {
     type Output = Self;
 
     fn bitxor(self, rhs: Styles) -> Self::Output {
-        Self(self.0 ^ rhs.to_u8())
+        Self(self.0 ^ rhs.to_u8_mask())
     }
 }
 
@@ -542,13 +539,13 @@ impl Default for Style {
 
 impl From<Styles> for Style {
     fn from(value: Styles) -> Self {
-        Self(value.to_u8())
+        Self(value.to_u8_mask())
     }
 }
 
 impl From<&Styles> for Style {
     fn from(value: &Styles) -> Self {
-        Self(value.to_u8())
+        Self(value.to_u8_mask())
     }
 }
 
@@ -566,75 +563,101 @@ impl FromIterator<Styles> for Style {
 mod tests {
     use super::*;
 
-    mod u8_to_styles_invalid_is_none {
-        use super::super::Styles;
-        use super::super::CLEARV;
+    pub struct StyleHelper(Style);
 
-        #[test]
-        fn empty_is_none() {
-            assert_eq!(None, Styles::from_u8(CLEARV));
+    impl core::fmt::Display for StyleHelper {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.private_write(f)
+        }
+    }
+    pub struct StylesHelper<'a>(&'a Styles);
+
+    impl core::fmt::Display for StylesHelper<'_> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.private_fmt(f)
         }
     }
 
-    mod u8_to_styles_isomorphism {
-        use super::super::Styles;
-        use super::super::{
-            BLINK, BOLD, DIMMED, HIDDEN, ITALIC, REVERSED, STRIKETHROUGH, UNDERLINE,
-        };
+    #[test]
+    fn u8_to_styles_isomorphism() {
+        use super::Styles;
+        use super::{BLINK, BOLD, DIMMED, HIDDEN, ITALIC, REVERSED, STRIKETHROUGH, UNDERLINE};
+        let styles = [
+            BLINK,
+            BOLD,
+            DIMMED,
+            HIDDEN,
+            ITALIC,
+            REVERSED,
+            STRIKETHROUGH,
+            UNDERLINE,
+        ];
 
-        macro_rules! value_isomorph {
-            ($name:ident, $value:expr) => {
-                #[test]
-                fn $name() {
-                    let u = Styles::from_u8($value);
-                    assert!(
-                        u.is_some(),
-                        "{}: Styles::from_u8 -> None",
-                        stringify!($value)
-                    );
-                    let u = u.unwrap();
-                    assert!(
-                        u.len() == 1,
-                        "{}: Styles::from_u8 found {} styles (expected 1)",
-                        stringify!($value),
-                        u.len()
-                    );
-                    assert!(
-                        u[0].to_u8() == $value,
-                        "{}: to_u8() doesn't match its const value",
-                        stringify!($value)
-                    );
-                }
-            };
+        for style in styles {
+            let mut styles = Styles::from_u8(style);
+            let count = styles.clone().count();
+            assert_eq!(count, 1, "Input: {style}");
+            assert_eq!(styles.next().map(Styles::to_u8_mask), Some(style));
         }
-
-        value_isomorph!(bold, BOLD);
-        value_isomorph!(underline, UNDERLINE);
-        value_isomorph!(reversed, REVERSED);
-        value_isomorph!(italic, ITALIC);
-        value_isomorph!(blink, BLINK);
-        value_isomorph!(hidden, HIDDEN);
-        value_isomorph!(dimmed, DIMMED);
-        value_isomorph!(strikethrough, STRIKETHROUGH);
     }
 
     mod styles_combine_complex {
+        use std::collections::HashSet;
+
+        use crate::style::tests::{StyleHelper, StylesHelper};
+
         use super::super::Styles::*;
         use super::super::{Style, Styles};
 
-        fn style_from_multiples(styles: &[Styles]) -> Style {
-            let mut res = Style(styles[0].to_u8());
-            for s in &styles[1..] {
-                res = Style(res.0 | s.to_u8());
+        #[test]
+        fn combinations() {
+            use itertools::Itertools;
+
+            /// All Styles except Clear
+            const INPUT: [Styles; 8] = [
+                Styles::Blink,
+                Styles::Bold,
+                Styles::Dimmed,
+                Styles::Hidden,
+                Styles::Italic,
+                Styles::Reversed,
+                Styles::Strikethrough,
+                Styles::Underline,
+            ];
+
+            for i in 1..INPUT.len() {
+                for combination in INPUT.into_iter().combinations_with_replacement(i) {
+                    let style = style_from_multiples(&combination);
+                    let expected_set = combination
+                        .iter()
+                        .map(|s| StylesHelper(s).to_string())
+                        .collect::<HashSet<_>>();
+                    let actual_string = StyleHelper(style).to_string();
+                    assert!(actual_string.chars().all(|c| c.is_ascii_digit() || c == ';'), "Only Digits or ';' are allowed. But '{actual_string}' contains another character. Combination: {combination:?}");
+                    assert!(!actual_string.ends_with(';'), "Does not end with ';'. But '{actual_string}' contains another character. Combination: {combination:?}");
+                    assert!(!actual_string.contains(";;"), "Does not contain ';;'. But '{actual_string}' contains another character. Combination: {combination:?}");
+                    let actual: Vec<&str> = actual_string.split(';').collect();
+                    assert_eq!(expected_set.len(), actual.len(), "Expected the len of expected {expected_set:?} and actual {actual:?} to be equal. {actual_string:?}. {combination:?}");
+                    for v in actual {
+                        assert!(expected_set.contains(v), "Expected {v} to be contained in {expected_set:?}. Combination: {combination:?}");
+                    }
+                }
             }
-            res
+        }
+
+        fn style_from_multiples(styles: &[Styles]) -> Style {
+            let mut res = 0;
+            for s in styles {
+                res |= s.to_u8_mask();
+            }
+            Style(res)
         }
 
         macro_rules! test_aggreg {
             ($styles:expr, $expect:expr) => {{
                 let v = style_from_multiples($styles);
-                let r = Styles::from_u8(v.0).expect("should find styles");
-                assert_eq!(&$expect as &[Styles], &r[..])
+                let r = Styles::from_u8(v.0);
+                assert_eq!(&$expect as &[Styles], &r.collect::<Vec<_>>())
             }};
         }
 
@@ -659,8 +682,8 @@ mod tests {
         macro_rules! test_combine {
             ($styles:expr) => {{
                 let v = style_from_multiples($styles);
-                let r = Styles::from_u8(v.0).expect("should find styles");
-                assert_eq!($styles, &r[..])
+                let r = Styles::from_u8(v.0);
+                assert_eq!($styles, &r.collect::<Vec<_>>())
             }};
         }
 
@@ -730,7 +753,7 @@ mod tests {
 
     #[test]
     fn test_style_contains() {
-        let mut style = Style(Styles::Bold.to_u8());
+        let mut style = Style(Styles::Bold.to_u8_mask());
         style.add(Styles::Italic);
 
         assert!(style.contains(Styles::Bold));

@@ -1,4 +1,5 @@
-use std::{borrow::Cow, cmp, env, str::FromStr};
+use core::{cmp, fmt::Write};
+use std::{borrow::Cow, convert::Into, env, str::FromStr};
 use Color::{
     AnsiColor, Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta,
     BrightRed, BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
@@ -34,58 +35,120 @@ fn truecolor_support() -> bool {
 
 #[allow(missing_docs)]
 impl Color {
+    /// Converts the foreground [`Color`] into a [`&'static str`](str)
+    ///
+    /// # Errors
+    ///
+    /// If the color is a `TrueColor` or `AnsiColor`, it will return [`NotStaticColor`] as an Error
+    const fn to_fg_static_str(self) -> Option<&'static str> {
+        match self {
+            Self::Black => Some("30"),
+            Self::Red => Some("31"),
+            Self::Green => Some("32"),
+            Self::Yellow => Some("33"),
+            Self::Blue => Some("34"),
+            Self::Magenta => Some("35"),
+            Self::Cyan => Some("36"),
+            Self::White => Some("37"),
+            Self::BrightBlack => Some("90"),
+            Self::BrightRed => Some("91"),
+            Self::BrightGreen => Some("92"),
+            Self::BrightYellow => Some("93"),
+            Self::BrightBlue => Some("94"),
+            Self::BrightMagenta => Some("95"),
+            Self::BrightCyan => Some("96"),
+            Self::BrightWhite => Some("97"),
+            Self::TrueColor { .. } | Self::AnsiColor(..) => None,
+        }
+    }
+
+    /// Write [`to_fg_str`](Self::to_fg_str) to the given [`Formatter`](core::fmt::Formatter) without allocating
+    pub(crate) fn to_fg_write(self, f: &mut impl core::fmt::Write) -> Result<(), core::fmt::Error> {
+        match self.to_fg_static_str() {
+            Some(s) => f.write_str(s),
+            None => match self {
+                Black | Red | Green | Yellow | Blue | Magenta | Cyan | White | BrightBlack
+                | BrightRed | BrightGreen | BrightYellow | BrightBlue | BrightMagenta
+                | BrightCyan | BrightWhite => unreachable!(),
+                AnsiColor(code) => write!(f, "38;5;{code}"),
+                TrueColor { r, g, b } if !truecolor_support() => Self::TrueColor { r, g, b }
+                    .closest_color_euclidean()
+                    .to_fg_write(f),
+                TrueColor { r, g, b } => write!(f, "38;2;{r};{g};{b}"),
+            },
+        }
+    }
+
     #[must_use]
     pub fn to_fg_str(&self) -> Cow<'static, str> {
-        match *self {
-            Self::Black => "30".into(),
-            Self::Red => "31".into(),
-            Self::Green => "32".into(),
-            Self::Yellow => "33".into(),
-            Self::Blue => "34".into(),
-            Self::Magenta => "35".into(),
-            Self::Cyan => "36".into(),
-            Self::White => "37".into(),
-            Self::BrightBlack => "90".into(),
-            Self::BrightRed => "91".into(),
-            Self::BrightGreen => "92".into(),
-            Self::BrightYellow => "93".into(),
-            Self::BrightBlue => "94".into(),
-            Self::BrightMagenta => "95".into(),
-            Self::BrightCyan => "96".into(),
-            Self::BrightWhite => "97".into(),
-            Self::TrueColor { .. } if !truecolor_support() => {
-                self.closest_color_euclidean().to_fg_str()
-            }
-            Self::AnsiColor(code) => format!("38;5;{code}").into(),
-            Self::TrueColor { r, g, b } => format!("38;2;{r};{g};{b}").into(),
+        self.to_fg_static_str().map_or_else(
+            || {
+                // Not static, we can use the default formatter
+                let mut buf = String::new();
+                // We write into a String, we do not expect an error.
+                let _ = self.to_fg_write(&mut buf);
+                buf.into()
+            },
+            Into::into,
+        )
+    }
+
+    /// Converts the background [`Color`] into a [`&'static str`](str)
+    ///
+    /// # Errors
+    ///
+    /// If the color is a `TrueColor` or `AnsiColor`, it will return [`NotStaticColor`] as an Error
+    const fn to_bg_static_str(self) -> Option<&'static str> {
+        match self {
+            Self::Black => Some("40"),
+            Self::Red => Some("41"),
+            Self::Green => Some("42"),
+            Self::Yellow => Some("43"),
+            Self::Blue => Some("44"),
+            Self::Magenta => Some("45"),
+            Self::Cyan => Some("46"),
+            Self::White => Some("47"),
+            Self::BrightBlack => Some("100"),
+            Self::BrightRed => Some("101"),
+            Self::BrightGreen => Some("102"),
+            Self::BrightYellow => Some("103"),
+            Self::BrightBlue => Some("104"),
+            Self::BrightMagenta => Some("105"),
+            Self::BrightCyan => Some("106"),
+            Self::BrightWhite => Some("107"),
+            Self::TrueColor { .. } | Self::AnsiColor(..) => None,
+        }
+    }
+
+    /// Write [`to_bg_str`](Self::to_fg_str) to the given [`Formatter`](core::fmt::Formatter) without allocating
+    pub(crate) fn to_bg_write(self, f: &mut impl Write) -> Result<(), core::fmt::Error> {
+        match self.to_bg_static_str() {
+            Some(s) => f.write_str(s),
+            None => match self {
+                Black | Red | Green | Yellow | Blue | Magenta | Cyan | White | BrightBlack
+                | BrightRed | BrightGreen | BrightYellow | BrightBlue | BrightMagenta
+                | BrightCyan | BrightWhite => unreachable!(),
+                AnsiColor(code) => write!(f, "48;5;{code}"),
+                TrueColor { r, g, b } if !truecolor_support() => Self::TrueColor { r, g, b }
+                    .closest_color_euclidean()
+                    .to_fg_write(f),
+                TrueColor { r, g, b } => write!(f, "48;2;{r};{g};{b}"),
+            },
         }
     }
 
     #[must_use]
     pub fn to_bg_str(&self) -> Cow<'static, str> {
-        match *self {
-            Self::Black => "40".into(),
-            Self::Red => "41".into(),
-            Self::Green => "42".into(),
-            Self::Yellow => "43".into(),
-            Self::Blue => "44".into(),
-            Self::Magenta => "45".into(),
-            Self::Cyan => "46".into(),
-            Self::White => "47".into(),
-            Self::BrightBlack => "100".into(),
-            Self::BrightRed => "101".into(),
-            Self::BrightGreen => "102".into(),
-            Self::BrightYellow => "103".into(),
-            Self::BrightBlue => "104".into(),
-            Self::BrightMagenta => "105".into(),
-            Self::BrightCyan => "106".into(),
-            Self::BrightWhite => "107".into(),
-            Self::AnsiColor(code) => format!("48;5;{code}").into(),
-            Self::TrueColor { .. } if !truecolor_support() => {
-                self.closest_color_euclidean().to_bg_str()
-            }
-            Self::TrueColor { r, g, b } => format!("48;2;{r};{g};{b}").into(),
-        }
+        self.to_bg_static_str().map_or_else(
+            || {
+                // Not static, we can use the default formatter
+                let mut buf = String::new();
+                // Writing into a String should be always valid.
+                let _ = self.to_bg_write(&mut buf);
+                buf.into()
+            },
+            Into::into,
+        )
     }
 
     /// Gets the closest plain color to the `TrueColor`
@@ -96,7 +159,7 @@ impl Color {
                 g: g1,
                 b: b1,
             } => {
-                let colors = vec![
+                let colors = [
                     Black,
                     Red,
                     Green,
@@ -262,7 +325,76 @@ fn parse_hex(s: &str) -> Option<Color> {
 
 #[cfg(test)]
 mod tests {
+
     pub use super::*;
+
+    #[test]
+    /// Test that `fmt` and `to_str` are the same
+    fn fmt_and_to_str_same() {
+        use core::fmt::Display;
+        use itertools::Itertools;
+        use Color::*;
+
+        /// Helper structs to call the method
+        struct FmtFgWrapper(Color);
+        impl Display for FmtFgWrapper {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                self.0.to_fg_write(f)
+            }
+        }
+        struct FmtBgWrapper(Color);
+        impl Display for FmtBgWrapper {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                self.0.to_bg_write(f)
+            }
+        }
+
+        // Actual test
+
+        let colors = [
+            Black,
+            Red,
+            Green,
+            Yellow,
+            Blue,
+            Magenta,
+            Cyan,
+            White,
+            BrightBlack,
+            BrightRed,
+            BrightGreen,
+            BrightYellow,
+            BrightBlue,
+            BrightMagenta,
+            BrightCyan,
+            BrightWhite,
+        ]
+        .into_iter()
+        .chain(
+            // Iterator over TrueColors
+            // r g b
+            // 0 0 0
+            // 0 0 1
+            // 0 0 2
+            // 0 0 3
+            // 0 1 0
+            // ..
+            // 3 3 3
+            (0..4)
+                .combinations_with_replacement(3)
+                .map(|rgb| Color::TrueColor {
+                    r: rgb[0],
+                    g: rgb[1],
+                    b: rgb[2],
+                }),
+        )
+        .chain((0..4).map(Color::AnsiColor));
+
+        for color in colors {
+            assert_eq!(color.to_fg_str(), FmtFgWrapper(color).to_string());
+            assert_eq!(color.to_bg_str(), FmtBgWrapper(color).to_string());
+        }
+    }
 
     mod from_str {
         pub use super::*;
