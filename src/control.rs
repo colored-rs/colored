@@ -327,7 +327,7 @@ mod specs {
             });
 
             ctx.specify("using a manual override", |ctx| {
-                ctx.it("shoud colorize if manual_override is true, but clicolor is false and clicolor_force also false", |()| {
+                ctx.it("should colorize if manual_override is true, but clicolor is false and clicolor_force also false", |()| {
                     let colorize_control = ShouldColorize {
                         clicolor: false,
                         clicolor_force: None,
