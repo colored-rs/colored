@@ -8,7 +8,7 @@
 //!    "this is also red on blue".on_blue().red();
 //!    "you can use truecolor values too!".truecolor(0, 255, 136);
 //!    "background truecolor also works :)".on_truecolor(135, 28, 167);
-//!    "you can also make bold comments".bold();
+//!    "you can also make bold text".bold();
 //!    println!("{} {} {}", "or use".cyan(), "any".italic().yellow(), "string type".cyan());
 //!    "or change advice. This is red".yellow().blue().red();
 //!    "or clear things up. This is default color and style".red().bold().clear();
@@ -25,7 +25,7 @@
 //!
 //! Note: The methods of [`Colorize`], when used on [`str`]'s, return
 //! [`ColoredString`]'s. See [`ColoredString`] to learn more about them and
-//! what you can do with them beyond continue to use [`Colorize`] to further
+//! what you can do with them beyond continuing to use [`Colorize`] to further
 //! modify them.
 #![warn(missing_docs)]
 
@@ -61,7 +61,7 @@ pub use style::{Style, Styles};
 /// [`Colorize`] for more.
 ///
 /// The primary usage of `ColoredString`'s is as a way to take text,
-/// apply colors and miscillaneous styling to it (such as bold or
+/// apply colors and miscellaneous styling to it (such as bold or
 /// underline), and then use it to create formatted strings that print
 /// to the console with the special styling applied.
 ///

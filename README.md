@@ -14,7 +14,7 @@ Coloring terminal so simple, you already know how to do it!
     "truecolor from tuple".custom_color((0, 255, 136));
     "background truecolor from tuple".on_custom_color((0, 255, 136));
     "bright colors are welcome as well".on_bright_blue().bright_red();
-    "you can also make bold comments".bold();
+    "you can also make bold text".bold();
     println!("{} {} {}", "or use".cyan(), "any".italic().yellow(), "string type".cyan());
     "or change advice. This is red".yellow().blue().red();
     "or clear things up. This is default color and style".red().bold().clear();
