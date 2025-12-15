@@ -207,7 +207,7 @@ pub enum Styles {
 }
 
 impl Styles {
-    fn to_str<'a>(self) -> &'a str {
+    const fn to_str<'a>(self) -> &'a str {
         match self {
             Self::Clear => "", // unreachable, but we don't want to panic
             Self::Bold => "1",
@@ -221,7 +221,7 @@ impl Styles {
         }
     }
 
-    fn to_u8(self) -> u8 {
+    const fn to_u8(self) -> u8 {
         match self {
             Self::Clear => CLEARV,
             Self::Bold => BOLD,
@@ -242,9 +242,10 @@ impl Styles {
 
         let res: Vec<Self> = STYLES
             .iter()
-            .filter(|&(mask, _)| (0 != (u & mask)))
+            .filter(|&(mask, _)| 0 != (u & mask))
             .map(|&(_, value)| value)
             .collect();
+
         if res.is_empty() {
             None
         } else {

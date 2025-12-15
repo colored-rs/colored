@@ -385,7 +385,7 @@ impl ColoredString {
     }
 
     #[cfg(feature = "no-color")]
-    fn has_colors() -> bool {
+    const fn has_colors() -> bool {
         false
     }
 
