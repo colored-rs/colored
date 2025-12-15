@@ -395,24 +395,24 @@ impl ColoredString {
         }
 
         let mut res = String::from("\x1B[");
-        let mut has_wrote = if self.style == style::CLEAR {
+        let mut has_written = if self.style == style::CLEAR {
             false
         } else {
             res.push_str(&self.style.to_str());
             true
         };
 
-        if let Some(ref bgcolor) = self.bgcolor {
-            if has_wrote {
+        if let Some(bgcolor) = &self.bgcolor {
+            if has_written {
                 res.push(';');
             }
 
             res.push_str(&bgcolor.to_bg_str());
-            has_wrote = true;
+            has_written = true;
         }
 
-        if let Some(ref fgcolor) = self.fgcolor {
-            if has_wrote {
+        if let Some(fgcolor) = &self.fgcolor {
+            if has_written {
                 res.push(';');
             }
 
