@@ -3,6 +3,7 @@ use Color::{
     AnsiColor, Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta,
     BrightRed, BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, TrueColor, White, Yellow,
 };
+
 /// The 8 standard colors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(missing_docs)]
@@ -136,7 +137,7 @@ impl Color {
         }
     }
 
-    fn into_truecolor(self) -> Self {
+    const fn into_truecolor(self) -> Self {
         match self {
             Black => TrueColor { r: 0, g: 0, b: 0 },
             Red => TrueColor { r: 205, g: 0, b: 0 },
