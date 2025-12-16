@@ -201,7 +201,7 @@ pub trait Colorize: Sized {
     fn truecolor(self, r: u8, g: u8, b: u8) -> ColoredString {
         self.color(Color::TrueColor { r, g, b })
     }
-    fn custom_color<T: Into<CustomColor>>(self, color: T) -> ColoredString {
+    fn custom_color<C: Into<CustomColor>>(self, color: C) -> ColoredString {
         let color = color.into();
 
         self.color(Color::TrueColor {
@@ -210,10 +210,10 @@ pub trait Colorize: Sized {
             b: color.b,
         })
     }
-    fn ansi_color<T: Into<u8>>(self, color: T) -> ColoredString {
+    fn ansi_color<C: Into<u8>>(self, color: C) -> ColoredString {
         self.color(Color::AnsiColor(color.into()))
     }
-    fn color<S: Into<Color>>(self, color: S) -> ColoredString;
+    fn color<C: Into<Color>>(self, color: C) -> ColoredString;
 
     // Background Colors
     fn on_black(self) -> ColoredString {
@@ -273,7 +273,7 @@ pub trait Colorize: Sized {
     fn on_truecolor(self, r: u8, g: u8, b: u8) -> ColoredString {
         self.on_color(Color::TrueColor { r, g, b })
     }
-    fn on_custom_color<T: Into<CustomColor>>(self, color: T) -> ColoredString {
+    fn on_custom_color<C: Into<CustomColor>>(self, color: C) -> ColoredString {
         let color = color.into();
 
         self.on_color(Color::TrueColor {
@@ -282,10 +282,10 @@ pub trait Colorize: Sized {
             b: color.b,
         })
     }
-    fn on_ansi_color<T: Into<u8>>(self, color: T) -> ColoredString {
+    fn on_ansi_color<C: Into<u8>>(self, color: C) -> ColoredString {
         self.on_color(Color::AnsiColor(color.into()))
     }
-    fn on_color<T: Into<Color>>(self, color: T) -> ColoredString;
+    fn on_color<C: Into<Color>>(self, color: C) -> ColoredString;
 
     // Styles
     fn clear(self) -> ColoredString;
