@@ -1,28 +1,28 @@
 #![cfg(not(feature = "no-color"))]
 #![allow(unused_imports)]
 
-extern crate ansiterm;
 extern crate colored;
+extern crate nu_ansi_term;
 
-use ansiterm::*;
 use colored::*;
+use nu_ansi_term::*;
 
 macro_rules! test_simple_color {
-    ($string:expr, $colored_name:ident, $ansiterm_name:ident) => {
+    ($string:expr, $colored_name:ident, $nu_ansi_term_name:ident) => {
         #[test]
         fn $colored_name() {
             let s = format!("{} {}", $string, stringify!($colored_name));
             assert_eq!(
                 s.$colored_name().to_string(),
-                Colour::$ansiterm_name.paint(s).to_string()
+                nu_ansi_term::Color::$nu_ansi_term_name.paint(s).to_string()
             )
         }
     };
 }
 
 mod compat_colors {
-    use super::ansiterm::*;
     use super::colored::*;
+    use super::nu_ansi_term::*;
 
     test_simple_color!("test string", black, Black);
     test_simple_color!("test string", red, Red);
@@ -35,14 +35,14 @@ mod compat_colors {
 }
 
 macro_rules! test_simple_style {
-    ($string:expr, $colored_style:ident, $ansiterm_style:ident) => {
+    ($string:expr, $colored_style:ident, $nu_ansi_term_style:ident) => {
         #[test]
         fn $colored_style() {
             let s = format!("{} {}", $string, stringify!($colored_style));
             assert_eq!(
                 s.$colored_style().to_string(),
-                ansiterm::Style::new()
-                    .$ansiterm_style()
+                nu_ansi_term::Style::new()
+                    .$nu_ansi_term_style()
                     .paint(s)
                     .to_string()
             )
@@ -51,10 +51,10 @@ macro_rules! test_simple_style {
 }
 
 mod compat_styles {
-    use super::ansiterm;
-    use super::ansiterm::*;
     use super::colored;
     use super::colored::*;
+    use super::nu_ansi_term;
+    use super::nu_ansi_term::*;
 
     test_simple_style!("test string", bold, bold);
     test_simple_style!("test string", dimmed, dimmed);
@@ -66,14 +66,14 @@ mod compat_styles {
 }
 
 macro_rules! test_simple_bgcolor {
-    ($string:expr, $colored_name:ident, $ansiterm_name:ident) => {
+    ($string:expr, $colored_name:ident, $nu_ansi_term_name:ident) => {
         #[test]
         fn $colored_name() {
             let s = format!("{} {}", $string, stringify!($colored_name));
             assert_eq!(
                 s.$colored_name().to_string(),
-                ansiterm::Style::default()
-                    .on(ansiterm::Colour::$ansiterm_name)
+                nu_ansi_term::Style::default()
+                    .on(nu_ansi_term::Color::$nu_ansi_term_name)
                     .paint(s)
                     .to_string()
             )
@@ -82,10 +82,10 @@ macro_rules! test_simple_bgcolor {
 }
 
 mod compat_bgcolors {
-    use super::ansiterm;
-    use super::ansiterm::*;
     use super::colored;
     use super::colored::*;
+    use super::nu_ansi_term;
+    use super::nu_ansi_term::*;
 
     test_simple_bgcolor!("test string", on_black, Black);
     test_simple_bgcolor!("test string", on_red, Red);
@@ -98,15 +98,19 @@ mod compat_bgcolors {
 }
 
 mod compat_complex {
-    use super::ansiterm;
-    use super::ansiterm::*;
     use super::colored;
     use super::colored::*;
+    use super::nu_ansi_term;
+    use super::nu_ansi_term::*;
 
     #[test]
     fn complex1() {
         let s = "test string";
-        let ansi = Colour::Red.on(Colour::Black).bold().italic().paint(s);
+        let ansi = nu_ansi_term::Color::Red
+            .on(nu_ansi_term::Color::Black)
+            .bold()
+            .italic()
+            .paint(s);
         assert_eq!(
             ansi.to_string(),
             s.red().bold().italic().on_black().to_string()
@@ -116,7 +120,10 @@ mod compat_complex {
     #[test]
     fn complex2() {
         let s = "test string";
-        let ansi = Colour::Green.on(Colour::Yellow).underline().paint(s);
+        let ansi = nu_ansi_term::Color::Green
+            .on(nu_ansi_term::Color::Yellow)
+            .underline()
+            .paint(s);
         assert_eq!(
             ansi.to_string(),
             s.green().on_yellow().underline().to_string()
@@ -125,22 +132,27 @@ mod compat_complex {
 }
 
 mod compat_overrides {
-    use super::ansiterm;
-    use super::ansiterm::*;
     use super::colored;
     use super::colored::*;
+    use super::nu_ansi_term;
+    use super::nu_ansi_term::*;
 
     #[test]
     fn overrides1() {
         let s = "test string";
-        let ansi = Colour::Red.on(Colour::Black).on(Colour::Blue).paint(s);
+        let ansi = nu_ansi_term::Color::Red
+            .on(nu_ansi_term::Color::Black)
+            .on(nu_ansi_term::Color::Blue)
+            .paint(s);
         assert_eq!(ansi.to_string(), s.red().on_blue().to_string());
     }
 
     #[test]
     fn overrides2() {
         let s = "test string";
-        let ansi = Colour::Green.on(Colour::Yellow).paint(s);
+        let ansi = nu_ansi_term::Color::Green
+            .on(nu_ansi_term::Color::Yellow)
+            .paint(s);
         assert_eq!(
             ansi.to_string(),
             s.green().on_yellow().green().on_yellow().to_string()
