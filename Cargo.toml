@@ -8,7 +8,7 @@ license = "MPL-2.0"
 homepage = "https://github.com/mackwic/colored"
 repository = "https://github.com/mackwic/colored"
 readme = "README.md"
-keywords = ["color", "string", "term", "ansiterm", "ansi_term", "term-painter"]
+keywords = ["color", "string", "term", "ansi_term", "term-painter"]
 rust-version = "1.80"
 
 [features]
