@@ -212,6 +212,15 @@ impl From<String> for Color {
         src.parse().unwrap_or(Self::White)
     }
 }
+impl From<crate::CustomColor> for Color {
+    fn from(custom: crate::CustomColor) -> Self {
+        return Color::TrueColor {
+            r: custom.r,
+            g: custom.g,
+            b: custom.b,
+        };
+    }
+}
 
 impl FromStr for Color {
     type Err = ();
