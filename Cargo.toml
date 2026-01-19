@@ -21,8 +21,8 @@ version = ">=0.48,<=0.61"
 features = ["Win32_Foundation", "Win32_System_Console"]
 
 [dev-dependencies]
-ansiterm = "0.12"
 insta = "1"
+nu-ansi-term = "0.50"
 rspec = "1"
 
 [lints.rust]
