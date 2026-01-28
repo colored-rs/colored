@@ -209,7 +209,13 @@ pub enum Styles {
 impl Styles {
     const fn to_str<'a>(self) -> &'a str {
         match self {
-            Self::Clear => "", // unreachable, but we don't want to panic
+            Self::Clear => {
+                debug_assert!(
+                    false,
+                    "unreachable, but we don't want to panic in release mode"
+                );
+                ""
+            }
             Self::Bold => "1",
             Self::Dimmed => "2",
             Self::Italic => "3",
