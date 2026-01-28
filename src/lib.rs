@@ -37,6 +37,8 @@ pub mod control;
 mod error;
 mod style;
 
+use crate::style::CLEAR;
+
 pub use self::customcolors::CustomColor;
 
 /// Custom colors support.
@@ -350,19 +352,19 @@ impl ColoredString {
 
     /// Clears foreground coloring on this `ColoredString`, meaning that it
     /// will be printed with the default terminal text color.
-    pub fn clear_fgcolor(&mut self) {
+    pub const fn clear_fgcolor(&mut self) {
         self.fgcolor = None;
     }
 
     /// Gets rid of this `ColoredString`'s background.
-    pub fn clear_bgcolor(&mut self) {
+    pub const fn clear_bgcolor(&mut self) {
         self.bgcolor = None;
     }
 
     /// Clears any special styling and sets it back to the default (plain,
     /// maybe colored, text).
-    pub fn clear_style(&mut self) {
-        self.style = Style::default();
+    pub const fn clear_style(&mut self) {
+        self.style = CLEAR;
     }
 
     /// Checks if the colored string has no color or styling.
@@ -375,8 +377,8 @@ impl ColoredString {
     /// assert_eq!(cstr.is_plain(), true);
     /// ```
     #[must_use]
-    pub fn is_plain(&self) -> bool {
-        self.bgcolor.is_none() && self.fgcolor.is_none() && self.style == style::CLEAR
+    pub const fn is_plain(&self) -> bool {
+        self.bgcolor.is_none() && self.fgcolor.is_none() && matches!(self.style, style::CLEAR)
     }
 
     #[cfg(not(feature = "no-color"))]
