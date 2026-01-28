@@ -121,6 +121,7 @@ pub use style::{Style, Styles};
 /// Notice how this process preserves the coloring and style.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]
+#[must_use]
 pub struct ColoredString {
     /// The plain text that will have color and style applied to it.
     pub input: String,
