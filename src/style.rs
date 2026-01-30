@@ -72,7 +72,7 @@ static STYLES: [(u8, Styles); 8] = [
     (STRIKETHROUGH, Styles::Strikethrough),
 ];
 
-pub static CLEAR: Style = Style(CLEARV);
+pub const CLEAR: Style = Style(CLEARV);
 
 /// A combinatorial style such as bold, italics, dimmed, etc.
 ///
@@ -369,7 +369,7 @@ impl Style {
     /// assert!(cstr2.style.contains(Styles::Italic));
     /// assert_eq!(cstr2.fgcolor, Some(Color::Blue));
     /// ```
-    pub fn add(&mut self, two: Styles) {
+    pub const fn add(&mut self, two: Styles) {
         self.0 |= two.to_u8();
     }
 
@@ -386,62 +386,62 @@ impl Style {
     /// assert!(!cstr2.style.contains(Styles::Italic));
     /// assert_eq!(cstr2.fgcolor, Some(Color::Blue));
     /// ```
-    pub fn remove(&mut self, two: Styles) {
+    pub const fn remove(&mut self, two: Styles) {
         self.0 &= !two.to_u8();
     }
 
     /// Makes this `Style` include Bold.
     #[must_use]
-    pub fn bold(mut self) -> Self {
+    pub const fn bold(mut self) -> Self {
         self.add(Styles::Bold);
         self
     }
 
     /// Makes this `Style` include Dimmed.
     #[must_use]
-    pub fn dimmed(mut self) -> Self {
+    pub const fn dimmed(mut self) -> Self {
         self.add(Styles::Dimmed);
         self
     }
 
     /// Makes this `Style` include Underline.
     #[must_use]
-    pub fn underline(mut self) -> Self {
+    pub const fn underline(mut self) -> Self {
         self.add(Styles::Underline);
         self
     }
 
     /// Makes this `Style` include Reversed.
     #[must_use]
-    pub fn reversed(mut self) -> Self {
+    pub const fn reversed(mut self) -> Self {
         self.add(Styles::Reversed);
         self
     }
 
     /// Makes this `Style` include Italic.
     #[must_use]
-    pub fn italic(mut self) -> Self {
+    pub const fn italic(mut self) -> Self {
         self.add(Styles::Italic);
         self
     }
 
     /// Makes this `Style` include Blink.
     #[must_use]
-    pub fn blink(mut self) -> Self {
+    pub const fn blink(mut self) -> Self {
         self.add(Styles::Blink);
         self
     }
 
     /// Makes this `Style` include Hidden.
     #[must_use]
-    pub fn hidden(mut self) -> Self {
+    pub const fn hidden(mut self) -> Self {
         self.add(Styles::Hidden);
         self
     }
 
     /// Makes this `Style` include Strikethrough.
     #[must_use]
-    pub fn strikethrough(mut self) -> Self {
+    pub const fn strikethrough(mut self) -> Self {
         self.add(Styles::Strikethrough);
         self
     }
