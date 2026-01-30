@@ -142,7 +142,7 @@ pub static CLEAR: Style = Style(CLEARV);
 ///
 /// // Oops! Some of those should not be in there!
 /// // This Style now has all styles _except_ the two we don't want
-/// // (hidden and strikethough).
+/// // (hidden and strikethrough).
 /// let remove_mask =
 ///     !Style::from_iter([Styles::Hidden, Styles::Strikethrough]);
 /// very_loud_style &= remove_mask;
