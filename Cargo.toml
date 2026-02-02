@@ -14,7 +14,7 @@ rust-version = "1.80"
 [features]
 # with this feature, no color will ever be written
 no-color = []
-
+past-formatter = []
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 version = ">=0.48,<=0.61"
