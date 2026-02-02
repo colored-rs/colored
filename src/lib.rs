@@ -42,6 +42,9 @@ pub use self::customcolors::CustomColor;
 /// Custom colors support.
 pub mod customcolors;
 
+mod formatters;
+pub use formatters::Colorist;
+
 pub use color::*;
 
 use std::{
