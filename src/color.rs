@@ -218,7 +218,6 @@ impl FromStr for Color {
 
     fn from_str(src: &str) -> Result<Self, Self::Err> {
         let src = src.to_lowercase();
-
         match src.as_ref() {
             "black" => Ok(Self::Black),
             "red" => Ok(Self::Red),
@@ -243,17 +242,24 @@ impl FromStr for Color {
 }
 
 fn parse_hex(s: &str) -> Option<Color> {
+    let s_byte = s.as_bytes();
     if s.len() == 6 {
-        let r = u8::from_str_radix(&s[0..2], 16).ok()?;
-        let g = u8::from_str_radix(&s[2..4], 16).ok()?;
-        let b = u8::from_str_radix(&s[4..6], 16).ok()?;
+        let r_str = str::from_utf8(&s_byte[0..2]).ok()?;
+        let g_str = str::from_utf8(&s_byte[2..4]).ok()?;
+        let b_str = str::from_utf8(&s_byte[4..6]).ok()?;
+        let r = u8::from_str_radix(r_str, 16).ok()?;
+        let g = u8::from_str_radix(g_str, 16).ok()?;
+        let b = u8::from_str_radix(b_str, 16).ok()?;
         Some(Color::TrueColor { r, g, b })
     } else if s.len() == 3 {
-        let r = u8::from_str_radix(&s[0..1], 16).ok()?;
+        let r_str = str::from_utf8(&s_byte[0..1]).ok()?;
+        let g_str = str::from_utf8(&s_byte[1..2]).ok()?;
+        let b_str = str::from_utf8(&s_byte[2..3]).ok()?;
+        let r = u8::from_str_radix(r_str, 16).ok()?;
         let r = r | (r << 4);
-        let g = u8::from_str_radix(&s[1..2], 16).ok()?;
+        let g = u8::from_str_radix(g_str, 16).ok()?;
         let g = g | (g << 4);
-        let b = u8::from_str_radix(&s[2..3], 16).ok()?;
+        let b = u8::from_str_radix(b_str, 16).ok()?;
         let b = b | (b << 4);
         Some(Color::TrueColor { r, g, b })
     } else {
@@ -312,7 +318,10 @@ mod tests {
             hex6_mixed: "#aBcDeF" => Color::TrueColor { r: 171, g: 205, b: 239 },
             hex_too_short: "#aa" => Color::White,
             hex_too_long: "#aaabbbccc" => Color::White,
-            hex_invalid: "#abcxyz" => Color::White
+            hex_invalid: "#abcxyz" => Color::White,
+
+            non_ascii_invalid_0: "#éa" => Color::White,
+            non_ascii_invalid_1: "#€abc" => Color::White
         );
     }
 
