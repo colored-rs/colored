@@ -29,9 +29,6 @@
 //! modify them.
 #![warn(missing_docs)]
 
-#[cfg(test)]
-extern crate rspec;
-
 mod color;
 pub mod control;
 mod error;
