@@ -46,6 +46,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      # Resolve against package.rust-version with modern Cargo, then compile with the MSRV.
+      - name: Install Cargo with MSRV-aware resolution
+        if: matrix.version == '1.80'
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      - name: Resolve MSRV-compatible test dependencies
+        if: matrix.version == '1.80'
+        run: cargo +stable generate-lockfile
+        env:
+          CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: fallback
       - name: Install Rust ${{ matrix.version }}
         uses: dtolnay/rust-toolchain@master
         with:
@@ -62,3 +71,18 @@ jobs:
         uses: actions/checkout@v4
       - name: Check semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
+
+  loom:
+    name: Loom override model
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: stable
+      - name: Check override interleavings
+        run: cargo test --lib control::loom_tests --release
+        env:
+          RUSTFLAGS: --cfg loom

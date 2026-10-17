@@ -1,9 +1,12 @@
 //! A couple of functions to enable and disable coloring.
 
+#[cfg(all(test, loom))]
+use loom::sync::atomic::{AtomicU8, Ordering};
 use std::default::Default;
 use std::env;
 use std::io::{self, IsTerminal};
-use std::sync::atomic::{AtomicBool, Ordering};
+#[cfg(not(all(test, loom)))]
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::LazyLock;
 
 /// Sets a flag to the console to use a virtual terminal environment.
@@ -65,10 +68,13 @@ pub fn set_virtual_terminal(use_virtual: bool) -> Result<(), ()> {
 pub struct ShouldColorize {
     clicolor: bool,
     clicolor_force: Option<bool>,
-    // XXX we can't use Option<Atomic> because we can't use &mut references to ShouldColorize
-    has_manual_override: AtomicBool,
-    manual_override: AtomicBool,
+    // Publish the override flag and value together so readers cannot observe a torn state.
+    manual_override: AtomicU8,
 }
+
+const NO_OVERRIDE: u8 = 0;
+const FORCE_OFF: u8 = 1;
+const FORCE_ON: u8 = 2;
 
 /// Use this to force colored to ignore the environment and always/never colorize
 /// See example/control.rs
@@ -90,8 +96,7 @@ impl Default for ShouldColorize {
         Self {
             clicolor: true,
             clicolor_force: None,
-            has_manual_override: AtomicBool::new(false),
-            manual_override: AtomicBool::new(false),
+            manual_override: AtomicU8::new(NO_OVERRIDE),
         }
     }
 }
@@ -116,8 +121,10 @@ impl ShouldColorize {
 
     /// Returns if the current coloring is expected.
     pub fn should_colorize(&self) -> bool {
-        if self.has_manual_override.load(Ordering::Relaxed) {
-            return self.manual_override.load(Ordering::Relaxed);
+        match self.manual_override.load(Ordering::Relaxed) {
+            FORCE_OFF => return false,
+            FORCE_ON => return true,
+            _ => {}
         }
 
         if let Some(forced_value) = self.clicolor_force {
@@ -129,14 +136,19 @@ impl ShouldColorize {
 
     /// Use this to force colored to ignore the environment and always/never colorize
     pub fn set_override(&self, override_colorize: bool) {
-        self.has_manual_override.store(true, Ordering::Relaxed);
-        self.manual_override
-            .store(override_colorize, Ordering::Relaxed);
+        self.manual_override.store(
+            if override_colorize {
+                FORCE_ON
+            } else {
+                FORCE_OFF
+            },
+            Ordering::Relaxed,
+        );
     }
 
     /// Remove the manual override and let the environment decide if it's ok to colorize
     pub fn unset_override(&self) {
-        self.has_manual_override.store(false, Ordering::Relaxed);
+        self.manual_override.store(NO_OVERRIDE, Ordering::Relaxed);
     }
 
     /* private */
@@ -159,11 +171,38 @@ impl ShouldColorize {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(loom)))]
 mod specs {
     use super::*;
     use rspec;
     use std::env;
+
+    #[test]
+    fn override_transitions_restore_environment_decision() {
+        for (clicolor, clicolor_force, expected) in [
+            (false, None, false),
+            (true, None, true),
+            (false, Some(false), false),
+            (true, Some(false), false),
+            (false, Some(true), true),
+            (true, Some(true), true),
+        ] {
+            let control = ShouldColorize {
+                clicolor,
+                clicolor_force,
+                ..ShouldColorize::default()
+            };
+            assert_eq!(control.should_colorize(), expected);
+            for overridden in [true, false, true] {
+                control.set_override(overridden);
+                assert_eq!(control.should_colorize(), overridden);
+            }
+            control.unset_override();
+            assert_eq!(control.should_colorize(), expected);
+            control.unset_override();
+            assert_eq!(control.should_colorize(), expected);
+        }
+    }
 
     #[test]
     fn clicolor_behavior() {
@@ -331,19 +370,17 @@ mod specs {
                     let colorize_control = ShouldColorize {
                         clicolor: false,
                         clicolor_force: None,
-                        has_manual_override: AtomicBool::new(true),
-                        manual_override: AtomicBool::new(true),
+                        manual_override: AtomicU8::new(FORCE_ON),
                     };
 
-                    colorize_control.should_colorize();
+                    assert!(colorize_control.should_colorize());
                 });
 
                 ctx.it("should not colorize if manual_override is false, but clicolor is true or clicolor_force is true", |()| {
                     let colorize_control = ShouldColorize {
                         clicolor: true,
                         clicolor_force: Some(true),
-                        has_manual_override: AtomicBool::new(true),
-                        manual_override: AtomicBool::new(false),
+                        manual_override: AtomicU8::new(FORCE_OFF),
                     };
 
                     !colorize_control.should_colorize()
@@ -360,15 +397,11 @@ mod specs {
                     let colorize_control = ShouldColorize::default();
                     colorize_control.set_override(true);
                     {
-                        assert!(colorize_control.has_manual_override.load(Ordering::Relaxed));
-                        let val = colorize_control.manual_override.load(Ordering::Relaxed);
-                        assert!(val);
+                        assert!(colorize_control.should_colorize());
                     }
                     colorize_control.set_override(false);
                     {
-                        assert!(colorize_control.has_manual_override.load(Ordering::Relaxed));
-                        let val = colorize_control.manual_override.load(Ordering::Relaxed);
-                        assert!(!val);
+                        assert!(!colorize_control.should_colorize());
                     }
                 });
             });
@@ -381,11 +414,56 @@ mod specs {
 
                 ctx.it("unset the manual_override property", |()| {
                     let colorize_control = ShouldColorize::default();
-                    colorize_control.set_override(true);
+                    colorize_control.set_override(false);
+                    assert!(!colorize_control.should_colorize());
                     colorize_control.unset_override();
-                    assert!(!colorize_control.has_manual_override.load(Ordering::Relaxed));
+                    assert!(colorize_control.should_colorize());
                 });
             });
         }));
+    }
+}
+
+#[cfg(all(test, loom))]
+mod loom_tests {
+    use super::ShouldColorize;
+    use loom::{sync::Arc, thread};
+
+    fn check_override(expected: bool) {
+        for concurrent_unset in [false, true] {
+            loom::model(move || {
+                let control = Arc::new(ShouldColorize {
+                    clicolor: expected,
+                    ..ShouldColorize::default()
+                });
+                control.set_override(!expected);
+                control.unset_override();
+
+                let writer_control = Arc::clone(&control);
+                let writer = thread::spawn(move || writer_control.set_override(expected));
+                let unsetter = concurrent_unset.then(|| {
+                    let control = Arc::clone(&control);
+                    thread::spawn(move || control.unset_override())
+                });
+
+                // Both automatic and overridden states have the same color decision.
+                assert_eq!(control.should_colorize(), expected);
+                writer.join().unwrap();
+                if let Some(unsetter) = unsetter {
+                    unsetter.join().unwrap();
+                }
+                assert_eq!(control.should_colorize(), expected);
+            });
+        }
+    }
+
+    #[test]
+    fn enabling_override_does_not_publish_stale_value() {
+        check_override(true);
+    }
+
+    #[test]
+    fn disabling_override_does_not_publish_stale_value() {
+        check_override(false);
     }
 }

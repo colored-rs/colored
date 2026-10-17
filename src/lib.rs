@@ -446,11 +446,10 @@ impl ColoredString {
         for (idx_in_matches, offset) in matches.into_iter().enumerate() {
             // shift the offset to the end of the reset sequence and take in account
             // the number of matches we have escaped (which shift the index to insert)
-            let mut offset = offset + reset.len() + idx_in_matches * style.len();
+            let offset = offset + reset.len() + idx_in_matches * style.len();
 
-            for cchar in style.chars() {
-                input.insert(offset, cchar);
-                offset += 1;
+            for (index, cchar) in style.chars().enumerate() {
+                input.insert(offset + index, cchar);
             }
         }
 

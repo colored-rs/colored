@@ -25,7 +25,11 @@ ansiterm = "0.12"
 insta = "1"
 rspec = "1"
 
+[target.'cfg(loom)'.dev-dependencies]
+loom = "0.7"
+
 [lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(loom)'] }
 unsafe_code = "warn"
 deprecated = "warn"
 
